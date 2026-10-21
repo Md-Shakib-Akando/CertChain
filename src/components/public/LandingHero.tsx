@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import Link from 'next/link';
 import Image from 'next/image';
 import hero4Image from '../../../public/images/hero4.png';
 import {
@@ -8,7 +9,9 @@ import {
   QrCode,
   Link as LinkIcon,
   ArrowRight,
+  LayoutDashboard,
 } from 'lucide-react';
+import { useAuthSession } from '@/lib/authSession';
 
 interface LandingHeroProps {
   onStartVerify: () => void;
@@ -19,6 +22,8 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   onStartVerify,
   onLearnMore,
 }) => {
+  const { isLoggedIn, user } = useAuthSession();
+  const dashboardUrl = user?.role === 'student' ? '/dashboard/student' : '/admin/requests';
   return (
     <section
       id="hero"
@@ -149,10 +154,21 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
           {/* Left Column: Heading, Subtext, Badges & CTAs (Exact Original Size & Width) */}
           <div className="lg:col-span-7 space-y-6">
             {/* Top Pill Tag */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/70 border border-blue-500/30 shadow-inner">
-              <span className="text-[11px] sm:text-xs font-bold tracking-widest text-sky-400 uppercase">
-                Blockchain-Powered Academic Credentials
-              </span>
+            <div className="flex flex-wrap items-center gap-2.5">
+              <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-blue-950/70 border border-blue-500/30 shadow-inner">
+                <span className="text-[11px] sm:text-xs font-bold tracking-widest text-sky-400 uppercase">
+                  Blockchain-Powered Academic Credentials
+                </span>
+              </div>
+              {isLoggedIn && (
+                <Link
+                  href={dashboardUrl}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-blue-900/40 border border-blue-400/40 text-[11px] text-blue-200 font-semibold hover:bg-blue-900/60 transition-colors"
+                >
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                  <span>Welcome back, {user?.name || 'Student'}</span>
+                </Link>
+              )}
             </div>
 
             {/* Main Headline */}
@@ -200,12 +216,29 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
 
             {/* Action Buttons */}
             <div className="pt-4 flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5">
+              {isLoggedIn && (
+                <Link
+                  href={dashboardUrl}
+                  className="px-7 py-3.5 rounded-lg bg-[#2563EB] hover:bg-blue-600 text-white font-semibold text-sm sm:text-base transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2 group active:scale-95"
+                >
+                  <LayoutDashboard className="w-4 h-4 text-white" />
+                  <span>Go to Dashboard</span>
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                </Link>
+              )}
+
               <button
                 onClick={onStartVerify}
-                className="px-7 py-3.5 rounded-lg bg-[#2563EB] hover:bg-blue-600 text-white font-semibold text-sm sm:text-base transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2 group active:scale-95"
+                className={
+                  isLoggedIn
+                    ? "px-6 py-3.5 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-white border border-slate-700 font-semibold text-sm sm:text-base transition-colors flex items-center justify-center gap-2 cursor-pointer"
+                    : "px-7 py-3.5 rounded-lg bg-[#2563EB] hover:bg-blue-600 text-white font-semibold text-sm sm:text-base transition-all shadow-xl shadow-blue-600/30 flex items-center justify-center gap-2 group active:scale-95 cursor-pointer"
+                }
               >
                 <span>Verify Certificate</span>
-                <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                {!isLoggedIn && (
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                )}
               </button>
 
               <button
@@ -217,7 +250,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
                     el?.scrollIntoView({ behavior: 'smooth' });
                   }
                 }}
-                className="px-6 py-3.5 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-white border border-slate-700 font-semibold text-sm sm:text-base transition-colors flex items-center justify-center"
+                className="px-6 py-3.5 rounded-lg bg-slate-900/60 hover:bg-slate-800 text-white border border-slate-700 font-semibold text-sm sm:text-base transition-colors flex items-center justify-center cursor-pointer"
               >
                 Learn More
               </button>
