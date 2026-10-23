@@ -38,7 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
       ? '/dashboard/student'
       : effectiveRole === 'admin' || effectiveRole === 'super_admin'
       ? '/admin/dashboard'
-      : '/admin/requests';
+      : '/dashboard/controller';
 
   // Close dropdown on click outside or Escape
   useEffect(() => {

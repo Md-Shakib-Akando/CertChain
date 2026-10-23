@@ -2,8 +2,6 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { AuditLog } from '@/models/AuditLog';
 
-export const dynamic = 'force-dynamic';
-
 // GET /api/admin/audit-logs
 export async function GET(request: Request) {
   try {

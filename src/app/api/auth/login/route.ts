@@ -70,9 +70,9 @@ export async function POST(request: Request) {
     if (user.role === 'admin' || user.role === 'super_admin') {
       redirectUrl = '/admin/dashboard';
     } else if (user.role === 'controller') {
-      redirectUrl = '/admin/requests';
+      redirectUrl = '/dashboard/controller';
     } else if (user.role === 'issuer') {
-      redirectUrl = '/admin/requests';
+      redirectUrl = '/dashboard/controller';
     } else if (user.role === 'student') {
       redirectUrl = '/dashboard/student';
     }

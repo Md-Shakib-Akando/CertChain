@@ -28,7 +28,7 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
       ? '/dashboard/student'
       : user?.role === 'admin' || user?.role === 'super_admin'
       ? '/admin/dashboard'
-      : '/admin/requests';
+      : '/dashboard/controller';
   return (
     <section
       id="hero"

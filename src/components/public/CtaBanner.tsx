@@ -10,7 +10,7 @@ export const CtaBanner: React.FC = () => {
       ? '/dashboard/student'
       : user?.role === 'admin' || user?.role === 'super_admin'
       ? '/admin/dashboard'
-      : '/admin/requests';
+      : '/dashboard/controller';
 
   const handleVerifyClick = () => {
     const el = document.getElementById('verify');
