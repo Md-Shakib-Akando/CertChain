@@ -14,6 +14,7 @@ import {
   ArrowRight,
   ShieldAlert,
 } from 'lucide-react';
+import { saveSessionUser } from '@/lib/authSession';
 
 interface LoginFormProps {
   onGoToRegister?: () => void;
@@ -36,18 +37,21 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     message: string;
   } | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const [redirectDestination, setRedirectDestination] = useState<string | null>(null);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
     setFeedback(null);
+    setRedirectDestination(null);
 
     if (!email.trim()) {
-      setErrorMessage('Please enter your university email address.');
+      setErrorMessage('Please enter your email address.');
       return;
     }
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email.trim())) {
-      setErrorMessage('Please enter a valid email format (e.g. name@pub.edu).');
+      setErrorMessage('Please enter a valid email format (e.g. name@gmail.com or name@pub.edu).');
       return;
     }
     if (!password) {
@@ -57,42 +61,63 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
     setIsLoading(true);
 
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password }),
+      });
+      const data = await res.json();
       setIsLoading(false);
-      const cleanEmail = email.trim().toLowerCase();
 
-      if (cleanEmail.includes('pending')) {
-        setFeedback({
-          type: 'warning',
-          title: 'Access Request Pending',
-          message: 'Your staff account is awaiting approval by the Controller of Examinations. Request Reference: REQ-PUB-2026-8942.',
-        });
-      } else if (cleanEmail.includes('student')) {
-        setFeedback({
-          type: 'success',
-          title: 'Welcome, Student',
-          message: 'Successfully verified student credentials. Entering academic portal...',
-        });
-      } else if (cleanEmail.includes('issuer') || cleanEmail.includes('staff')) {
-        setFeedback({
-          type: 'success',
-          title: 'Welcome, Authorized Staff',
-          message: 'Authorized university staff validated. Directing to Certificate Issuance Desk...',
-        });
-      } else if (cleanEmail.includes('controller') || cleanEmail.includes('admin')) {
-        setFeedback({
-          type: 'success',
-          title: 'Welcome, Controller of Examinations',
-          message: 'Controller administrative privileges authenticated with smart contract key.',
-        });
-      } else {
-        setFeedback({
-          type: 'success',
-          title: 'Authentication Successful',
-          message: 'Signing in to PUB CertChain secure network...',
-        });
+      if (!res.ok) {
+        if (data.isPending) {
+          setFeedback({
+            type: 'warning',
+            title: 'Access Request Pending',
+            message: data.error || 'Your staff account is awaiting approval by the Controller of Examinations.',
+          });
+        } else {
+          setErrorMessage(data.error || 'Login failed. Please check your credentials.');
+        }
+        return;
       }
-    }, 700);
+
+      // Successful login
+      const user = data.user;
+      saveSessionUser(user);
+      let title = `Welcome, ${user.name}`;
+      let message = 'Signing in to PUB CertChain secure network...';
+
+      if (user.role === 'controller' || user.role === 'admin') {
+        title = `Welcome, Controller / Super Admin`;
+        message = `Super Admin privileges authenticated. Redirecting to Controller Desk...`;
+      } else if (user.role === 'issuer') {
+        title = `Welcome, Authorized Staff`;
+        message = `Authorized staff account verified. Redirecting to Controller Desk...`;
+      } else if (user.role === 'student') {
+        title = `Welcome, Student`;
+        message = `Student credentials validated. Entering student portal...`;
+      }
+
+      setFeedback({
+        type: 'success',
+        title,
+        message,
+      });
+
+      setRedirectDestination(data.redirectUrl || '/');
+
+      // Auto redirect after 1.2s
+      if (typeof window !== 'undefined' && data.redirectUrl) {
+        setTimeout(() => {
+          window.location.href = data.redirectUrl;
+        }, 1200);
+      }
+    } catch {
+      setIsLoading(false);
+      setErrorMessage('Network error: Could not connect to authentication server.');
+    }
   };
 
   return (
@@ -129,9 +154,18 @@ export const LoginForm: React.FC<LoginFormProps> = ({
           ) : (
             <CheckCircle2 className="w-5 h-5 text-emerald-600 shrink-0 mt-0.5" />
           )}
-          <div>
+          <div className="flex-1">
             <p className="font-bold">{feedback.title}</p>
             <p className="text-xs opacity-90 leading-relaxed mt-0.5">{feedback.message}</p>
+            {redirectDestination && (
+              <Link
+                href={redirectDestination}
+                className="inline-flex items-center gap-1.5 mt-2.5 px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold transition-all shadow-xs"
+              >
+                <span>Proceed to Portal Now</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            )}
           </div>
         </div>
       )}

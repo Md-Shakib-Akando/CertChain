@@ -1,0 +1,108 @@
+import { NextResponse } from 'next/server';
+import bcrypt from 'bcryptjs';
+import { connectDB } from '@/lib/mongodb';
+import { User } from '@/models/User';
+
+// POST /api/auth/login
+export async function POST(request: Request) {
+  try {
+    const body = await request.json();
+    const { email, password } = body;
+
+    if (!email?.trim() || !password) {
+      return NextResponse.json(
+        { error: 'Email and password are required.' },
+        { status: 400 }
+      );
+    }
+
+    await connectDB();
+
+    const normalizedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: normalizedEmail });
+
+    if (!user) {
+      return NextResponse.json(
+        { error: 'No account found with this email address.' },
+        { status: 401 }
+      );
+    }
+
+    const isMatch = await bcrypt.compare(password, user.passwordHash);
+    if (!isMatch) {
+      return NextResponse.json(
+        { error: 'Invalid password. Please check your credentials.' },
+        { status: 401 }
+      );
+    }
+
+    // Check if staff issuer account is still pending
+    if (user.role === 'issuer' && user.status === 'pending') {
+      return NextResponse.json(
+        {
+          success: false,
+          isPending: true,
+          error: `Your staff account request (${user.requestId || 'Pending'}) is awaiting Controller verification and Smart Contract authorization.`,
+          user: {
+            name: user.name,
+            email: user.email,
+            role: user.role,
+            status: user.status,
+            requestId: user.requestId,
+          },
+        },
+        { status: 403 }
+      );
+    }
+
+    // Determine redirect destination based on role
+    let redirectUrl = '/dashboard/student';
+    if (user.role === 'controller' || user.role === 'admin') {
+      redirectUrl = '/admin/requests';
+    } else if (user.role === 'issuer') {
+      redirectUrl = '/admin/requests';
+    } else if (user.role === 'student') {
+      redirectUrl = '/dashboard/student';
+    }
+
+    const userData = {
+      id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      status: user.status,
+      department: user.department,
+      walletAddress: user.walletAddress,
+      studentId: user.studentId,
+      employeeId: user.employeeId,
+    };
+
+    const response = NextResponse.json(
+      {
+        success: true,
+        message: `Welcome back, ${user.name}!`,
+        user: userData,
+        redirectUrl,
+      },
+      { status: 200 }
+    );
+
+    response.cookies.set({
+      name: 'certchain_user',
+      value: JSON.stringify(userData),
+      path: '/',
+      maxAge: 60 * 60 * 24 * 7, // 7 days
+      sameSite: 'lax',
+    });
+
+    return response;
+  } catch (error) {
+    console.error('Login authentication error:', error);
+    return NextResponse.json(
+      {
+        error: error instanceof Error ? error.message : 'Authentication service error.',
+      },
+      { status: 500 }
+    );
+  }
+}
