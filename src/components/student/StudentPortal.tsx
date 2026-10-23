@@ -1,7 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import React from 'react';
 import {
   Award,
   Share2,
@@ -11,21 +10,7 @@ import {
   LayoutDashboard,
   Loader2,
 } from 'lucide-react';
-import {
-  saveSessionUser,
-  clearSessionUser,
-  getStoredSessionUser,
-} from '@/lib/authSession';
-import {
-  StudentCertificate,
-  StudentShareLink,
-  StudentAuditEvent,
-  StudentProfileData,
-  initialStudentData,
-  initialCertificates,
-  initialShareLinks,
-  initialAuditLogs,
-} from './types';
+import { useStudentPortal } from './useStudentPortal';
 import { StudentDashboardView } from './StudentDashboardView';
 import { CertificatesListView } from './CertificatesListView';
 import { CertificateDetailModal } from './CertificateDetailModal';
@@ -37,148 +22,26 @@ import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 
 export const StudentPortal: React.FC = () => {
-  const router = useRouter();
-
-  // Active Tab
-  const [activeTab, setActiveTab] = useState<'dashboard' | 'certificates' | 'links' | 'activity' | 'profile'>('dashboard');
-
-  // Data states from MongoDB
-  const [profile, setProfile] = useState<StudentProfileData>(initialStudentData);
-  const [certificates, setCertificates] = useState<StudentCertificate[]>(initialCertificates);
-  const [shareLinks, setShareLinks] = useState<StudentShareLink[]>(initialShareLinks);
-  const [auditLogs, setAuditLogs] = useState<StudentAuditEvent[]>(initialAuditLogs);
-  const [isLoadingData, setIsLoadingData] = useState<boolean>(true);
-
-  // Modals state
-  const [selectedCertForDetail, setSelectedCertForDetail] = useState<StudentCertificate | null>(null);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [selectedCertForShare, setSelectedCertForShare] = useState<StudentCertificate | null>(null);
-
-  // Download feedback toast
-  const [toastMessage, setToastMessage] = useState<string | null>(null);
-
-  // Fetch real student profile & certificates from MongoDB database
-  useEffect(() => {
-    let isMounted = true;
-
-    async function loadStudentData() {
-      try {
-        setIsLoadingData(true);
-        const session = getStoredSessionUser();
-
-        // Build query string if session is available in localStorage
-        const params = new URLSearchParams();
-        if (session?.email) params.set('email', session.email);
-        if (session?.studentId) params.set('studentId', session.studentId);
-        const queryString = params.toString() ? `?${params.toString()}` : '';
-
-        const res = await fetch(`/api/student/profile${queryString}`);
-        const data = await res.json();
-
-        if (!isMounted) return;
-
-        if (res.ok && data.success && data.profile) {
-          setProfile(data.profile);
-          setCertificates(data.certificates || []);
-          setShareLinks([]);
-
-          // Synchronize session storage with authentic database profile
-          saveSessionUser({
-            id: data.profile.id,
-            name: data.profile.name,
-            email: data.profile.email,
-            role: 'student',
-            studentId: data.profile.studentId,
-            department: data.profile.department,
-          });
-        } else if (res.status === 401 && !session) {
-          // If no active session exists, redirect to login
-          router.push('/login');
-        }
-      } catch (err) {
-        console.error('Failed to load student data from database:', err);
-      } finally {
-        if (isMounted) {
-          setIsLoadingData(false);
-        }
-      }
-    }
-
-    loadStudentData();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [router]);
-
-  const showToast = (msg: string) => {
-    setToastMessage(msg);
-    setTimeout(() => setToastMessage(null), 4000);
-  };
-
-  const handleLogout = () => {
-    clearSessionUser();
-    router.push('/login');
-  };
-
-  // Open share modal with optional preselected certificate
-  const handleOpenShareModal = (cert?: StudentCertificate) => {
-    setSelectedCertForShare(cert || certificates[0] || null);
-    setIsShareModalOpen(true);
-  };
-
-  // When a new share link is generated
-  const handleLinkCreated = (newLink: StudentShareLink) => {
-    setShareLinks((prev) => [newLink, ...prev]);
-
-    const newAuditEvent: StudentAuditEvent = {
-      id: `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
-      timestamp: 'Just now',
-      eventType: 'ShareLinkCreated',
-      title: 'Time-Limited Share Link Created',
-      description: `Generated ${newLink.expiryHours}h verification link for "${newLink.recipientLabel}".`,
-      certId: newLink.certId,
-      method: 'Share Link',
-    };
-    setAuditLogs((prev) => [newAuditEvent, ...prev]);
-    showToast(`Verification link generated for ${newLink.recipientLabel}!`);
-  };
-
-  // Cancel an active share link
-  const handleCancelLink = (linkId: string) => {
-    const targetLink = shareLinks.find((l) => l.id === linkId);
-    setShareLinks((prev) =>
-      prev.map((link) => (link.id === linkId ? { ...link, status: 'cancelled' } : link))
-    );
-
-    if (targetLink) {
-      const cancelAudit: StudentAuditEvent = {
-        id: `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
-        timestamp: 'Just now',
-        eventType: 'ShareLinkCancelled',
-        title: 'Share Link Cancelled by Student',
-        description: `Student revoked public access token for ${targetLink.recipientLabel} (${targetLink.certId}). URL rendered inactive.`,
-        certId: targetLink.certId,
-        method: 'Share Link',
-      };
-      setAuditLogs((prev) => [cancelAudit, ...prev]);
-      showToast('Share link cancelled. Public access stopped immediately.');
-    }
-  };
-
-  // PDF Download simulation
-  const handleDownloadPdf = (cert: StudentCertificate) => {
-    showToast(`Downloading official issued PDF for ${cert.id}`);
-
-    const element = document.createElement('a');
-    const fileContent = `PUB CertChain Official Issued Credential\nCertificate ID: ${cert.id}\nStudent Name: ${cert.studentName}\nStudent ID: ${cert.studentId}\nDegree: ${cert.degreeName}\nProgram: ${cert.program}\nIssue Date: ${cert.issueDate}\nStatus: ${cert.status.toUpperCase()}\nSHA-256 Fingerprint: ${cert.sha256Hash}\nTransaction Hash: ${cert.txHash}\nSmart Contract Issuer: ${cert.issuerAddress}\nNetwork: ${cert.network}\n`;
-    const file = new Blob([fileContent], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
-    element.download = `${cert.id}_OFFICIAL_${cert.status.toUpperCase()}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
-  };
+  const {
+    activeTab,
+    setActiveTab,
+    profile,
+    certificates,
+    shareLinks,
+    auditLogs,
+    isLoadingData,
+    selectedCertForDetail,
+    setSelectedCertForDetail,
+    isShareModalOpen,
+    setIsShareModalOpen,
+    selectedCertForShare,
+    toastMessage,
+    handleLogout,
+    handleOpenShareModal,
+    handleLinkCreated,
+    handleCancelLink,
+    handleDownloadPdf,
+  } = useStudentPortal();
 
   return (
     <div className="min-h-screen bg-[#F8FAFC] text-[#0B2545] flex flex-col font-sans">
@@ -201,24 +64,24 @@ export const StudentPortal: React.FC = () => {
         onLogout={handleLogout}
       />
 
-      {/* Tab Navigation Bar (Matches landing page clean light styling) */}
+      {/* Tab Navigation Bar */}
       <div className="bg-white border-b border-slate-200/90 shadow-2xs sticky top-20 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <nav className="flex space-x-2 sm:space-x-3 overflow-x-auto py-3 scrollbar-none">
               {[
-                { id: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
-                { id: 'certificates', label: 'My Certificates', icon: Award, count: certificates.length },
-                { id: 'links', label: 'Shared Links', icon: Share2, count: shareLinks.filter((l) => l.status === 'active').length },
-                { id: 'activity', label: 'Activity Log', icon: History },
-                { id: 'profile', label: 'Profile', icon: User },
+                { id: 'dashboard' as const, label: 'Dashboard', icon: LayoutDashboard },
+                { id: 'certificates' as const, label: 'My Certificates', icon: Award, count: certificates.length },
+                { id: 'links' as const, label: 'Shared Links', icon: Share2, count: shareLinks.filter((l) => l.status === 'active').length },
+                { id: 'activity' as const, label: 'Activity Log', icon: History },
+                { id: 'profile' as const, label: 'Profile', icon: User },
               ].map((tab) => {
                 const Icon = tab.icon;
                 const isActive = activeTab === tab.id;
                 return (
                   <button
                     key={tab.id}
-                    onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                    onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
                       isActive
                         ? 'bg-[#2563EB] text-white shadow-sm'
@@ -259,7 +122,7 @@ export const StudentPortal: React.FC = () => {
         {isLoadingData ? (
           <div className="bg-white rounded-2xl border border-slate-200/90 p-16 text-center shadow-xs flex flex-col items-center justify-center gap-3 animate-in fade-in duration-200">
             <Loader2 className="w-9 h-9 text-[#2563EB] animate-spin" />
-           
+            <span className="text-xs text-slate-500 font-medium">Loading student credentials...</span>
           </div>
         ) : (
           <>
@@ -305,11 +168,11 @@ export const StudentPortal: React.FC = () => {
         isOpen={Boolean(selectedCertForDetail)}
         onClose={() => setSelectedCertForDetail(null)}
         certificate={selectedCertForDetail}
-        onOpenShareModal={(cert: StudentCertificate) => {
+        onOpenShareModal={(cert) => {
           setSelectedCertForDetail(null);
           handleOpenShareModal(cert);
         }}
-        onDownloadPdf={(cert: StudentCertificate) => handleDownloadPdf(cert)}
+        onDownloadPdf={(cert) => handleDownloadPdf(cert)}
       />
 
       <ShareLinkModal

@@ -15,13 +15,7 @@ import {
   ShieldCheck,
   Calendar,
 } from 'lucide-react';
-import { StudentShareLink } from './types';
-
-interface ManageLinksViewProps {
-  shareLinks: StudentShareLink[];
-  onCancelLink: (linkId: string) => void;
-  onOpenShareModal: () => void;
-}
+import { StudentShareLink, ManageLinksViewProps } from './types';
 
 export const ManageLinksView: React.FC<ManageLinksViewProps> = ({
   shareLinks,

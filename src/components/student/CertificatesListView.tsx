@@ -13,14 +13,7 @@ import {
   Calendar,
   ArrowUpDown,
 } from 'lucide-react';
-import { StudentCertificate } from './types';
-
-interface CertificatesListViewProps {
-  certificates: StudentCertificate[];
-  onOpenCertificateDetail: (cert: StudentCertificate) => void;
-  onOpenShareModal: (cert: StudentCertificate) => void;
-  onDownloadPdf: (cert: StudentCertificate) => void;
-}
+import { CertificatesListViewProps } from './types';
 
 export const CertificatesListView: React.FC<CertificatesListViewProps> = ({
   certificates,

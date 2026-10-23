@@ -18,15 +18,7 @@ import {
   History,
   CheckCircle2,
 } from 'lucide-react';
-import { StudentCertificate } from './types';
-
-interface CertificateDetailModalProps {
-  isOpen?: boolean;
-  certificate: StudentCertificate | null;
-  onClose: () => void;
-  onOpenShareModal: (cert: StudentCertificate) => void;
-  onDownloadPdf?: (cert: StudentCertificate) => void;
-}
+import { CertificateDetailModalProps } from './types';
 
 export const CertificateDetailModal: React.FC<CertificateDetailModalProps> = ({
   isOpen = true,

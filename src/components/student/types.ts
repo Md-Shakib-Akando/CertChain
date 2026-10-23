@@ -1,3 +1,5 @@
+export type StudentTab = 'dashboard' | 'certificates' | 'links' | 'activity' | 'profile';
+
 export interface StudentCertificate {
   id: string; // Unique ID, e.g. PUB-DEG-2026-000123
   type: 'Degree Certificate' | 'Provisional Certificate' | 'Academic Transcript';
@@ -65,6 +67,78 @@ export interface StudentProfileData {
   lastLoginTime: string;
 }
 
+export interface StudentDashboardViewProps {
+  profile: StudentProfileData;
+  certificates: StudentCertificate[];
+  shareLinks: StudentShareLink[];
+  auditLogs: StudentAuditEvent[];
+  onNavigateTab: (tab: StudentTab) => void;
+  onOpenCertificateDetail: (cert: StudentCertificate) => void;
+  onOpenShareModal: (cert?: StudentCertificate) => void;
+  onDownloadPdf: (cert: StudentCertificate) => void;
+}
+
+export interface CertificatesListViewProps {
+  certificates: StudentCertificate[];
+  onOpenCertificateDetail: (cert: StudentCertificate) => void;
+  onOpenShareModal: (cert: StudentCertificate) => void;
+  onDownloadPdf: (cert: StudentCertificate) => void;
+}
+
+export interface ManageLinksViewProps {
+  shareLinks: StudentShareLink[];
+  onCancelLink: (linkId: string) => void;
+  onOpenShareModal: () => void;
+}
+
+export interface StudentActivityLogViewProps {
+  auditLogs: StudentAuditEvent[];
+}
+
+export interface StudentProfileViewProps {
+  profile: StudentProfileData;
+}
+
+export interface CertificateDetailModalProps {
+  isOpen?: boolean;
+  certificate: StudentCertificate | null;
+  onClose: () => void;
+  onOpenShareModal: (cert: StudentCertificate) => void;
+  onDownloadPdf?: (cert: StudentCertificate) => void;
+}
+
+export interface ShareLinkModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  certificate: StudentCertificate | null;
+  certificatesList: StudentCertificate[];
+  onLinkCreated: (newLink: StudentShareLink) => void;
+}
+
+export interface UseStudentPortalReturn {
+  activeTab: StudentTab;
+  setActiveTab: (tab: StudentTab) => void;
+  profile: StudentProfileData;
+  certificates: StudentCertificate[];
+  shareLinks: StudentShareLink[];
+  auditLogs: StudentAuditEvent[];
+  isLoadingData: boolean;
+  selectedCertForDetail: StudentCertificate | null;
+  setSelectedCertForDetail: (cert: StudentCertificate | null) => void;
+  isShareModalOpen: boolean;
+  setIsShareModalOpen: (open: boolean) => void;
+  selectedCertForShare: StudentCertificate | null;
+  setSelectedCertForShare: (cert: StudentCertificate | null) => void;
+  toastMessage: string | null;
+  showToast: (msg: string) => void;
+  handleLogout: () => void;
+  handleOpenShareModal: (cert?: StudentCertificate) => void;
+  handleLinkCreated: (newLink: StudentShareLink) => void;
+  handleCancelLink: (linkId: string) => void;
+  handleDownloadPdf: (cert: StudentCertificate) => void;
+  loadStudentData: () => Promise<void>;
+}
+
 export const initialStudentData: StudentProfileData = {
   name: '',
   studentId: '',
@@ -83,4 +157,3 @@ export const initialStudentData: StudentProfileData = {
 export const initialCertificates: StudentCertificate[] = [];
 export const initialShareLinks: StudentShareLink[] = [];
 export const initialAuditLogs: StudentAuditEvent[] = [];
-

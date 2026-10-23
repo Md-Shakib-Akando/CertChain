@@ -15,18 +15,7 @@ import {
   FileCheck,
   ShieldCheck,
 } from 'lucide-react';
-import { StudentCertificate, StudentShareLink, StudentAuditEvent, StudentProfileData } from './types';
-
-interface StudentDashboardViewProps {
-  profile: StudentProfileData;
-  certificates: StudentCertificate[];
-  shareLinks: StudentShareLink[];
-  auditLogs: StudentAuditEvent[];
-  onNavigateTab: (tab: 'certificates' | 'links' | 'activity' | 'profile') => void;
-  onOpenCertificateDetail: (cert: StudentCertificate) => void;
-  onOpenShareModal: (cert?: StudentCertificate) => void;
-  onDownloadPdf: (cert: StudentCertificate) => void;
-}
+import { StudentDashboardViewProps } from './types';
 
 export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
   profile,

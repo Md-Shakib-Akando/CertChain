@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, Menu, X, LogIn, LogOut, LayoutDashboard, ChevronDown, User } from 'lucide-react';
+import { ShieldCheck, Menu, X, LogIn, LogOut, LayoutDashboard, ChevronDown } from 'lucide-react';
 import { useAuthSession, clearSessionUser } from '@/lib/authSession';
 
 export interface HeaderProps {

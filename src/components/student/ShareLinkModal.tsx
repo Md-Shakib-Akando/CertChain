@@ -18,15 +18,7 @@ import {
   Sparkles,
   ExternalLink,
 } from 'lucide-react';
-import { StudentCertificate, StudentShareLink } from './types';
-
-interface ShareLinkModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-  certificate: StudentCertificate | null;
-  certificatesList: StudentCertificate[];
-  onLinkCreated: (newLink: StudentShareLink) => void;
-}
+import { StudentShareLink, ShareLinkModalProps } from './types';
 
 export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
   isOpen,

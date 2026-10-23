@@ -1,4 +1,3 @@
-
 /**
  * Helper to match user-submitted student details against university official records
  * in the 'student-record' collection for ANY student.
@@ -48,11 +47,36 @@ function normalizeDepartment(str: string): string {
   return cleaned;
 }
 
-function normalizeName(str: string): string {
-  return cleanString(str)
-    .replace(/^md\.?\s*/i, '') // Resilient prefix handling for Bangladesh naming
-    .replace(/^mohammad\.?\s*/i, '')
-    .trim();
+function normalizeFullName(str: string): string {
+  return (str || '')
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, '') // Normalize punctuation like dots, e.g. "Md." -> "md"
+    .replace(/\s+/g, ' ');
+}
+
+/**
+ * Requires the FULL name to match the official record's full name.
+ * Partial names (e.g. "Shakib" or "Md. Shakib") are rejected.
+ */
+function isFullNameMatch(inputName: string, recordName: string): boolean {
+  const cleanInput = cleanString(inputName);
+  const cleanRecord = cleanString(recordName);
+
+  // 1. Direct exact match (case-insensitive & trimmed)
+  if (cleanInput && cleanRecord && cleanInput === cleanRecord) {
+    return true;
+  }
+
+  // 2. Normalized match (allows "Md." vs "Md" dot variations, but requires the FULL name)
+  const normInput = normalizeFullName(inputName);
+  const normRecord = normalizeFullName(recordName);
+
+  if (normInput && normRecord && normInput === normRecord) {
+    return true;
+  }
+
+  return false;
 }
 
 export function matchStudentRecord(
@@ -88,16 +112,8 @@ export function matchStudentRecord(
     return { isMatch: false };
   }
 
-  // 5. Verify Full Name
-  const normInputName = normalizeName(input.name);
-  const normRecordName = normalizeName(record.name);
-  const isNameExact = cleanString(input.name) === cleanString(record.name);
-  const isNameSub =
-    normRecordName.length > 0 &&
-    normInputName.length > 0 &&
-    (normRecordName.includes(normInputName) || normInputName.includes(normRecordName));
-
-  if (!isNameExact && !isNameSub) {
+  // 5. Verify Full Name (Must match the complete full name; partial names are rejected)
+  if (!isFullNameMatch(input.name, record.name)) {
     return { isMatch: false };
   }
 
