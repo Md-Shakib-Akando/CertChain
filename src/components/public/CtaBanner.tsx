@@ -5,7 +5,12 @@ import { useAuthSession } from '@/lib/authSession';
 
 export const CtaBanner: React.FC = () => {
   const { isLoggedIn, user } = useAuthSession();
-  const dashboardUrl = user?.role === 'student' ? '/dashboard/student' : '/admin/requests';
+  const dashboardUrl =
+    user?.role === 'student'
+      ? '/dashboard/student'
+      : user?.role === 'admin' || user?.role === 'super_admin'
+      ? '/admin/dashboard'
+      : '/admin/requests';
 
   const handleVerifyClick = () => {
     const el = document.getElementById('verify');

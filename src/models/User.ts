@@ -4,8 +4,8 @@ export interface IUser extends Document {
   name: string;
   email: string;
   passwordHash: string;
-  role: 'student' | 'issuer' | 'controller' | 'admin';
-  status: 'pending' | 'approved' | 'rejected' | 'active';
+  role: 'student' | 'issuer' | 'controller' | 'admin' | 'super_admin';
+  status: 'pending' | 'approved' | 'rejected' | 'active' | 'suspended';
   
   // Student-specific fields
   studentId?: string;
@@ -34,6 +34,10 @@ export interface IUser extends Document {
   approvedAt?: Date;
   rejectionReason?: string;
   
+  // Invitation & password setup
+  invitationToken?: string;
+  invitationExpiresAt?: Date;
+  
   createdAt: Date;
   updatedAt: Date;
 }
@@ -59,13 +63,13 @@ const UserSchema = new Schema<IUser>(
     },
     role: {
       type: String,
-      enum: ['student', 'issuer', 'controller', 'admin'],
+      enum: ['student', 'issuer', 'controller', 'admin', 'super_admin'],
       default: 'student',
       index: true,
     },
     status: {
       type: String,
-      enum: ['pending', 'approved', 'rejected', 'active'],
+      enum: ['pending', 'approved', 'rejected', 'active', 'suspended'],
       default: 'pending',
       index: true,
     },
@@ -159,12 +163,26 @@ const UserSchema = new Schema<IUser>(
     rejectionReason: {
       type: String,
     },
+    invitationToken: {
+      type: String,
+      sparse: true,
+      index: true,
+    },
+    invitationExpiresAt: {
+      type: Date,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-// Prevent mongoose model overwrite error during Next.js hot reload
+// Ensure mongoose model always synchronizes with latest schema across Next.js reloads
+if (mongoose.models && mongoose.models.User) {
+  try {
+    delete (mongoose.models as Record<string, unknown>).User;
+  } catch {}
+}
+
 export const User: Model<IUser> =
-  mongoose.models.User || mongoose.model<IUser>('User', UserSchema);
+  (mongoose.models.User as Model<IUser>) || mongoose.model<IUser>('User', UserSchema);

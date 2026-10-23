@@ -13,7 +13,7 @@ import {
   Calendar,
   ArrowUpDown,
 } from 'lucide-react';
-import { CertificatesListViewProps } from './types';
+import { CertificatesListViewProps } from '@/types/student';
 
 export const CertificatesListView: React.FC<CertificatesListViewProps> = ({
   certificates,

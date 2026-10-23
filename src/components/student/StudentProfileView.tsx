@@ -16,7 +16,7 @@ import {
   X,
   FileQuestion,
 } from 'lucide-react';
-import { StudentProfileViewProps } from './types';
+import { StudentProfileViewProps } from '@/types/student';
 
 export const StudentProfileView: React.FC<StudentProfileViewProps> = ({ profile }) => {
   const [isCorrectionModalOpen, setIsCorrectionModalOpen] = useState(false);

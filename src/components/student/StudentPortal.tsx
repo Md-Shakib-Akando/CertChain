@@ -10,7 +10,7 @@ import {
   LayoutDashboard,
   Loader2,
 } from 'lucide-react';
-import { useStudentPortal } from './useStudentPortal';
+import { useStudentPortal } from '@/hooks/useStudentPortal';
 import { StudentDashboardView } from './StudentDashboardView';
 import { CertificatesListView } from './CertificatesListView';
 import { CertificateDetailModal } from './CertificateDetailModal';

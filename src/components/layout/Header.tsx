@@ -33,7 +33,12 @@ export const Header: React.FC<HeaderProps> = ({
   const effectiveName = userName || sessionUser?.name || 'Student';
   const effectiveRole = userRole || sessionUser?.role || 'student';
   const effectiveEmail = userEmail || sessionUser?.email;
-  const dashboardUrl = effectiveRole === 'student' ? '/dashboard/student' : '/admin/requests';
+  const dashboardUrl =
+    effectiveRole === 'student'
+      ? '/dashboard/student'
+      : effectiveRole === 'admin' || effectiveRole === 'super_admin'
+      ? '/admin/dashboard'
+      : '/admin/requests';
 
   // Close dropdown on click outside or Escape
   useEffect(() => {

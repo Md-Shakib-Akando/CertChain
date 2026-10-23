@@ -23,7 +23,12 @@ export const LandingHero: React.FC<LandingHeroProps> = ({
   onLearnMore,
 }) => {
   const { isLoggedIn, user } = useAuthSession();
-  const dashboardUrl = user?.role === 'student' ? '/dashboard/student' : '/admin/requests';
+  const dashboardUrl =
+    user?.role === 'student'
+      ? '/dashboard/student'
+      : user?.role === 'admin' || user?.role === 'super_admin'
+      ? '/admin/dashboard'
+      : '/admin/requests';
   return (
     <section
       id="hero"

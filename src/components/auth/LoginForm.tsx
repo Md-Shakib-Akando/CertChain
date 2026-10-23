@@ -89,9 +89,12 @@ export const LoginForm: React.FC<LoginFormProps> = ({
       let title = `Welcome, ${user.name}`;
       let message = 'Signing in to PUB CertChain secure network...';
 
-      if (user.role === 'controller' || user.role === 'admin') {
-        title = `Welcome, Controller / Super Admin`;
-        message = `Super Admin privileges authenticated. Redirecting to Controller Desk...`;
+      if (user.role === 'admin' || user.role === 'super_admin') {
+        title = `Welcome, Super Administrator`;
+        message = `Super Admin privileges authenticated. Entering Super Admin Command Dashboard...`;
+      } else if (user.role === 'controller') {
+        title = `Welcome, Controller of Examinations`;
+        message = `Controller privileges authenticated. Entering Controller Desk...`;
       } else if (user.role === 'issuer') {
         title = `Welcome, Authorized Staff`;
         message = `Authorized staff account verified. Redirecting to Controller Desk...`;

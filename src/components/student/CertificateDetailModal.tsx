@@ -18,7 +18,7 @@ import {
   History,
   CheckCircle2,
 } from 'lucide-react';
-import { CertificateDetailModalProps } from './types';
+import { CertificateDetailModalProps } from '@/types/student';
 
 export const CertificateDetailModal: React.FC<CertificateDetailModalProps> = ({
   isOpen = true,
