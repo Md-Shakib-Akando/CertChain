@@ -15,7 +15,7 @@ import {
   FileCheck,
   ShieldCheck,
 } from 'lucide-react';
-import { StudentDashboardViewProps } from './types';
+import { StudentDashboardViewProps } from '@/types/student';
 
 export const StudentDashboardView: React.FC<StudentDashboardViewProps> = ({
   profile,

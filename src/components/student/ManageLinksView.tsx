@@ -15,7 +15,7 @@ import {
   ShieldCheck,
   Calendar,
 } from 'lucide-react';
-import { StudentShareLink, ManageLinksViewProps } from './types';
+import { StudentShareLink, ManageLinksViewProps } from '@/types/student';
 
 export const ManageLinksView: React.FC<ManageLinksViewProps> = ({
   shareLinks,

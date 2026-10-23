@@ -14,7 +14,7 @@ import {
   Clock,
   CheckCircle2,
 } from 'lucide-react';
-import { StudentAuditEvent, StudentActivityLogViewProps } from './types';
+import { StudentAuditEvent, StudentActivityLogViewProps } from '@/types/student';
 
 export const StudentActivityLogView: React.FC<StudentActivityLogViewProps> = ({ auditLogs }) => {
   const [selectedFilter, setSelectedFilter] = useState<string>('all');

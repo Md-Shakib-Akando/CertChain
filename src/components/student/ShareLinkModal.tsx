@@ -18,7 +18,7 @@ import {
   Sparkles,
   ExternalLink,
 } from 'lucide-react';
-import { StudentShareLink, ShareLinkModalProps } from './types';
+import { StudentShareLink, ShareLinkModalProps } from '@/types/student';
 
 export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
   isOpen,

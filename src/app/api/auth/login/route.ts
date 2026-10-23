@@ -55,9 +55,21 @@ export async function POST(request: Request) {
       );
     }
 
+    // Check if account is suspended
+    if (user.status === 'suspended') {
+      return NextResponse.json(
+        {
+          error: 'Your account has been suspended by system administration. Please contact support.',
+        },
+        { status: 403 }
+      );
+    }
+
     // Determine redirect destination based on role
     let redirectUrl = '/dashboard/student';
-    if (user.role === 'controller' || user.role === 'admin') {
+    if (user.role === 'admin' || user.role === 'super_admin') {
+      redirectUrl = '/admin/dashboard';
+    } else if (user.role === 'controller') {
       redirectUrl = '/admin/requests';
     } else if (user.role === 'issuer') {
       redirectUrl = '/admin/requests';
