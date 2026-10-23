@@ -25,7 +25,6 @@ interface RevocationRequestsSectionProps {
   onOpenCoSignModal: (rev: RevocationItem) => void;
   onOpenRejectModal: (rev: RevocationItem) => void;
   isActionLoading: boolean;
-  onSeedDemo: () => void;
 }
 
 export const RevocationRequestsSection: React.FC<RevocationRequestsSectionProps> = ({
@@ -38,7 +37,6 @@ export const RevocationRequestsSection: React.FC<RevocationRequestsSectionProps>
   onOpenCoSignModal,
   onOpenRejectModal,
   isActionLoading,
-  onSeedDemo,
 }) => {
   const getWorkflowBadge = (state: RevocationWorkflowState) => {
     switch (state) {
@@ -181,14 +179,8 @@ export const RevocationRequestsSection: React.FC<RevocationRequestsSectionProps>
             <CheckCircle2 className="w-12 h-12 text-emerald-500 mb-3 opacity-80" />
             <h4 className="text-sm font-bold text-[#0B2545]">No Revocation Requests</h4>
             <p className="text-xs text-slate-500 max-w-sm mt-1">
-              There are no pending or historic certificate revocation requests matching your criteria.
+              There are currently no certificate revocation requests submitted in the system.
             </p>
-            <button
-              onClick={onSeedDemo}
-              className="mt-4 px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 text-white hover:bg-teal-500 transition shadow-xs cursor-pointer"
-            >
-              Load Demo Revocations
-            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">

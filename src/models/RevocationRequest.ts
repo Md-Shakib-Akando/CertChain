@@ -53,7 +53,6 @@ export interface IRevocationRequest extends Document {
   failureReason?: string;
   retryCount?: number;
   
-  isDemo?: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -207,10 +206,6 @@ const RevocationRequestSchema = new Schema<IRevocationRequest>(
     retryCount: {
       type: Number,
       default: 0,
-    },
-    isDemo: {
-      type: Boolean,
-      default: false,
     },
   },
   {

@@ -78,7 +78,6 @@ export async function GET(request: Request) {
       controllerSignatureHash: r.controllerSignatureHash,
       rejectionReason: r.rejectionReason,
       failureReason: r.failureReason,
-      isDemo: r.isDemo,
     }));
 
     return NextResponse.json({

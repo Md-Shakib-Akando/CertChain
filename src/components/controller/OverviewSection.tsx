@@ -26,7 +26,6 @@ interface OverviewSectionProps {
   pendingActions: PendingActionItem[];
   recentActivity: RecentActivityItem[];
   onNavigateTab: (tab: ControllerTab) => void;
-  onSeedDemo: () => void;
 }
 
 export const OverviewSection: React.FC<OverviewSectionProps> = ({
@@ -34,7 +33,6 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   pendingActions,
   recentActivity,
   onNavigateTab,
-  onSeedDemo,
 }) => {
   const [copiedAddress, setCopiedAddress] = React.useState(false);
 
@@ -258,12 +256,6 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                 <p className="text-xs text-slate-500 max-w-sm mt-1 leading-relaxed">
                   No issuer applications or revocation requests currently require your attention.
                 </p>
-                <button
-                  onClick={onSeedDemo}
-                  className="mt-4 px-3 py-1.5 rounded-xl text-xs font-semibold text-teal-700 bg-teal-50 hover:bg-teal-100 border border-teal-200 transition cursor-pointer"
-                >
-                  Load Demo Pending Actions
-                </button>
               </div>
             ) : (
               <div className="divide-y divide-slate-100 mt-2">

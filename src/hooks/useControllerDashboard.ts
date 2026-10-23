@@ -540,46 +540,6 @@ export function useControllerDashboard() {
     }
   };
 
-  // Seed Demo Data
-  const handleSeedDemo = async () => {
-    try {
-      setIsActionLoading(true);
-      const res = await fetch('/api/controller/seed-demo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'seed' }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to seed demo data');
-      showToast('Demo dataset successfully populated!', 'success');
-      await fetchDashboardData();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to seed demo', 'error');
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
-  // Clear Demo Data
-  const handleClearDemo = async () => {
-    try {
-      setIsActionLoading(true);
-      const res = await fetch('/api/controller/seed-demo', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'clear' }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Failed to clear demo data');
-      showToast('Demo records cleared.', 'info');
-      await fetchDashboardData();
-    } catch (err) {
-      showToast(err instanceof Error ? err.message : 'Failed to clear demo', 'error');
-    } finally {
-      setIsActionLoading(false);
-    }
-  };
-
   // Logout
   const handleLogout = () => {
     clearSessionUser();
@@ -729,8 +689,6 @@ export function useControllerDashboard() {
     handleRejectRevocation,
     handleSuspendIssuer,
     handleReactivateIssuer,
-    handleSeedDemo,
-    handleClearDemo,
     handleLogout,
     exportAuditLogsCsv,
     exportReportsCsv,

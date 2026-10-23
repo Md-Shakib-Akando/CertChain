@@ -30,7 +30,6 @@ export interface IssuerApplication {
   rejectionReason?: string;
   requestId?: string;
   notes?: string;
-  isDemo?: boolean;
 }
 
 export type RevocationWorkflowState =
@@ -71,7 +70,6 @@ export interface RevocationItem {
   controllerSignatureHash?: string;
   rejectionReason?: string;
   failureReason?: string;
-  isDemo?: boolean;
 }
 
 export interface ControllerStats {

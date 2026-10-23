@@ -27,7 +27,6 @@ interface IssuerDirectorySectionProps {
   onSuspendIssuer: (issuerId: string, reason: string) => void;
   onReactivateIssuer: (issuerId: string) => void;
   isActionLoading: boolean;
-  onSeedDemo: () => void;
 }
 
 export const IssuerDirectorySection: React.FC<IssuerDirectorySectionProps> = ({
@@ -40,7 +39,6 @@ export const IssuerDirectorySection: React.FC<IssuerDirectorySectionProps> = ({
   onSuspendIssuer,
   onReactivateIssuer,
   isActionLoading,
-  onSeedDemo,
 }) => {
   const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const [suspensionModalUser, setSuspensionModalUser] = useState<IssuerApplication | null>(null);
@@ -167,14 +165,8 @@ export const IssuerDirectorySection: React.FC<IssuerDirectorySectionProps> = ({
             <Users className="w-12 h-12 text-slate-300 mb-3" />
             <h4 className="text-sm font-bold text-[#0B2545]">No Issuers Found</h4>
             <p className="text-xs text-slate-500 max-w-sm mt-1">
-              There are no registered issuers matching your search or filters.
+              There are currently no authorized registrar or examination issuers registered in the system.
             </p>
-            <button
-              onClick={onSeedDemo}
-              className="mt-4 px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 text-white hover:bg-teal-500 transition shadow-xs cursor-pointer"
-            >
-              Load Demo Issuers
-            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">

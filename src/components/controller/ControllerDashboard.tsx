@@ -69,8 +69,6 @@ export const ControllerDashboard: React.FC = () => {
     handleRejectRevocation,
     handleSuspendIssuer,
     handleReactivateIssuer,
-    handleSeedDemo,
-    handleClearDemo,
     handleLogout,
     exportAuditLogsCsv,
     exportReportsCsv,
@@ -131,8 +129,6 @@ export const ControllerDashboard: React.FC = () => {
           onLogout={handleLogout}
           onSelectTab={setActiveTab}
           onToggleMobileMenu={() => setIsMobileSidebarOpen(!isMobileSidebarOpen)}
-          onSeedDemo={handleSeedDemo}
-          onClearDemo={handleClearDemo}
           controllerName={profile.name}
           controllerEmail={profile.email}
           pendingTotal={stats.pendingIssuerApplications + stats.pendingRevocations}
@@ -154,7 +150,6 @@ export const ControllerDashboard: React.FC = () => {
                   pendingActions={pendingActions}
                   recentActivity={recentActivity}
                   onNavigateTab={setActiveTab}
-                  onSeedDemo={handleSeedDemo}
                 />
               )}
 
@@ -183,7 +178,6 @@ export const ControllerDashboard: React.FC = () => {
                     })
                   }
                   isActionLoading={isActionLoading}
-                  onSeedDemo={handleSeedDemo}
                 />
               )}
 
@@ -205,7 +199,6 @@ export const ControllerDashboard: React.FC = () => {
                     })
                   }
                   isActionLoading={isActionLoading}
-                  onSeedDemo={handleSeedDemo}
                 />
               )}
 
@@ -227,7 +220,6 @@ export const ControllerDashboard: React.FC = () => {
                     })
                   }
                   isActionLoading={isActionLoading}
-                  onSeedDemo={handleSeedDemo}
                 />
               )}
 
@@ -242,7 +234,6 @@ export const ControllerDashboard: React.FC = () => {
                   onSuspendIssuer={handleSuspendIssuer}
                   onReactivateIssuer={handleReactivateIssuer}
                   isActionLoading={isActionLoading}
-                  onSeedDemo={handleSeedDemo}
                 />
               )}
 

@@ -25,7 +25,6 @@ interface IssuerApprovalsSectionProps {
   onOpenRejectModal: (app: IssuerApplication) => void;
   onOpenRequestInfoModal: (app: IssuerApplication) => void;
   isActionLoading: boolean;
-  onSeedDemo: () => void;
 }
 
 export const IssuerApprovalsSection: React.FC<IssuerApprovalsSectionProps> = ({
@@ -39,7 +38,6 @@ export const IssuerApprovalsSection: React.FC<IssuerApprovalsSectionProps> = ({
   onOpenRejectModal,
   onOpenRequestInfoModal,
   isActionLoading,
-  onSeedDemo,
 }) => {
 
   const getStatusBadge = (status: IssuerApplicationStatus) => {
@@ -134,14 +132,8 @@ export const IssuerApprovalsSection: React.FC<IssuerApprovalsSectionProps> = ({
             <UserCheck className="w-12 h-12 text-slate-300 mb-3" />
             <h4 className="text-sm font-bold text-[#0B2545]">No Applications Found</h4>
             <p className="text-xs text-slate-500 max-w-sm mt-1">
-              There are no issuer registration applications matching your search or filter criteria.
+              There are currently no registrar or issuer account applications requiring review.
             </p>
-            <button
-              onClick={onSeedDemo}
-              className="mt-4 px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 text-white hover:bg-teal-500 transition shadow-xs cursor-pointer"
-            >
-              Load Demo Applications
-            </button>
           </div>
         ) : (
           <div className="overflow-x-auto">

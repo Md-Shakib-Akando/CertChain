@@ -20,7 +20,6 @@ interface CoSignatureCenterSectionProps {
   onOpenDetailModal: (rev: RevocationItem) => void;
   onOpenRejectModal: (rev: RevocationItem) => void;
   isActionLoading: boolean;
-  onSeedDemo: () => void;
 }
 
 export const CoSignatureCenterSection: React.FC<CoSignatureCenterSectionProps> = ({
@@ -33,7 +32,6 @@ export const CoSignatureCenterSection: React.FC<CoSignatureCenterSectionProps> =
   onOpenDetailModal,
   onOpenRejectModal,
   isActionLoading,
-  onSeedDemo,
 }) => {
   const [selectedRevId, setSelectedRevId] = useState<string | null>(null);
 
@@ -111,12 +109,6 @@ export const CoSignatureCenterSection: React.FC<CoSignatureCenterSectionProps> =
           <p className="text-xs text-slate-500 max-w-md mt-1 leading-relaxed">
             All revocation requests submitted by academic registrars have either been co-signed or rejected. When a new revocation request is submitted, it will appear here for cryptographic signing.
           </p>
-          <button
-            onClick={onSeedDemo}
-            className="mt-4 px-4 py-2 rounded-xl text-xs font-bold bg-teal-600 text-white hover:bg-teal-500 transition shadow-xs cursor-pointer"
-          >
-            Load Demo Revocation Requests
-          </button>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
