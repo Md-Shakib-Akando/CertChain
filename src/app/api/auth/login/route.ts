@@ -18,12 +18,23 @@ export async function POST(request: Request) {
 
     await connectDB();
 
-    const normalizedEmail = email.trim().toLowerCase();
-    const user = await User.findOne({ email: normalizedEmail });
+    const identifier = email.trim();
+    const normalizedEmail = identifier.toLowerCase();
+
+    // Support login via Email, Student ID, or Employee ID
+    const user = await User.findOne({
+      $or: [
+        { email: normalizedEmail },
+        { studentId: identifier },
+        { studentId: identifier.toUpperCase() },
+        { employeeId: identifier },
+        { employeeId: identifier.toUpperCase() },
+      ],
+    });
 
     if (!user) {
       return NextResponse.json(
-        { error: 'No account found with this email address.' },
+        { error: `No account found for "${identifier}". Please check your Email, Student ID, or Employee ID.` },
         { status: 401 }
       );
     }
@@ -70,15 +81,15 @@ export async function POST(request: Request) {
     if (user.role === 'admin' || user.role === 'super_admin') {
       redirectUrl = '/admin/dashboard';
     } else if (user.role === 'controller') {
-      redirectUrl = '/admin/requests';
+      redirectUrl = '/dashboard/controller';
     } else if (user.role === 'issuer') {
-      redirectUrl = '/admin/requests';
+      redirectUrl = '/dashboard/issuer';
     } else if (user.role === 'student') {
       redirectUrl = '/dashboard/student';
     }
 
     const userData = {
-      id: user._id,
+      id: user._id.toString(),
       name: user.name,
       email: user.email,
       role: user.role,

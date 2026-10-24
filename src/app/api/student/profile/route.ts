@@ -4,8 +4,6 @@ import { User } from '@/models/User';
 import { StudentRecord } from '@/models/StudentRecord';
 import { Certificate } from '@/models/Certificate';
 
-export const dynamic = 'force-dynamic';
-
 // Helper to extract session user identity from request
 function getSessionIdentity(request: Request) {
   // 1. From cookie 'certchain_user'

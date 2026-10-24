@@ -36,9 +36,11 @@ export const Header: React.FC<HeaderProps> = ({
   const dashboardUrl =
     effectiveRole === 'student'
       ? '/dashboard/student'
+      : effectiveRole === 'issuer' || effectiveRole === 'registrar'
+      ? '/dashboard/issuer'
       : effectiveRole === 'admin' || effectiveRole === 'super_admin'
       ? '/admin/dashboard'
-      : '/admin/requests';
+      : '/dashboard/controller';
 
   // Close dropdown on click outside or Escape
   useEffect(() => {
@@ -128,13 +130,19 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Center Navigation Links */}
-          <nav className="hidden md:flex items-center gap-8">
+          <nav className="hidden md:flex items-center gap-7">
             <Link
               href="/"
               className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
             >
               Home
             </Link>
+            <button
+              onClick={handleVerifyClick}
+              className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+            >
+              Verify
+            </button>
             <button
               onClick={() => scrollToSection('how-it-works')}
               className="text-sm font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
@@ -146,18 +154,6 @@ export const Header: React.FC<HeaderProps> = ({
               className="text-sm font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
             >
               Features
-            </button>
-            <button
-              onClick={() => scrollToSection('about')}
-              className="text-sm font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
-            >
-              About
-            </button>
-            <button
-              onClick={() => scrollToSection('contact')}
-              className="text-sm font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
-            >
-              Contact
             </button>
           </nav>
 

@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import {
   ShieldCheck,
   AlertTriangle,
@@ -30,6 +31,35 @@ export const CertificateDetailModal: React.FC<CertificateDetailModalProps> = ({
   const [copiedField, setCopiedField] = useState<string | null>(null);
   const [isVerifyingLive, setIsVerifyingLive] = useState(false);
   const [liveVerificationResult, setLiveVerificationResult] = useState<'valid' | 'revoked' | null>(null);
+  const [qrDataUrl, setQrDataUrl] = useState<string>('');
+
+  useEffect(() => {
+    let isMounted = true;
+    if (!certificate?.id) return;
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    const verifyUrl = `${origin}/?id=${encodeURIComponent(certificate.id)}#verify`;
+
+    QRCode.toDataURL(verifyUrl, {
+      errorCorrectionLevel: 'H',
+      margin: 1,
+      width: 256,
+      color: {
+        dark: '#0B1F3AFF',
+        light: '#FFFFFFFF',
+      },
+    })
+      .then((url) => {
+        if (isMounted) setQrDataUrl(url);
+      })
+      .catch((err) => {
+        console.error('Failed to generate dynamic certificate QR code:', err);
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, [certificate?.id]);
 
   if (!isOpen || !certificate) return null;
 
@@ -160,8 +190,17 @@ export const CertificateDetailModal: React.FC<CertificateDetailModalProps> = ({
               {/* Footer with QR & Seals */}
               <div className="pt-4 border-t border-slate-200 relative z-10 flex items-end justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="w-14 h-14 bg-white p-1 rounded-lg border border-slate-300 shadow-2xs flex items-center justify-center">
-                    <QrCode className="w-full h-full text-slate-900" />
+                  <div className="w-14 h-14 bg-white p-1 rounded-lg border border-slate-300 shadow-2xs flex items-center justify-center overflow-hidden">
+                    {qrDataUrl ? (
+                      /* eslint-disable-next-line @next/next/no-img-element */
+                      <img
+                        src={qrDataUrl}
+                        alt={`QR Code for ${certificate.id}`}
+                        className="w-full h-full object-contain"
+                      />
+                    ) : (
+                      <QrCode className="w-full h-full text-slate-300 animate-pulse" />
+                    )}
                   </div>
                   <div className="text-[9px] text-slate-500 space-y-0.5">
                     <span className="font-bold block text-slate-800">Scan to Verify</span>

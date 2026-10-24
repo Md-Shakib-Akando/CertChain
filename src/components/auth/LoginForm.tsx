@@ -46,12 +46,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
     setRedirectDestination(null);
 
     if (!email.trim()) {
-      setErrorMessage('Please enter your email address.');
-      return;
-    }
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email.trim())) {
-      setErrorMessage('Please enter a valid email format (e.g. name@gmail.com or name@pub.edu).');
+      setErrorMessage('Please enter your Email Address, Student ID, or Staff ID.');
       return;
     }
     if (!password) {
@@ -97,7 +92,7 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         message = `Controller privileges authenticated. Entering Controller Desk...`;
       } else if (user.role === 'issuer') {
         title = `Welcome, Authorized Staff`;
-        message = `Authorized staff account verified. Redirecting to Controller Desk...`;
+        message = `Authorized staff account verified. Redirecting to Registrar Issuance Portal...`;
       } else if (user.role === 'student') {
         title = `Welcome, Student`;
         message = `Student credentials validated. Entering student portal...`;
@@ -175,10 +170,10 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-5">
-        {/* Email */}
+        {/* Identifier (Email, Student ID, or Staff ID) */}
         <div className="space-y-1.5">
           <label htmlFor="login-email" className="block text-xs font-semibold text-[#172033]">
-            Email Address <span className="text-red-500">*</span>
+            Email Address or Student / Staff ID <span className="text-red-500">*</span>
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
@@ -186,9 +181,9 @@ export const LoginForm: React.FC<LoginFormProps> = ({
             </div>
             <input
               id="login-email"
-              type="email"
-              autoComplete="email"
-              placeholder="e.g. username@pub.edu"
+              type="text"
+              autoComplete="username"
+              placeholder="e.g. name@pub.ac.bd or Student ID (0322410105101055)"
               value={email}
               onChange={(e) => {
                 setEmail(e.target.value);

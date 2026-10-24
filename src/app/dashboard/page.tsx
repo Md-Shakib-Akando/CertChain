@@ -12,7 +12,7 @@ export default function DashboardRootPage() {
     if (user?.role === 'admin' || user?.role === 'super_admin') {
       router.replace('/admin/dashboard');
     } else if (user?.role === 'controller' || user?.role === 'issuer') {
-      router.replace('/admin/requests');
+      router.replace('/dashboard/controller');
     } else {
       router.replace('/dashboard/student');
     }

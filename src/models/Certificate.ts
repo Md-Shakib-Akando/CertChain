@@ -23,6 +23,7 @@ export interface ICertificate extends Document {
   revocationReason?: string;
   revocationTxHash?: string;
   supersededBy?: string;
+  pdfBase64?: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -128,12 +129,23 @@ const CertificateSchema = new Schema<ICertificate>(
     supersededBy: {
       type: String,
     },
+    pdfBase64: {
+      type: String,
+    },
   },
   {
     timestamps: true,
   }
 );
 
+// Ensure mongoose model always synchronizes with latest schema across Next.js reloads
+if (mongoose.models && mongoose.models.Certificate) {
+  try {
+    delete (mongoose.models as Record<string, unknown>).Certificate;
+  } catch {}
+}
+
 export const Certificate: Model<ICertificate> =
-  mongoose.models.Certificate ||
+  (mongoose.models.Certificate as Model<ICertificate>) ||
   mongoose.model<ICertificate>('Certificate', CertificateSchema);
+
