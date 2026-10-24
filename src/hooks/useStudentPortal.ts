@@ -144,8 +144,27 @@ export const useStudentPortal = (): UseStudentPortalReturn => {
   }, [certificates]);
 
   // When a new share link is generated
-  const handleLinkCreated = useCallback((newLink: StudentShareLink) => {
+  const handleLinkCreated = useCallback(async (newLink: StudentShareLink) => {
     setShareLinks((prev) => [newLink, ...prev]);
+
+    try {
+      const res = await fetch('/api/student/share-links', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          certId: newLink.certId,
+          createdBy: profile.studentId,
+          recipientLabel: newLink.recipientLabel,
+          durationHours: newLink.expiryHours,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.shareUrl) {
+        newLink.url = data.shareUrl;
+      }
+    } catch (e) {
+      console.warn('Failed to persist share link to backend:', e);
+    }
 
     const newAuditEvent: StudentAuditEvent = {
       id: `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
@@ -158,14 +177,18 @@ export const useStudentPortal = (): UseStudentPortalReturn => {
     };
     setAuditLogs((prev) => [newAuditEvent, ...prev]);
     showToast(`Verification link generated for ${newLink.recipientLabel}!`);
-  }, [showToast]);
+  }, [profile.studentId, showToast]);
 
   // Cancel an active share link
-  const handleCancelLink = useCallback((linkId: string) => {
+  const handleCancelLink = useCallback(async (linkId: string) => {
     const targetLink = shareLinks.find((l) => l.id === linkId);
     setShareLinks((prev) =>
       prev.map((link) => (link.id === linkId ? { ...link, status: 'cancelled' } : link))
     );
+
+    try {
+      await fetch(`/api/student/share-links?id=${encodeURIComponent(linkId)}`, { method: 'DELETE' });
+    } catch {}
 
     if (targetLink) {
       const cancelAudit: StudentAuditEvent = {
@@ -182,18 +205,10 @@ export const useStudentPortal = (): UseStudentPortalReturn => {
     }
   }, [shareLinks, showToast]);
 
-  // PDF Download simulation
+  // Real PDF Download
   const handleDownloadPdf = useCallback((cert: StudentCertificate) => {
-    showToast(`Downloading official issued PDF for ${cert.id}`);
-
-    const element = document.createElement('a');
-    const fileContent = `PUB CertChain Official Issued Credential\nCertificate ID: ${cert.id}\nStudent Name: ${cert.studentName}\nStudent ID: ${cert.studentId}\nDegree: ${cert.degreeName}\nProgram: ${cert.program}\nIssue Date: ${cert.issueDate}\nStatus: ${cert.status.toUpperCase()}\nSHA-256 Fingerprint: ${cert.sha256Hash}\nTransaction Hash: ${cert.txHash}\nSmart Contract Issuer: ${cert.issuerAddress}\nNetwork: ${cert.network}\n`;
-    const file = new Blob([fileContent], { type: 'text/plain' });
-    element.href = URL.createObjectURL(file);
-    element.download = `${cert.id}_OFFICIAL_${cert.status.toUpperCase()}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+    showToast(`Opening authentic blockchain-secured PDF for ${cert.id}`);
+    window.open(`/api/certificates/${encodeURIComponent(cert.id)}/pdf`, '_blank');
   }, [showToast]);
 
   return {
@@ -205,6 +220,7 @@ export const useStudentPortal = (): UseStudentPortalReturn => {
     auditLogs,
     isLoadingData,
     selectedCertForDetail,
+
     setSelectedCertForDetail,
     isShareModalOpen,
     setIsShareModalOpen,
