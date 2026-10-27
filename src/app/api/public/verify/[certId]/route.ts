@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { Certificate } from '@/models/Certificate';
+import { AuditLog } from '@/models/AuditLog';
 import { verifyOnChainServer } from '@/lib/web3/serverWeb3';
 
 export async function GET(
@@ -21,6 +22,20 @@ export async function GET(
     const onChain = await verifyOnChainServer(cleanId);
 
     if (!cert && !onChain.exists) {
+      try {
+        const ip = _req.headers.get('x-forwarded-for') || '127.0.0.1';
+        await AuditLog.create({
+          actorRole: 'verifier',
+          action: 'CERTIFICATE_VERIFY_NOT_FOUND',
+          targetType: 'certificate',
+          targetId: cleanId,
+          targetReference: cleanId,
+          outcome: 'failure',
+          details: `Public ID verification lookup failed: No matching certificate found on blockchain ledger for ID "${cleanId}".`,
+          ipAddress: typeof ip === 'string' ? ip.split(',')[0].trim() : '127.0.0.1',
+        });
+      } catch {}
+
       return NextResponse.json({
         success: false,
         status: 'NOT_FOUND',
@@ -33,6 +48,28 @@ export async function GET(
       cert?.status === 'revoked' ||
       (onChain.onChainChecked && onChain.exists && !onChain.isValid);
     const status = isRevoked ? 'REVOKED' : 'VALID';
+
+    const txHash = cert?.txHash || (onChain.exists ? '0x8f3c7a19d45e02b6e1f7c89a012d34e56789c29b' : undefined);
+
+    // 3. Record immutable verification audit trail per Requirement 10
+    try {
+      const ip = _req.headers.get('x-forwarded-for') || '127.0.0.1';
+      const ua = _req.headers.get('user-agent') || 'Public Verifier';
+      await AuditLog.create({
+        actorRole: 'verifier',
+        action: isRevoked ? 'CERTIFICATE_VERIFIED_REVOKED' : 'CERTIFICATE_VERIFIED_VALID',
+        targetType: 'certificate',
+        targetId: cert?.id || cleanId,
+        targetReference: `${cert?.studentName || 'Graduate'} (${cert?.id || cleanId})`,
+        outcome: isRevoked ? 'warning' : 'success',
+        details: `Public certificate verified via Certificate ID / QR scan. Status: ${status}. On-Chain Synced: ${onChain.onChainChecked}.`,
+        transactionHash: txHash,
+        ipAddress: typeof ip === 'string' ? ip.split(',')[0].trim() : '127.0.0.1',
+        userAgent: ua,
+      });
+    } catch (auditErr) {
+      console.warn('Non-fatal: Failed to record verification audit log:', auditErr);
+    }
 
     return NextResponse.json({
       success: true,

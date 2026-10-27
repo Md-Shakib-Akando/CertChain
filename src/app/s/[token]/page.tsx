@@ -4,6 +4,7 @@ import crypto from 'crypto';
 import { connectDB } from '@/lib/mongodb';
 import { ShareLink } from '@/models/ShareLink';
 import { Certificate } from '@/models/Certificate';
+import { AuditLog } from '@/models/AuditLog';
 import { Header } from '@/components/layout/Header';
 import { Footer } from '@/components/layout/Footer';
 import {
@@ -82,6 +83,22 @@ export default async function SharedCredentialPage({
   }
 
   const isValid = cert.status === 'valid';
+
+  // Record audit log for employer verification
+  try {
+    await AuditLog.create({
+      actorRole: 'employer',
+      action: 'TIME_LIMITED_LINK_VERIFIED',
+      targetType: 'certificate',
+      targetId: cert.id,
+      targetReference: `${shareLink.recipientLabel} (${cert.studentName})`,
+      outcome: isValid ? 'success' : 'warning',
+      details: `Employer opened time-limited verification link generated for "${shareLink.recipientLabel}". View count: ${shareLink.viewCount}. Status: ${cert.status}.`,
+      transactionHash: cert.txHash,
+    });
+  } catch (err) {
+    console.warn('AuditLog write error on shared link view:', err);
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0B1F3A]">
