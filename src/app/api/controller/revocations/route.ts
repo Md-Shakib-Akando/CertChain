@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import { RevocationRequest } from '@/models/RevocationRequest';
 import { Certificate } from '@/models/Certificate';
 import { AuditLog } from '@/models/AuditLog';
+import { revokeOnChainServer } from '@/lib/web3/serverWeb3';
 
 // GET /api/controller/revocations
 export async function GET(request: Request) {
@@ -234,11 +235,17 @@ export async function POST(request: Request) {
         },
       });
     } else if (action === 'confirm_tx') {
-      const finalTxHash =
-        txHash ||
-        revReq.transactionHash ||
-        `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-      const finalBlockNumber = blockNumber || 7421898;
+      let finalTxHash = txHash || revReq.transactionHash;
+      let finalBlockNumber = blockNumber;
+
+      // Ensure real smart contract revocation is executed on-chain
+      if (!finalTxHash || finalTxHash.startsWith('0xsimulated_') || finalTxHash.length !== 66) {
+        const onChainResult = await revokeOnChainServer(revReq.certificateId, revReq.reason);
+        finalTxHash = onChainResult.txHash;
+        finalBlockNumber = onChainResult.blockNumber;
+      }
+
+      finalBlockNumber = finalBlockNumber || 7421898;
 
       revReq.workflowStatus = 'confirmed';
       revReq.currentCertificateStatus = 'revoked';

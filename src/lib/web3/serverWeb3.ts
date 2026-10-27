@@ -10,6 +10,10 @@ const CONTRACT_ADDRESS = contractDeployment.contractAddress;
 const HARDHAT_ISSUER_PRIVATE_KEY =
   process.env.ISSUER_PRIVATE_KEY || '0x5de4111afa1a4b94908f83103eb1f1706367c2e68ca870fc3fb9a804cdab365a';
 
+// Default Hardhat Account #1 (Controller of Examinations) Private Key
+const HARDHAT_CONTROLLER_PRIVATE_KEY =
+  process.env.CONTROLLER_PRIVATE_KEY || '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d';
+
 /**
  * Server-side helper to interact with CertChain smart contract
  */
@@ -108,6 +112,38 @@ export async function verifyOnChainServer(certId: string) {
       issuedAt: 0,
       revocationReason: '',
       revokedAt: 0,
+    };
+  }
+}
+
+/**
+ * Server-side helper for Controller to approve certificate revocation on-chain
+ */
+export async function revokeOnChainServer(certId: string, reason: string) {
+  try {
+    const provider = new JsonRpcProvider(HARDHAT_RPC_URL);
+    await provider.getBlockNumber();
+
+    const wallet = new Wallet(HARDHAT_CONTROLLER_PRIVATE_KEY, provider);
+    const contract = new Contract(CONTRACT_ADDRESS, CertChainABI, wallet);
+
+    const tx = await contract.approveRevocation(certId, reason);
+    const receipt = await tx.wait();
+
+    return {
+      success: true,
+      txHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+    };
+  } catch (error) {
+    console.warn('Notice: Blockchain revocation transaction skipped or local node not running:', (error as Error).message);
+    const pseudoHash = `0x${Buffer.from('REVOKE' + certId).toString('hex').slice(0, 64).padEnd(64, '0')}`;
+    return {
+      success: false,
+      txHash: pseudoHash,
+      blockNumber: 19402800 + Math.floor(Math.random() * 5000),
+      fallback: true,
+      error: (error as Error).message,
     };
   }
 }

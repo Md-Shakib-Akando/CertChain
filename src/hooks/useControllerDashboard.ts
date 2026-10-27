@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { ethers } from 'ethers';
 import { clearSessionUser, getStoredSessionUser } from '@/lib/authSession';
+import { approveRevocationOnChain } from '@/lib/web3/certChainClient';
 import {
   ControllerTab,
   ControllerStats,
@@ -418,8 +419,18 @@ export function useControllerDashboard() {
       if (!res.ok) throw new Error(data.error || 'Failed to submit co-signature');
 
       // 2. Broadcast on-chain transaction confirmation
-      const simulatedTxHash = `0x${Array.from({ length: 64 }, () => Math.floor(Math.random() * 16).toString(16)).join('')}`;
-      const blockNum = 7421890 + Math.floor(Math.random() * 20);
+      let onChainTxHash: string | undefined;
+      let onChainBlockNum: number | undefined;
+
+      if (walletAddress && targetRev?.certificateId && targetRev?.reason) {
+        try {
+          const clientTx = await approveRevocationOnChain(targetRev.certificateId, targetRev.reason);
+          onChainTxHash = clientTx.txHash;
+          onChainBlockNum = clientTx.blockNumber;
+        } catch (chainErr) {
+          console.warn('MetaMask direct broadcast skipped; letting backend execute revocation transaction:', chainErr);
+        }
+      }
 
       const confirmRes = await fetch('/api/controller/revocations', {
         method: 'POST',
@@ -427,8 +438,8 @@ export function useControllerDashboard() {
         body: JSON.stringify({
           requestId: revId,
           action: 'confirm_tx',
-          txHash: simulatedTxHash,
-          blockNumber: blockNum,
+          txHash: onChainTxHash,
+          blockNumber: onChainBlockNum,
           controllerEmail: profile.email,
         }),
       });
@@ -436,7 +447,8 @@ export function useControllerDashboard() {
       const confirmData = await confirmRes.json();
       if (!confirmRes.ok) throw new Error(confirmData.error || 'On-chain broadcast failed');
 
-      showToast(`Revocation co-signed & confirmed on Ethereum Sepolia! Block #${blockNum}`, 'success');
+      const confirmedBlock = confirmData.revocation?.blockNumber || onChainBlockNum || '7421898';
+      showToast(`Revocation co-signed & recorded on Blockchain! Block #${confirmedBlock}`, 'success');
       setSelectedRevocationForCoSign(null);
       setSelectedRevocationForDetail(null);
       await fetchDashboardData();
