@@ -147,24 +147,27 @@ export const useStudentPortal = (): UseStudentPortalReturn => {
   const handleLinkCreated = useCallback(async (newLink: StudentShareLink) => {
     const linkToSave = { ...newLink };
 
-    try {
-      const res = await fetch('/api/student/share-links', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          certId: newLink.certId,
-          createdBy: profile.studentId,
-          recipientLabel: newLink.recipientLabel,
-          durationHours: newLink.expiryHours,
-        }),
-      });
-      const data = await res.json();
-      if (res.ok && data.shareUrl) {
-        linkToSave.fullUrl = data.shareUrl;
-        newLink.fullUrl = data.shareUrl;
+    // If not already persisted by modal, persist to backend
+    if (!newLink.fullUrl || newLink.fullUrl.includes('offline-') || newLink.id.startsWith('LNK-')) {
+      try {
+        const res = await fetch('/api/student/share-links', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            certId: newLink.certId,
+            createdBy: profile.studentId,
+            recipientLabel: newLink.recipientLabel,
+            durationHours: newLink.expiryHours,
+          }),
+        });
+        const data = await res.json();
+        if (res.ok && data.shareUrl) {
+          linkToSave.fullUrl = data.shareUrl;
+          if (data.shareLink?.id) linkToSave.id = data.shareLink.id;
+        }
+      } catch (e) {
+        console.warn('Failed to persist share link to backend:', e);
       }
-    } catch (e) {
-      console.warn('Failed to persist share link to backend:', e);
     }
 
     setShareLinks((prev) => [linkToSave, ...prev]);
