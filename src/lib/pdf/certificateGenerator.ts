@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
+import { PDFDocument, rgb, StandardFonts, degrees } from 'pdf-lib';
 import QRCode from 'qrcode';
 import crypto from 'crypto';
 
@@ -94,7 +94,7 @@ export async function generateCertificatePdf(data: CertificateData): Promise<Gen
     size: 11,
     font: fontSansBold,
     color: rgb(240 / 255, 244 / 255, 248 / 255),
-    rotate: { type: 'degrees', angle: 25 },
+    rotate: degrees(25),
   });
 
   // 3. Header: University Name & Emblem

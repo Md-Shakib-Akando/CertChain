@@ -145,7 +145,7 @@ export const useStudentPortal = (): UseStudentPortalReturn => {
 
   // When a new share link is generated
   const handleLinkCreated = useCallback(async (newLink: StudentShareLink) => {
-    setShareLinks((prev) => [newLink, ...prev]);
+    const linkToSave = { ...newLink };
 
     try {
       const res = await fetch('/api/student/share-links', {
@@ -160,11 +160,14 @@ export const useStudentPortal = (): UseStudentPortalReturn => {
       });
       const data = await res.json();
       if (res.ok && data.shareUrl) {
-        newLink.url = data.shareUrl;
+        linkToSave.fullUrl = data.shareUrl;
+        newLink.fullUrl = data.shareUrl;
       }
     } catch (e) {
       console.warn('Failed to persist share link to backend:', e);
     }
+
+    setShareLinks((prev) => [linkToSave, ...prev]);
 
     const newAuditEvent: StudentAuditEvent = {
       id: `AUD-${Math.floor(1000 + Math.random() * 9000)}`,
