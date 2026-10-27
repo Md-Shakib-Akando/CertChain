@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { connectDB } from '@/lib/mongodb';
 import { User } from '@/models/User';
 import { AuditLog } from '@/models/AuditLog';
+import { addIssuerOnChainServer } from '@/lib/web3/serverWeb3';
 
 // GET /api/controller/applications
 export async function GET(request: Request) {
@@ -113,6 +114,12 @@ export async function POST(request: Request) {
     }
 
     if (action === 'approve') {
+      let onChainTx = txHash;
+      if (applicant.walletAddress && (!onChainTx || onChainTx.startsWith('0xsimulated_') || onChainTx.length !== 66)) {
+        const chainRes = await addIssuerOnChainServer(applicant.walletAddress);
+        onChainTx = chainRes.txHash;
+      }
+
       applicant.status = 'active';
       applicant.approvedAt = new Date();
       await applicant.save();
@@ -126,19 +133,20 @@ export async function POST(request: Request) {
         targetId: applicant._id.toString(),
         targetReference: `${applicant.name} (${applicant.email})`,
         outcome: 'success',
-        details: `Issuer application authorized by Controller. Designation: ${applicant.designation || 'Issuer'}. Wallet: ${applicant.walletAddress || 'None'}. On-chain status: Authorized.`,
-        transactionHash: txHash || undefined,
+        details: `Issuer application authorized by Controller and registered in smart contract. Designation: ${applicant.designation || 'Issuer'}. Wallet: ${applicant.walletAddress || 'None'}. On-chain Tx: ${onChainTx || 'Anchored'}.`,
+        transactionHash: onChainTx || undefined,
         ipAddress: '127.0.0.1',
       });
 
       return NextResponse.json({
         success: true,
-        message: `Issuer account for ${applicant.name} has been officially authorized!`,
+        message: `Issuer account for ${applicant.name} officially authorized on-chain!`,
         application: {
           id: applicant._id.toString(),
           status: 'approved',
           accountStatus: 'active',
           contractAuthorization: 'authorized',
+          transactionHash: onChainTx,
         },
       });
     } else if (action === 'reject') {

@@ -41,6 +41,15 @@ describe("PUB CertChain Smart Contract", function () {
       await certChain.connect(admin).removeIssuer(student.address);
       expect(await certChain.hasRole(ISSUER_ROLE, student.address)).to.be.false;
     });
+
+    it("should allow controller to add and remove an issuer", async function () {
+      const ISSUER_ROLE = await certChain.ISSUER_ROLE();
+      await certChain.connect(controller).addIssuer(student.address);
+      expect(await certChain.hasRole(ISSUER_ROLE, student.address)).to.be.true;
+
+      await certChain.connect(controller).removeIssuer(student.address);
+      expect(await certChain.hasRole(ISSUER_ROLE, student.address)).to.be.false;
+    });
   });
 
   describe("Certificate Issuance", function () {

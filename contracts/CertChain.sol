@@ -70,14 +70,22 @@ contract CertChain is AccessControl {
     // ROLE MANAGEMENT CONVENIENCE FUNCTIONS
     // ==========================================
 
-    function addIssuer(address account) external onlyRole(DEFAULT_ADMIN_ROLE) {
+    function addIssuer(address account) external {
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(CONTROLLER_ROLE, msg.sender),
+            "Caller is not admin or controller"
+        );
         require(account != address(0), "Invalid address");
-        grantRole(ISSUER_ROLE, account);
+        _grantRole(ISSUER_ROLE, account);
         emit IssuerAdded(account, msg.sender);
     }
 
-    function removeIssuer(address account) external onlyRole(DEFAULT_ADMIN_ROLE) {
-        revokeRole(ISSUER_ROLE, account);
+    function removeIssuer(address account) external {
+        require(
+            hasRole(DEFAULT_ADMIN_ROLE, msg.sender) || hasRole(CONTROLLER_ROLE, msg.sender),
+            "Caller is not admin or controller"
+        );
+        _revokeRole(ISSUER_ROLE, account);
         emit IssuerRemoved(account, msg.sender);
     }
 

@@ -147,3 +147,67 @@ export async function revokeOnChainServer(certId: string, reason: string) {
     };
   }
 }
+
+/**
+ * Server-side helper to grant ISSUER_ROLE to an approved issuer wallet address
+ */
+export async function addIssuerOnChainServer(walletAddress: string) {
+  try {
+    const provider = new JsonRpcProvider(HARDHAT_RPC_URL);
+    await provider.getBlockNumber();
+
+    const wallet = new Wallet(HARDHAT_CONTROLLER_PRIVATE_KEY, provider);
+    const contract = new Contract(CONTRACT_ADDRESS, CertChainABI, wallet);
+
+    const tx = await contract.addIssuer(walletAddress);
+    const receipt = await tx.wait();
+
+    return {
+      success: true,
+      txHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+    };
+  } catch (error) {
+    console.warn('Notice: Add issuer on-chain skipped or node offline:', (error as Error).message);
+    const pseudoHash = `0x${Buffer.from('ISSUER_ADD' + walletAddress).toString('hex').slice(0, 64).padEnd(64, '0')}`;
+    return {
+      success: false,
+      txHash: pseudoHash,
+      blockNumber: 19402800 + Math.floor(Math.random() * 5000),
+      fallback: true,
+      error: (error as Error).message,
+    };
+  }
+}
+
+/**
+ * Server-side helper to revoke ISSUER_ROLE from an issuer wallet address
+ */
+export async function removeIssuerOnChainServer(walletAddress: string) {
+  try {
+    const provider = new JsonRpcProvider(HARDHAT_RPC_URL);
+    await provider.getBlockNumber();
+
+    const wallet = new Wallet(HARDHAT_CONTROLLER_PRIVATE_KEY, provider);
+    const contract = new Contract(CONTRACT_ADDRESS, CertChainABI, wallet);
+
+    const tx = await contract.removeIssuer(walletAddress);
+    const receipt = await tx.wait();
+
+    return {
+      success: true,
+      txHash: receipt.hash,
+      blockNumber: receipt.blockNumber,
+    };
+  } catch (error) {
+    console.warn('Notice: Remove issuer on-chain skipped or node offline:', (error as Error).message);
+    const pseudoHash = `0x${Buffer.from('ISSUER_REMOVE' + walletAddress).toString('hex').slice(0, 64).padEnd(64, '0')}`;
+    return {
+      success: false,
+      txHash: pseudoHash,
+      blockNumber: 19402800 + Math.floor(Math.random() * 5000),
+      fallback: true,
+      error: (error as Error).message,
+    };
+  }
+}

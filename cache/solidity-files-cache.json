@@ -2,8 +2,8 @@
   "_format": "hh-sol-cache-2",
   "files": {
     "/home/maruf0x01/Hackathon/CertChain/contracts/CertChain.sol": {
-      "lastModificationDate": 1793132044544,
-      "contentHash": "63ea4ef02a5aaf4dc9cb76d779d1e295",
+      "lastModificationDate": 1793136111795,
+      "contentHash": "e6c231e8029bd75610b7856079371a0f",
       "sourceName": "contracts/CertChain.sol",
       "solcConfig": {
         "version": "0.8.20",

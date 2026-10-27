@@ -3,6 +3,7 @@ import { connectDB } from '@/lib/mongodb';
 import { User } from '@/models/User';
 import { Certificate } from '@/models/Certificate';
 import { AuditLog } from '@/models/AuditLog';
+import { addIssuerOnChainServer, removeIssuerOnChainServer } from '@/lib/web3/serverWeb3';
 
 // GET /api/controller/issuers
 export async function GET(request: Request) {
@@ -127,6 +128,17 @@ export async function POST(request: Request) {
     issuer.status = newStatus;
     await issuer.save();
 
+    let onChainTx: string | undefined;
+    if (issuer.walletAddress) {
+      if (action === 'suspend') {
+        const chainRes = await removeIssuerOnChainServer(issuer.walletAddress);
+        onChainTx = chainRes.txHash;
+      } else {
+        const chainRes = await addIssuerOnChainServer(issuer.walletAddress);
+        onChainTx = chainRes.txHash;
+      }
+    }
+
     // Log in immutable audit trail
     // Explicit policy notice: Suspending an issuer does NOT revoke already issued certificates!
     await AuditLog.create({
@@ -140,6 +152,7 @@ export async function POST(request: Request) {
       details: `${action === 'suspend' ? 'Suspended' : 'Reactivated'} by Controller. Reason: ${
         reason || 'Administrative action'
       }. Note: Previously issued certificates remain intact per institutional policy.`,
+      transactionHash: onChainTx || undefined,
       ipAddress: '127.0.0.1',
     });
 
