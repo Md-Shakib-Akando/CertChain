@@ -42,6 +42,8 @@ export const QuickVerification: React.FC = () => {
     blockNumber: string;
     revocationReason?: string;
     message?: string;
+    computedHash?: string;
+    expectedHash?: string;
   } | null>(null);
 
   // Extract Certificate ID from QR string (handles URLs or direct IDs)
@@ -272,10 +274,13 @@ export const QuickVerification: React.FC = () => {
       const hashArray = Array.from(new Uint8Array(hashBuffer));
       const hexHash = hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
 
+      const idMatch = file.name.match(/(PUB-(?:DEG|PRO|TRN|CRT)-\d{4}-\d+|CERT-DEMO-\d{4}-\d+)/i);
+      const extractedCertId = idMatch ? idMatch[0] : file.name.replace(/\.pdf$/i, '');
+
       const res = await fetch('/api/public/verify/hash', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ hash: hexHash, certId: file.name.replace(/\.pdf$/i, '') }),
+        body: JSON.stringify({ hash: hexHash, certId: extractedCertId }),
       });
       const data = await res.json();
 
@@ -294,13 +299,15 @@ export const QuickVerification: React.FC = () => {
         });
       } else if (data.status === 'INVALID_MODIFIED') {
         setModalResult({
-          id: data.certificateId || file.name,
+          id: data.certificateId || extractedCertId,
           name: data.studentName || 'Official Student Record',
           degree: 'N/A',
           status: 'INVALID_MODIFIED',
           message: data.message || 'Security Alert: Cryptographic fingerprint mismatch. Document has been modified or forged.',
           txHash: '',
           blockNumber: '',
+          computedHash: data.computedHash,
+          expectedHash: data.expectedHash,
         });
       } else {
         setModalResult({
@@ -802,6 +809,37 @@ export const QuickVerification: React.FC = () => {
                           {copiedHash ? 'Copied!' : 'Copy Hash'}
                         </button>
                       </div>
+                    </div>
+                  )}
+
+                  {/* Tamper Detection Cryptographic Comparison */}
+                  {modalResult.status === 'INVALID_MODIFIED' && (
+                    <div className="sm:col-span-2 p-3.5 rounded-xl bg-red-50/90 border border-red-200 text-xs space-y-2.5">
+                      <div className="flex items-center gap-1.5 text-red-900 font-bold">
+                        <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                        <span>Cryptographic Hash Mismatch (Tamper Detected)</span>
+                      </div>
+                      <div className="space-y-2 font-mono text-[11px]">
+                        <div>
+                          <span className="text-[10px] uppercase font-sans font-semibold text-red-700 block mb-0.5">
+                            Computed File Hash (Uploaded File):
+                          </span>
+                          <div className="bg-white p-2 rounded-lg border border-red-200 text-red-700 break-all select-all shadow-xs">
+                            {modalResult.computedHash || 'Mismatch Detected'}
+                          </div>
+                        </div>
+                        <div>
+                          <span className="text-[10px] uppercase font-sans font-semibold text-emerald-800 block mb-0.5">
+                            Anchored Ledger Hash (Official Record):
+                          </span>
+                          <div className="bg-white p-2 rounded-lg border border-emerald-200 text-emerald-800 break-all select-all shadow-xs">
+                            {modalResult.expectedHash || 'Anchored On-Chain Fingerprint'}
+                          </div>
+                        </div>
+                      </div>
+                      <p className="text-[11px] text-red-700 font-sans leading-tight pt-0.5">
+                        Security Notice: Even a 1-character or 1-byte alteration in student name, CGPA, or degree text fundamentally changes the SHA-256 fingerprint, triggering instant fraud prevention.
+                      </p>
                     </div>
                   )}
                 </div>

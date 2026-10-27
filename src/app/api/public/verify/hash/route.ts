@@ -72,8 +72,11 @@ export async function POST(req: NextRequest) {
     // 2. If hash didn't match directly, but a certId was provided (or can be checked):
     if (certId) {
       const cleanCertId = certId.trim().toUpperCase();
+      const idMatch = cleanCertId.match(/(PUB-(?:DEG|PRO|TRN|CRT)-\d{4}-\d+|CERT-DEMO-\d{4}-\d+)/i);
+      const targetCertId = idMatch ? idMatch[0] : cleanCertId.replace(/[-_](?:TAMPERED|MODIFIED|FORGED|COPY).*$/i, '');
+
       const existingCert = await Certificate.findOne({
-        id: { $regex: new RegExp(`^${cleanCertId}$`, 'i') },
+        id: { $regex: new RegExp(`^${targetCertId}$`, 'i') },
       }).select('-pdfBase64');
 
       if (existingCert) {
