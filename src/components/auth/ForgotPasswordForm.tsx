@@ -1,14 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  Mail,
-  KeyRound,
-  ArrowLeft,
-  CheckCircle2,
-  AlertCircle,
-  Loader2,
-} from 'lucide-react';
+import { Mail, KeyRound, ArrowLeft } from 'lucide-react';
+import { Card, CardBody, Field, Input, Button, Alert } from '@/components/ui';
 
 interface ForgotPasswordFormProps {
   onGoToLogin: () => void;
@@ -37,108 +31,95 @@ export const ForgotPasswordForm: React.FC<ForgotPasswordFormProps> = ({
     }
 
     setIsLoading(true);
-
     setTimeout(() => {
       setIsLoading(false);
       setIsSubmitted(true);
-    }, 800);
+    }, 600);
   };
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-6 sm:p-10 transition-all">
-      <div className="space-y-2 mb-6">
-        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#172033]">
-          Reset Your Password
-        </h2>
-        <p className="text-xs sm:text-sm text-[#64748B]">
-          Enter your registered university email to receive a secure recovery link.
-        </p>
-      </div>
-
-      {isSubmitted ? (
-        <div className="space-y-6">
-          <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 space-y-2 text-xs">
-            <div className="flex items-center gap-2 font-bold text-emerald-800 text-sm">
-              <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-              <span>Reset Link Dispatched</span>
-            </div>
-            <p className="leading-relaxed">
-              If an account is associated with <span className="font-semibold text-emerald-950">{email}</span>, a secure reset link has been sent to your university inbox.
-            </p>
-            <p className="text-slate-500 text-[11px] pt-1">
-              • Token expires in 15 minutes and can only be used once.
-            </p>
-          </div>
-
-          <button
-            type="button"
-            onClick={onGoToLogin}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-semibold text-sm shadow-md transition-all text-center"
-          >
-            Return to Sign In
-          </button>
+    <Card>
+      <CardBody className="p-6 sm:p-8 space-y-5">
+        <div>
+          <p className="eyebrow">Account Recovery</p>
+          <h2 className="font-serif text-2xl font-semibold text-ink mt-1">
+            Reset Your Password
+          </h2>
+          <p className="text-xs sm:text-[13.5px] text-muted mt-1">
+            Enter your registered university email address to receive a one-time recovery link.
+          </p>
         </div>
-      ) : (
-        <form onSubmit={handleSubmit} className="space-y-5">
-          {errorMessage && (
-            <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs sm:text-sm">
-              <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
-              <div className="flex-1 font-medium">{errorMessage}</div>
-            </div>
-          )}
 
-          <div className="space-y-1.5">
-            <label htmlFor="forgot-email" className="block text-xs font-semibold text-[#172033]">
-              University Email Address <span className="text-red-500">*</span>
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-                <Mail className="w-4 h-4" />
-              </div>
-              <input
+        {isSubmitted ? (
+          <div className="space-y-5">
+            <Alert tone="success" title="Recovery instructions dispatched">
+              <p>
+                If an active account is associated with{' '}
+                <strong className="font-semibold text-ink">{email}</strong>, a time-limited recovery link has been sent to that inbox.
+              </p>
+              <p className="text-xs text-muted mt-1">
+                Recovery tokens expire after 15 minutes and can only be used once.
+              </p>
+            </Alert>
+
+            <Button
+              variant="primary"
+              size="lg"
+              fullWidth
+              onClick={onGoToLogin}
+              leftIcon={<ArrowLeft />}
+            >
+              Return to Sign In
+            </Button>
+          </div>
+        ) : (
+          <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+            {errorMessage && <Alert tone="danger">{errorMessage}</Alert>}
+
+            <Field
+              label="Registered University Email"
+              required
+              id="forgot-email"
+              hint="Must match the email address on your student or staff profile."
+            >
+              <Input
                 id="forgot-email"
                 type="email"
-                placeholder="e.g. name@pub.edu"
+                leftIcon={<Mail />}
+                placeholder="e.g. name@pub.edu.bd"
                 value={email}
                 onChange={(e) => {
                   setEmail(e.target.value);
                   if (errorMessage) setErrorMessage(null);
                 }}
-                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 bg-white text-[#172033] text-sm placeholder:text-slate-400 transition-all outline-none"
               />
-            </div>
-          </div>
+            </Field>
 
-          <button
-            type="submit"
-            disabled={isLoading}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-70"
-          >
-            {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Sending Reset Link...</span>
-              </>
-            ) : (
-              <>
-                <KeyRound className="w-4 h-4" />
-                <span>Send Reset Link</span>
-              </>
-            )}
-          </button>
-
-          <div className="pt-4 border-t border-slate-100 flex items-center justify-center">
-            <button
-              type="button"
-              onClick={onGoToLogin}
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#2563EB] hover:underline"
+            <Button
+              type="submit"
+              variant="primary"
+              size="lg"
+              fullWidth
+              loading={isLoading}
+              loadingText="Sending recovery link..."
+              leftIcon={<KeyRound />}
             >
-              <ArrowLeft className="w-3.5 h-3.5" />
-              <span>Back to Login</span>
-            </button>
-          </div>
-        </form>
-      )}
-    </div>
+              Send Recovery Link
+            </Button>
+
+            <div className="pt-3 border-t border-line text-center">
+              <button
+                type="button"
+                onClick={onGoToLogin}
+                className="inline-flex items-center gap-1.5 text-xs font-semibold text-brand hover:underline"
+              >
+                <ArrowLeft className="size-3.5" />
+                <span>Back to Sign In</span>
+              </button>
+            </div>
+          </form>
+        )}
+      </CardBody>
+    </Card>
   );
 };

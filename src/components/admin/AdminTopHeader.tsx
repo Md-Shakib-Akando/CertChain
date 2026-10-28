@@ -1,12 +1,9 @@
 'use client';
 
 import React from 'react';
-import {
-  Bell,
-  RefreshCw,
-  Menu,
-} from 'lucide-react';
+import { ShieldAlert, FileText } from 'lucide-react';
 import { AdminTab } from '@/types/admin';
+import { WorkspaceTopHeader } from '@/components/layout/WorkspaceShell';
 
 interface AdminTopHeaderProps {
   activeTab: AdminTab;
@@ -21,17 +18,18 @@ export const AdminTopHeader: React.FC<AdminTopHeaderProps> = ({
   activeTab,
   onRefresh,
   isLoading,
+  onLogout,
   onSelectTab,
   onToggleMobileMenu,
 }) => {
   const tabTitles: Record<AdminTab, { title: string; subtitle: string }> = {
     overview: {
-      title: 'Platform Overview',
-      subtitle: 'System health, key metrics, and administrative summary',
+      title: 'Platform Governance Overview',
+      subtitle: 'System health, institutional metrics, and administrative summary',
     },
     users: {
-      title: 'User Management',
-      subtitle: 'Search, audit, and provision institutional accounts',
+      title: 'Institutional User Directory',
+      subtitle: 'Search, audit, and provision university accounts',
     },
     roles: {
       title: 'Roles & Permission Matrix',
@@ -39,14 +37,14 @@ export const AdminTopHeader: React.FC<AdminTopHeaderProps> = ({
     },
     monitoring: {
       title: 'System Health Monitoring',
-      subtitle: 'Live API, MongoDB cluster, Brevo email, and RPC status',
+      subtitle: 'Live API, MongoDB cluster, Brevo email, and Sepolia RPC status',
     },
     audit: {
       title: 'Immutable Audit Trail',
       subtitle: 'Tamper-evident logs of governance and administrative actions',
     },
     reports: {
-      title: 'Reports & Analytics',
+      title: 'Platform Reports & Analytics',
       subtitle: 'Certificate volume, verification activity, and adoption trends',
     },
   };
@@ -54,65 +52,30 @@ export const AdminTopHeader: React.FC<AdminTopHeaderProps> = ({
   const currentTabInfo = tabTitles[activeTab] || tabTitles.overview;
 
   return (
-    <header className="h-16 bg-[#0D1424]/90 backdrop-blur-xl border-b border-white/10 px-4 sm:px-6 flex items-center justify-between sticky top-0 z-30 shrink-0">
-      {/* Left: Hamburger (Mobile) + Breadcrumbs & Page title */}
-      <div className="flex items-center gap-3">
-        <button
-          onClick={onToggleMobileMenu}
-          className="lg:hidden p-2 -ml-1 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 border border-white/10 transition cursor-pointer"
-          title="Open Navigation Menu"
-        >
-          <Menu className="w-5 h-5" />
-        </button>
-        <div>
-          <div className="flex items-center gap-2 text-[11px] font-semibold text-slate-400">
-            <span>CertChain</span>
-            <span>/</span>
-            <span className="text-cyan-400 font-bold capitalize">{activeTab}</span>
-          </div>
-          <h2 className="text-sm sm:text-lg font-bold text-[#F1F5F9] leading-none mt-0.5 truncate max-w-[180px] sm:max-w-none">
-            {currentTabInfo.title}
-          </h2>
-        </div>
-      </div>
-
-      {/* Right: Actions, Network Badge, Notifications & Profile */}
-      <div className="flex items-center gap-2.5">
-        {/* Refresh button */}
-        <button
-          onClick={onRefresh}
-          disabled={isLoading}
-          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-white/10 transition cursor-pointer disabled:opacity-50"
-          title="Refresh dashboard metrics"
-        >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-cyan-400' : ''}`} />
-        </button>
-
-        {/* Notification indicator */}
-        <button
-          onClick={() => onSelectTab('audit')}
-          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-white/10 transition relative cursor-pointer"
-          title="View recent alerts and audit events"
-        >
-          <Bell className="w-4 h-4" />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-cyan-400 rounded-full" />
-        </button>
-
-        {/* Super Admin Profile Menu */}
-        <div className="relative">
-          <div className="flex items-center gap-2 pl-2 pr-3 py-1.5 rounded-xl border border-white/10 bg-white/5">
-            <div className="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 flex items-center justify-center text-xs font-bold shrink-0">
-              SA
-            </div>
-            <div className="text-left hidden lg:block">
-              <span className="text-xs font-bold text-[#F1F5F9] block leading-tight">
-                Super Admin
-              </span>
-              <span className="text-[10px] text-slate-400 block font-mono">admin@pub.edu.bd</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </header>
+    <WorkspaceTopHeader
+      role="admin"
+      breadcrumbSection={activeTab}
+      title={currentTabInfo.title}
+      subtitle={currentTabInfo.subtitle}
+      onRefresh={onRefresh}
+      isLoading={isLoading}
+      onLogout={onLogout}
+      onNotificationClick={() => onSelectTab('audit')}
+      onToggleMobileMenu={onToggleMobileMenu}
+      userName="Super Admin"
+      userEmail="admin@pub.edu.bd"
+      dropdownItems={[
+        {
+          label: 'Roles & Permissions Matrix',
+          icon: <ShieldAlert className="w-4 h-4 text-muted" />,
+          onClick: () => onSelectTab('roles'),
+        },
+        {
+          label: 'System Audit Logs',
+          icon: <FileText className="w-4 h-4 text-muted" />,
+          onClick: () => onSelectTab('audit'),
+        },
+      ]}
+    />
   );
 };

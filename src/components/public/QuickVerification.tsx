@@ -1,27 +1,71 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import Image from 'next/image';
 import jsQR from 'jsqr';
 import {
   Search,
   QrCode,
-  Loader2,
   Camera,
   Upload,
   ShieldCheck,
   ShieldAlert,
   AlertTriangle,
-  X,
   CameraOff,
+  FileText,
+  Download,
+  Eye,
+  RotateCcw,
+  CircleHelp,
+  CloudOff,
 } from 'lucide-react';
-import verificationImage from '../../../public/images/verification.jpeg';
+import {
+  Button,
+  Card,
+  CardBody,
+  CardHeader,
+  Segmented,
+  Input,
+  StatusBadge,
+  HashText,
+  explorerTxUrl,
+  Dialog,
+  CertificateDocumentPreview,
+  DescriptionList,
+  Alert,
+} from '@/components/ui';
+
+type VerificationStatus = 'VALID' | 'REVOKED' | 'NOT_FOUND' | 'INVALID_MODIFIED' | 'ERROR';
+
+interface VerificationResult {
+  id: string;
+  name: string;
+  studentId?: string;
+  degree: string;
+  program?: string;
+  type?: string;
+  status: VerificationStatus;
+  session?: string;
+  cgpa?: string;
+  issueDate?: string;
+  sha256Hash?: string;
+  txHash: string;
+  blockNumber: string;
+  numericBlock?: number;
+  network?: string;
+  revocationReason?: string;
+  revocationDate?: string;
+  message?: string;
+  computedHash?: string;
+  expectedHash?: string;
+}
 
 export const QuickVerification: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'id' | 'qr' | 'pdf'>('id');
   const [certIdInput, setCertIdInput] = useState<string>('');
   const [isVerifying, setIsVerifying] = useState<boolean>(false);
-  const [copiedHash, setCopiedHash] = useState<boolean>(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const [selectedPdfName, setSelectedPdfName] = useState<string | null>(null);
+  const [previewOpen, setPreviewOpen] = useState<boolean>(false);
 
   // Real Camera Scanner State
   const [isScanningCamera, setIsScanningCamera] = useState<boolean>(false);
@@ -29,30 +73,15 @@ export const QuickVerification: React.FC = () => {
   const isScanningCameraRef = useRef<boolean>(false);
   const animFrameIdRef = useRef<number | null>(null);
 
-  // Popup Modal Verification Result
-  const [modalResult, setModalResult] = useState<{
-    id: string;
-    name: string;
-    degree: string;
-    status: 'VALID' | 'REVOKED' | 'NOT_FOUND' | 'INVALID_MODIFIED';
-    session?: string;
-    cgpa?: string;
-    issueDate?: string;
-    txHash: string;
-    blockNumber: string;
-    revocationReason?: string;
-    message?: string;
-    computedHash?: string;
-    expectedHash?: string;
-  } | null>(null);
+  // Verification Result State
+  const [result, setResult] = useState<VerificationResult | null>(null);
 
-  // Extract Certificate ID from QR string (handles URLs or direct IDs)
   const extractCertIdFromQr = (text: string): string => {
     const trimmed = text.trim();
     try {
       if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
         const url = new URL(trimmed);
-        const queryId = url.searchParams.get('id');
+        const queryId = url.searchParams.get('id') || url.searchParams.get('certId');
         if (queryId) return queryId.trim().toUpperCase();
 
         const pathParts = url.pathname.split('/').filter(Boolean);
@@ -72,43 +101,65 @@ export const QuickVerification: React.FC = () => {
     if (!cleanId) return;
 
     setIsVerifying(true);
+    setCameraError(null);
 
     try {
       const res = await fetch(`/api/public/verify/${encodeURIComponent(cleanId)}`);
       const data = await res.json();
 
       if (res.ok && data.success && data.certificate) {
-        setModalResult({
+        setResult({
           id: data.certificate.id,
           name: data.certificate.studentName,
-          degree: data.certificate.degree,
+          studentId: data.certificate.studentId,
+          degree: data.certificate.degree || data.certificate.program,
+          program: data.certificate.program,
+          type: data.certificate.type,
           status: data.status,
           session: data.certificate.session,
           cgpa: data.certificate.cgpa,
           issueDate: data.certificate.issueDate,
+          sha256Hash: data.certificate.sha256Hash,
           txHash: data.certificate.txHash,
-          blockNumber: `#${data.certificate.blockNumber}`,
+          blockNumber: data.certificate.blockNumber ? `#${data.certificate.blockNumber}` : '',
+          numericBlock: data.certificate.blockNumber,
+          network: data.certificate.network,
           revocationReason: data.certificate.revocationReason,
+          revocationDate: data.certificate.revocationDate,
+        });
+      } else if (res.status >= 500) {
+        setResult({
+          id: cleanId,
+          name: 'N/A',
+          degree: 'N/A',
+          status: 'ERROR',
+          message:
+            data.message ||
+            'The verification ledger service encountered an unexpected error. Please try again shortly.',
+          txHash: '',
+          blockNumber: '',
         });
       } else {
-        // Real NOT FOUND result from database / smart contract
-        setModalResult({
+        setResult({
           id: cleanId,
           name: 'N/A',
           degree: 'N/A',
           status: 'NOT_FOUND',
-          message: data.message || `No certificate record found with ID "${cleanId}" on the blockchain ledger.`,
+          message:
+            data.message ||
+            `No certificate record matching "${cleanId}" was found in the university registry or blockchain ledger.`,
           txHash: '',
           blockNumber: '',
         });
       }
     } catch {
-      setModalResult({
+      setResult({
         id: cleanId,
         name: 'N/A',
         degree: 'N/A',
-        status: 'NOT_FOUND',
-        message: 'Could not connect to the verification ledger service. Please check your network connection.',
+        status: 'ERROR',
+        message:
+          'Could not reach the verification service. Please verify your network connection and try again.',
         txHash: '',
         blockNumber: '',
       });
@@ -121,7 +172,7 @@ export const QuickVerification: React.FC = () => {
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const params = new URLSearchParams(window.location.search);
-      const queryId = params.get('id');
+      const queryId = params.get('id') || params.get('certId');
       if (queryId) {
         setTimeout(() => {
           setCertIdInput(queryId);
@@ -148,7 +199,6 @@ export const QuickVerification: React.FC = () => {
 
   const tickScanRef = useRef<() => void>(() => {});
 
-  // Frame scanner loop
   const tickScan = useCallback(() => {
     if (!isScanningCameraRef.current || !videoRef.current) return;
 
@@ -184,8 +234,8 @@ export const QuickVerification: React.FC = () => {
     tickScanRef.current = tickScan;
   }, [tickScan]);
 
-  // Start real webcam scanner
   const startCamera = async () => {
+    setCameraError(null);
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' },
@@ -200,11 +250,12 @@ export const QuickVerification: React.FC = () => {
         animFrameIdRef.current = requestAnimationFrame(tickScanRef.current);
       }
     } catch {
-      alert('Unable to access camera. Please allow camera permissions or upload a QR image.');
+      setCameraError(
+        'Camera access was denied or is unavailable on this device. You can upload an image of the QR code below instead.'
+      );
     }
   };
 
-  // Stop camera when leaving QR tab or unmounting
   useEffect(() => {
     if (activeTab !== 'qr' && isScanningCameraRef.current) {
       stopCamera();
@@ -220,6 +271,7 @@ export const QuickVerification: React.FC = () => {
     if (!file) return;
 
     setIsVerifying(true);
+    setCameraError(null);
     const reader = new FileReader();
 
     reader.onload = () => {
@@ -241,12 +293,13 @@ export const QuickVerification: React.FC = () => {
             handleVerify(detectedId);
           } else {
             setIsVerifying(false);
-            setModalResult({
+            setResult({
               id: file.name,
               name: 'N/A',
               degree: 'N/A',
               status: 'NOT_FOUND',
-              message: 'No readable QR code found in the uploaded image. Please ensure the QR code is clearly visible and well-lit.',
+              message:
+                'No readable QR code was detected in the uploaded image. Ensure the QR stamp is sharp and unobstructed.',
               txHash: '',
               blockNumber: '',
             });
@@ -263,10 +316,8 @@ export const QuickVerification: React.FC = () => {
   };
 
   // REAL PDF SHA-256 FINGERPRINT VERIFICATION
-  const handlePdfUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const processPdfFile = async (file: File) => {
+    setSelectedPdfName(file.name);
     setIsVerifying(true);
     try {
       const arrayBuffer = await file.arrayBuffer();
@@ -285,589 +336,609 @@ export const QuickVerification: React.FC = () => {
       const data = await res.json();
 
       if (res.ok && data.success && data.certificate) {
-        setModalResult({
+        setResult({
           id: data.certificate.id,
           name: data.certificate.studentName,
-          degree: data.certificate.degree,
+          studentId: data.certificate.studentId,
+          degree: data.certificate.degree || data.certificate.program,
+          program: data.certificate.program,
+          type: data.certificate.type,
           status: data.status,
           session: data.certificate.session,
           cgpa: data.certificate.cgpa,
           issueDate: data.certificate.issueDate,
+          sha256Hash: data.certificate.sha256Hash || hexHash,
           txHash: data.certificate.txHash,
-          blockNumber: `#${data.certificate.blockNumber}`,
+          blockNumber: data.certificate.blockNumber ? `#${data.certificate.blockNumber}` : '',
+          numericBlock: data.certificate.blockNumber,
+          network: data.certificate.network,
           revocationReason: data.certificate.revocationReason,
+          revocationDate: data.certificate.revocationDate,
+          computedHash: hexHash,
         });
       } else if (data.status === 'INVALID_MODIFIED') {
-        setModalResult({
+        setResult({
           id: data.certificateId || extractedCertId,
           name: data.studentName || 'Official Student Record',
           degree: 'N/A',
           status: 'INVALID_MODIFIED',
-          message: data.message || 'Security Alert: Cryptographic fingerprint mismatch. Document has been modified or forged.',
+          message:
+            data.message ||
+            'Security Alert: The uploaded PDF byte hash does not match the official hash anchored on-chain. This file has been modified or forged.',
           txHash: '',
           blockNumber: '',
-          computedHash: data.computedHash,
+          computedHash: data.computedHash || hexHash,
           expectedHash: data.expectedHash,
         });
       } else {
-        setModalResult({
+        setResult({
           id: file.name,
           name: 'N/A',
           degree: 'N/A',
           status: 'NOT_FOUND',
-          message: data.message || 'No matching certificate found with this cryptographic fingerprint on the blockchain.',
+          message:
+            data.message ||
+            'No certificate record on the blockchain matches this PDF file’s SHA-256 cryptographic digest.',
           txHash: '',
           blockNumber: '',
+          computedHash: hexHash,
         });
       }
     } catch {
-      setModalResult({
+      setResult({
         id: file.name,
         name: 'N/A',
         degree: 'N/A',
-        status: 'NOT_FOUND',
-        message: 'Failed to process PDF document client-side.',
+        status: 'ERROR',
+        message: 'Failed to compute SHA-256 digest or communicate with the verification endpoint.',
         txHash: '',
         blockNumber: '',
       });
     } finally {
       setIsVerifying(false);
-      e.target.value = '';
     }
   };
 
+  const handlePdfUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      void processPdfFile(file);
+    }
+    e.target.value = '';
+  };
+
+  const sampleIds = [
+    { id: 'PUB-DEG-2026-000105', label: 'PUB-DEG-2026-000105 (Valid)' },
+    { id: 'CERT-DEMO-2026-002', label: 'CERT-DEMO-2026-002 (Revoked)' },
+  ];
+
   return (
-    <section id="verify" className="bg-[#080D18] aurora-bg py-20 sm:py-28 border-b border-white/10 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
-          
-          {/* Left Column: Header, Tabs, Form Fields */}
-          <div className="lg:col-span-6 space-y-6">
-            
-            {/* Tag Pill */}
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 shadow-inner">
-              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-              <span className="text-[11px] font-bold tracking-widest uppercase text-cyan-300">
-                Instant Zero-Gas Verification
-              </span>
-            </div>
+    <section id="verify" className="bg-canvas paper-grain py-16 sm:py-24 border-b border-line">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {/* Section Heading */}
+        <div className="max-w-2xl mb-10">
+          <p className="eyebrow mb-1.5">Public Verification Workbench &middot; Zero Gas</p>
+          <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink tracking-tight">
+            Verify an Academic Credential
+          </h2>
+          <p className="mt-2 text-sm sm:text-base text-muted leading-relaxed">
+            Authenticate any Pundra University certificate by entering its Certificate ID, scanning its printed QR stamp, or uploading the official PDF for client-side SHA-256 tamper inspection.
+          </p>
+        </div>
 
-            {/* Title & Description */}
-            <div className="space-y-2">
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F1F5F9] tracking-tight">
-                Public Certificate Verification
-              </h2>
-              <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-xl font-normal">
-                Verify any academic certificate in seconds using one of the three methods below. Direct cryptographic comparison against the immutable blockchain ledger.
-              </p>
-            </div>
-
-            {/* Verification Method Tabs (Pills) */}
-            <div className="flex flex-wrap items-center gap-2.5 pt-1">
-              <button
-                type="button"
-                onClick={() => {
-                  stopCamera();
-                  setActiveTab('id');
-                }}
-                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === 'id'
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-cyan-400/40'
-                    : 'bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                Certificate ID
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setActiveTab('qr')}
-                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === 'qr'
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-cyan-400/40'
-                    : 'bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                Scan QR Code
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  stopCamera();
-                  setActiveTab('pdf');
-                }}
-                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                  activeTab === 'pdf'
-                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-cyan-400/40'
-                    : 'bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
-                }`}
-              >
-                Upload PDF
-              </button>
-            </div>
-
-            {/* TAB 1: Real Certificate ID Search Field */}
-            {activeTab === 'id' && (
-              <div className="space-y-3 pt-2">
-                <form
-                  onSubmit={(e) => {
-                    e.preventDefault();
-                    if (certIdInput.trim()) {
-                      handleVerify(certIdInput);
-                    }
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+          {/* Left Column: Verification Input Workbench */}
+          <div className="lg:col-span-6">
+            <Card>
+              <CardHeader
+                title="Select Verification Method"
+                description="All verification queries are read-only and free for public verifiers."
+              />
+              <CardBody className="space-y-5">
+                <Segmented
+                  fullWidth
+                  ariaLabel="Verification method"
+                  value={activeTab}
+                  onChange={(k) => {
+                    stopCamera();
+                    setActiveTab(k);
                   }}
-                  className="flex flex-col sm:flex-row items-center gap-2.5"
-                >
-                  <div className="relative w-full">
-                    <input
-                      id="cert-id-search-input"
-                      type="text"
-                      value={certIdInput}
-                      onChange={(e) => setCertIdInput(e.target.value)}
-                      placeholder="e.g. PUB-DEG-2026-000105"
-                      className="w-full pl-4 pr-4 py-3.5 bg-[#0D1424] border border-white/15 rounded-xl text-white text-sm sm:text-base placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 shadow-inner font-mono font-medium"
-                    />
-                  </div>
+                  items={[
+                    { key: 'id', label: 'Certificate ID', icon: <Search /> },
+                    { key: 'qr', label: 'Scan QR Code', icon: <QrCode /> },
+                    { key: 'pdf', label: 'Upload PDF', icon: <FileText /> },
+                  ]}
+                />
 
-                  <button
-                    type="submit"
-                    disabled={isVerifying || !certIdInput.trim()}
-                    className="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 active:scale-95 text-white font-semibold text-sm sm:text-base rounded-xl transition-all shadow-lg shadow-cyan-600/25 flex items-center justify-center gap-2 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-400/30"
-                  >
-                    {isVerifying ? (
-                      <Loader2 className="w-5 h-5 animate-spin" />
-                    ) : (
-                      <Search className="w-4 h-4" />
-                    )}
-                    <span>Verify</span>
-                  </button>
-                </form>
-              </div>
-            )}
+                {/* TAB 1: Certificate ID */}
+                {activeTab === 'id' && (
+                  <div className="space-y-4">
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault();
+                        if (certIdInput.trim()) {
+                          handleVerify(certIdInput);
+                        }
+                      }}
+                      className="space-y-3"
+                    >
+                      <label htmlFor="cert-id-search-input" className="block text-[13px] font-medium text-ink">
+                        Certificate Identifier
+                      </label>
+                      <div className="flex flex-col sm:flex-row gap-2.5">
+                        <Input
+                          id="cert-id-search-input"
+                          type="text"
+                          mono
+                          inputSize="lg"
+                          value={certIdInput}
+                          onChange={(e) => setCertIdInput(e.target.value)}
+                          placeholder="e.g. PUB-DEG-2026-000105"
+                          className="flex-1"
+                        />
+                        <Button
+                          type="submit"
+                          variant="primary"
+                          size="lg"
+                          loading={isVerifying}
+                          loadingText="Verifying..."
+                          disabled={!certIdInput.trim()}
+                          leftIcon={<Search />}
+                        >
+                          Verify Record
+                        </Button>
+                      </div>
+                    </form>
 
-            {/* TAB 2: Real Camera & Image QR Code Scanner View */}
-            {activeTab === 'qr' && (
-              <div className="bg-[#0D1424] rounded-2xl border border-white/15 shadow-xl p-5 sm:p-6 space-y-4">
-                <style>{`
-                  @keyframes cleanScanLine {
-                    0% { top: 12%; opacity: 0.8; }
-                    50% { top: 84%; opacity: 1; }
-                    100% { top: 12%; opacity: 0.8; }
-                  }
-                `}</style>
-
-                {/* Header & Status */}
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-400/20">
-                      <QrCode className="w-4 h-4" />
+                    {/* Quick Sample Pills */}
+                    <div className="pt-2 border-t border-line flex flex-wrap items-center gap-2 text-xs">
+                      <span className="text-muted font-medium">Try official sample record:</span>
+                      {sampleIds.map((item) => (
+                        <button
+                          key={item.id}
+                          type="button"
+                          onClick={() => {
+                            setCertIdInput(item.id);
+                            handleVerify(item.id);
+                          }}
+                          className="px-2.5 py-1 rounded bg-sunken hover:bg-[#e5e1d7] text-ink font-mono text-[11.5px] border border-line transition-colors"
+                        >
+                          {item.label}
+                        </button>
+                      ))}
                     </div>
+                  </div>
+                )}
+
+                {/* TAB 2: Scan QR Code */}
+                {activeTab === 'qr' && (
+                  <div className="space-y-4">
+                    {cameraError && (
+                      <Alert tone="warning" title="Camera unavailable">
+                        {cameraError}
+                      </Alert>
+                    )}
+
+                    <div className="rounded-lg border border-line bg-sunken/60 p-5 flex flex-col items-center justify-center text-center min-h-[210px]">
+                      {isScanningCamera ? (
+                        <div className="relative w-full max-w-[300px] h-48 rounded-md overflow-hidden bg-night border border-line-strong">
+                          <video
+                            ref={videoRef}
+                            className="w-full h-full object-cover"
+                            playsInline
+                            muted
+                          />
+                        </div>
+                      ) : (
+                        <div className="size-24 rounded-lg bg-surface border border-line-strong shadow-card flex items-center justify-center">
+                          <QrCode className="size-12 text-brand" />
+                        </div>
+                      )}
+                      <p className="mt-3 text-xs text-muted">
+                        {isScanningCamera
+                          ? 'Hold the certificate QR stamp steady inside the camera frame.'
+                          : 'Use your device camera or upload an image/screenshot of the certificate QR code.'}
+                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
+                      {isScanningCamera ? (
+                        <Button
+                          variant="danger"
+                          onClick={stopCamera}
+                          leftIcon={<CameraOff />}
+                        >
+                          Stop Camera
+                        </Button>
+                      ) : (
+                        <Button
+                          variant="primary"
+                          onClick={startCamera}
+                          loading={isVerifying}
+                          leftIcon={<Camera />}
+                        >
+                          Start Camera Scan
+                        </Button>
+                      )}
+
+                      <label className="inline-flex items-center justify-center gap-2 h-9.5 px-4 text-sm font-medium rounded-md bg-surface text-ink border border-line-strong shadow-card hover:bg-sunken cursor-pointer">
+                        <Upload className="size-4 text-muted" />
+                        <span>Upload QR Image</span>
+                        <input
+                          type="file"
+                          accept="image/*"
+                          onChange={handleQrImageUpload}
+                          className="sr-only"
+                        />
+                      </label>
+                    </div>
+                  </div>
+                )}
+
+                {/* TAB 3: Upload PDF */}
+                {activeTab === 'pdf' && (
+                  <div className="space-y-4">
+                    <div className="rounded-lg border border-dashed border-line-strong bg-sunken/40 p-6 text-center space-y-3">
+                      <div className="size-10 mx-auto rounded-full bg-surface border border-line flex items-center justify-center text-brand shadow-card">
+                        <Upload className="size-4" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-semibold text-ink">
+                          Upload Official Certificate PDF
+                        </p>
+                        <p className="text-xs text-muted mt-0.5 max-w-md mx-auto">
+                          Your browser computes the 256-bit SHA-256 digest locally and compares it against the anchored smart contract hash.
+                        </p>
+                      </div>
+                      {selectedPdfName && (
+                        <p className="text-xs font-mono text-ink-2 bg-surface inline-block px-2.5 py-1 rounded border border-line">
+                          Last inspected: {selectedPdfName}
+                        </p>
+                      )}
+                      <div>
+                        <label className="inline-flex items-center justify-center gap-2 h-9.5 px-4 rounded-md bg-brand text-white hover:bg-brand-hover text-sm font-medium cursor-pointer shadow-card">
+                          <FileText className="size-4" />
+                          <span>{isVerifying ? 'Computing SHA-256 & Verifying...' : 'Choose PDF Document'}</span>
+                          <input
+                            type="file"
+                            accept=".pdf,application/pdf"
+                            onChange={handlePdfUpload}
+                            disabled={isVerifying}
+                            className="sr-only"
+                          />
+                        </label>
+                      </div>
+                    </div>
+
+                    <div className="rounded-md bg-sunken/70 border border-line px-3.5 py-2.5 text-xs text-muted space-y-1">
+                      <p className="font-semibold text-ink-2">Evaluator Demo Files (in repository `/demo`):</p>
+                      <p className="font-mono text-[11px]">
+                        &bull; demo/PUB-DEG-2026-000105.pdf (Authentic) &nbsp;&bull; demo/PUB-DEG-2026-000105-tampered.pdf (Altered)
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </CardBody>
+            </Card>
+          </div>
+
+          {/* Right Column: Live Verification Result Panel */}
+          <div className="lg:col-span-6">
+            {!result ? (
+              <Card className="border-dashed">
+                <CardBody className="py-12 px-6 text-center space-y-4">
+                  <div className="size-12 mx-auto rounded-full bg-sunken border border-line flex items-center justify-center text-brand">
+                    <ShieldCheck className="size-6" />
+                  </div>
+                  <div className="max-w-md mx-auto space-y-1.5">
+                    <h3 className="font-serif text-lg font-semibold text-ink">
+                      Awaiting Credential Query
+                    </h3>
+                    <p className="text-xs sm:text-[13.5px] text-muted leading-relaxed">
+                      Enter a Certificate ID, scan a QR stamp, or upload a certificate PDF on the left. The cryptographic verification report, graduate metadata, and blockchain transaction anchor will appear here immediately.
+                    </p>
+                  </div>
+                  <div className="pt-2 flex flex-wrap justify-center gap-2">
+                    <StatusBadge status="valid" label="Valid — Authentic" size="sm" />
+                    <StatusBadge status="revoked" label="Revoked — Co-signed" size="sm" />
+                    <StatusBadge status="tampered" label="Tampered — Hash Mismatch" size="sm" />
+                    <StatusBadge status="not_found" label="Not Found" size="sm" />
+                  </div>
+                </CardBody>
+              </Card>
+            ) : (
+              <Card className="overflow-hidden animate-rise-in" role="region" aria-live="polite" aria-label="Verification result">
+                {/* Status Banner Header */}
+                <div
+                  className={`px-5 py-4 border-b flex items-start justify-between gap-4 ${
+                    result.status === 'VALID'
+                      ? 'bg-success-soft border-success-line'
+                      : result.status === 'REVOKED'
+                      ? 'bg-warning-soft border-warning-line'
+                      : result.status === 'INVALID_MODIFIED'
+                      ? 'bg-danger-soft border-danger-line'
+                      : 'bg-sunken border-line'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <span
+                      className={`mt-0.5 size-9 rounded-full flex items-center justify-center shrink-0 ${
+                        result.status === 'VALID'
+                          ? 'bg-success text-white'
+                          : result.status === 'REVOKED'
+                          ? 'bg-warning text-white'
+                          : result.status === 'INVALID_MODIFIED'
+                          ? 'bg-danger text-white'
+                          : 'bg-ink-2 text-white'
+                      }`}
+                    >
+                      {result.status === 'VALID' ? (
+                        <ShieldCheck className="size-5" />
+                      ) : result.status === 'REVOKED' ? (
+                        <ShieldAlert className="size-5" />
+                      ) : result.status === 'INVALID_MODIFIED' ? (
+                        <AlertTriangle className="size-5" />
+                      ) : result.status === 'ERROR' ? (
+                        <CloudOff className="size-5" />
+                      ) : (
+                        <CircleHelp className="size-5" />
+                      )}
+                    </span>
                     <div>
-                      <h3 className="text-sm font-bold text-[#F1F5F9]">
-                        Scan QR Code
+                      <div className="flex flex-wrap items-center gap-2">
+                        <StatusBadge
+                          status={
+                            result.status === 'VALID'
+                              ? 'valid'
+                              : result.status === 'REVOKED'
+                              ? 'revoked'
+                              : result.status === 'INVALID_MODIFIED'
+                              ? 'tampered'
+                              : result.status === 'ERROR'
+                              ? 'unavailable'
+                              : 'not_found'
+                          }
+                          size="sm"
+                        />
+                        <span className="font-mono text-xs text-ink-2 font-medium">
+                          {result.id}
+                        </span>
+                      </div>
+                      <h3 className="font-serif text-lg font-semibold text-ink mt-1">
+                        {result.status === 'VALID'
+                          ? 'Authentic University Credential'
+                          : result.status === 'REVOKED'
+                          ? 'Credential Officially Revoked'
+                          : result.status === 'INVALID_MODIFIED'
+                          ? 'Security Alert: Document Tampering Detected'
+                          : result.status === 'ERROR'
+                          ? 'Verification Service Unavailable'
+                          : 'No Matching Record Found'}
                       </h3>
-                      <p className="text-[11px] text-slate-400">
-                        Scan with device camera or upload a QR image
+                      <p className="text-xs text-ink-2 mt-0.5 leading-relaxed">
+                        {result.status === 'VALID'
+                          ? 'This credential matches the canonical SHA-256 fingerprint anchored on the blockchain ledger and is in good standing.'
+                          : result.status === 'REVOKED'
+                          ? 'This certificate was formally revoked with Controller of Examinations co-signature and is no longer valid.'
+                          : result.status === 'INVALID_MODIFIED'
+                          ? result.message
+                          : result.message}
                       </p>
                     </div>
                   </div>
 
-                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
-                    isScanningCamera
-                      ? 'bg-blue-500/20 text-cyan-300 border-cyan-400/30'
-                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
-                  }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${isScanningCamera ? 'bg-cyan-400 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
-                    {isScanningCamera ? 'Scanning...' : 'Ready'}
-                  </span>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setResult(null)}
+                    leftIcon={<RotateCcw />}
+                  >
+                    Reset
+                  </Button>
                 </div>
 
-                {/* Video / Viewfinder Area */}
-                <div className="relative w-full bg-gradient-to-b from-[#121C2E] to-[#080D18] rounded-xl border border-white/10 p-4 flex flex-col items-center justify-center text-center overflow-hidden min-h-[190px]">
-                  <div className="absolute inset-0 bg-[radial-gradient(#22d3ee_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
-
-                  {isScanningCamera ? (
-                    <div className="relative w-full max-w-[280px] h-44 rounded-xl overflow-hidden bg-black flex items-center justify-center shadow-lg border border-cyan-400/30">
-                      <video
-                        ref={videoRef}
-                        className="w-full h-full object-cover"
-                        playsInline
-                        muted
-                      />
-                      {/* Scanning Line Animation */}
-                      <div
-                        className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-[#22D3EE] to-transparent shadow-[0_0_8px_rgba(34,211,238,0.8)] z-20 pointer-events-none"
-                        style={{
-                          animation: 'cleanScanLine 1.5s ease-in-out infinite',
-                        }}
-                      />
-                    </div>
-                  ) : (
-                    /* Default QR Viewfinder */
-                    <div className="relative w-28 h-28 bg-[#121C2E] rounded-xl shadow-lg border border-white/15 flex items-center justify-center p-3 z-10">
-                      <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-cyan-400 rounded-tl" />
-                      <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-cyan-400 rounded-tr" />
-                      <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-cyan-400 rounded-bl" />
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-cyan-400 rounded-br" />
-
-                      <div
-                        className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-[#22D3EE] to-transparent shadow-[0_0_8px_rgba(34,211,238,0.8)] z-20 pointer-events-none"
-                        style={{
-                          animation: 'cleanScanLine 2.5s ease-in-out infinite',
-                        }}
-                      />
-
-                      <QrCode className="w-16 h-16 text-slate-300" />
-                    </div>
-                  )}
-
-                  <p className="mt-3 text-[11px] text-slate-300 font-medium z-10">
-                    {isScanningCamera
-                      ? 'Point your camera directly at the certificate QR code'
-                      : 'Align the certificate QR code with the camera frame'}
-                  </p>
-                </div>
-
-                {/* Primary Action Buttons */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-                  {isScanningCamera ? (
-                    <button
-                      type="button"
-                      onClick={stopCamera}
-                      className="py-2.5 px-3.5 rounded-xl bg-red-600 hover:bg-red-700 active:bg-red-800 text-white font-semibold text-xs shadow-md shadow-red-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer"
-                    >
-                      <CameraOff className="w-4 h-4" />
-                      <span>Stop Camera</span>
-                    </button>
-                  ) : (
-                    <button
-                      type="button"
-                      disabled={isVerifying}
-                      onClick={startCamera}
-                      className="py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-xs shadow-lg shadow-blue-600/25 border border-cyan-400/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
-                    >
-                      {isVerifying ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin text-white" />
-                          <span>Verifying...</span>
-                        </>
-                      ) : (
-                        <>
-                          <Camera className="w-4 h-4" />
-                          <span>Scan Camera QR</span>
-                        </>
-                      )}
-                    </button>
-                  )}
-
-                  <label className="py-2.5 px-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-slate-200 font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm">
-                    <Upload className="w-4 h-4 text-slate-400" />
-                    <span>Upload QR Image</span>
-                    <input
-                      type="file"
-                      accept="image/*"
-                      onChange={handleQrImageUpload}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
-              </div>
-            )}
-
-            {/* TAB 3: Real PDF Document Dropzone */}
-            {activeTab === 'pdf' && (
-              <div className="bg-[#0D1424] p-6 rounded-2xl border-2 border-dashed border-white/20 hover:border-cyan-400 transition-colors text-center space-y-3 shadow-xl">
-                <div className="w-12 h-12 mx-auto rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-400/20">
-                  <Upload className="w-6 h-6" />
-                </div>
-                <div>
-                  <h4 className="text-sm font-bold text-[#F1F5F9]">
-                    Upload Academic Certificate PDF
-                  </h4>
-                  <p className="text-xs text-slate-400 mt-0.5">
-                    Client-side SHA-256 fingerprint verified directly against the blockchain ledger.
-                  </p>
-                </div>
-                <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold cursor-pointer shadow-lg shadow-blue-600/25 border border-cyan-400/30 transition-all">
-                  {isVerifying ? (
+                {/* Result Body */}
+                <CardBody className="space-y-5">
+                  {(result.status === 'VALID' || result.status === 'REVOKED') && (
                     <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      <span>Verifying PDF...</span>
+                      {result.status === 'REVOKED' && result.revocationReason && (
+                        <Alert tone="danger" title="Official Revocation Justification">
+                          <p>{result.revocationReason}</p>
+                          {result.revocationDate && (
+                            <p className="text-xs mt-1 font-mono">Revoked on: {result.revocationDate}</p>
+                          )}
+                        </Alert>
+                      )}
+
+                      <DescriptionList
+                        columns={2}
+                        items={[
+                          {
+                            term: 'Graduate Full Name',
+                            value: <span className="font-semibold text-ink">{result.name}</span>,
+                          },
+                          {
+                            term: 'Certificate ID',
+                            value: <HashText value={result.id} head={14} tail={8} />,
+                          },
+                          {
+                            term: 'Conferred Program',
+                            value: <span className="font-medium">{result.degree}</span>,
+                            full: true,
+                          },
+                          {
+                            term: 'Academic Session & CGPA',
+                            value: (
+                              <span className="tabular">
+                                {result.session || '—'} &middot;{' '}
+                                <strong className="text-success">{result.cgpa || '—'} / 4.00</strong>
+                              </span>
+                            ),
+                          },
+                          {
+                            term: 'Issuance Date',
+                            value: result.issueDate || '—',
+                          },
+                        ]}
+                      />
+
+                      {/* Cryptographic Proof Box */}
+                      <div className="rounded-md bg-sunken border border-line p-3.5 space-y-2.5 text-xs">
+                        <div className="flex items-center justify-between">
+                          <span className="font-semibold text-ink uppercase tracking-wider text-[11px]">
+                            On-Chain Cryptographic Anchor
+                          </span>
+                          {result.blockNumber && (
+                            <span className="font-mono text-[11px] text-brand font-medium">
+                              Block {result.blockNumber}
+                            </span>
+                          )}
+                        </div>
+                        {result.sha256Hash && (
+                          <div className="flex items-center justify-between gap-2 pt-1 border-t border-line">
+                            <span className="text-muted shrink-0">SHA-256 Digest</span>
+                            <HashText value={result.sha256Hash} head={14} tail={12} label="SHA-256 hash" />
+                          </div>
+                        )}
+                        {result.txHash && (
+                          <div className="flex items-center justify-between gap-2 pt-1 border-t border-line">
+                            <span className="text-muted shrink-0">Transaction Hash</span>
+                            <HashText
+                              value={result.txHash}
+                              head={12}
+                              tail={10}
+                              href={explorerTxUrl(result.txHash, result.network || 'sepolia')}
+                              label="transaction hash"
+                            />
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Actions */}
+                      <div className="pt-1 flex flex-wrap items-center gap-2.5">
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          leftIcon={<Eye />}
+                          onClick={() => setPreviewOpen(true)}
+                        >
+                          Inspect Certificate Preview
+                        </Button>
+                        <a
+                          href={`/api/certificates/${encodeURIComponent(result.id)}/pdf`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="inline-flex items-center gap-2 h-8 px-3 text-[13px] font-medium rounded-md bg-surface text-ink border border-line-strong shadow-card hover:bg-sunken"
+                        >
+                          <Download className="size-3.5" />
+                          <span>Download Official PDF</span>
+                        </a>
+                      </div>
                     </>
-                  ) : (
-                    <span>Browse PDF File</span>
                   )}
-                  <input
-                    type="file"
-                    accept=".pdf"
-                    onChange={handlePdfUpload}
-                    disabled={isVerifying}
-                    className="hidden"
-                  />
-                </label>
-              </div>
+
+                  {result.status === 'INVALID_MODIFIED' && (
+                    <div className="space-y-4">
+                      <Alert tone="danger" title="Cryptographic Digest Mismatch">
+                        Even a 1-byte modification to student name, CGPA, or conferral date produces a completely different SHA-256 digest. Do not accept this file as authentic.
+                      </Alert>
+
+                      <div className="space-y-3 text-xs">
+                        <div className="rounded-md bg-danger-soft/60 border border-danger-line p-3">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-danger block mb-1">
+                            Uploaded PDF SHA-256 Digest (Altered File)
+                          </span>
+                          <code className="font-mono text-[11.5px] text-danger break-all select-all">
+                            {result.computedHash || 'Mismatch'}
+                          </code>
+                        </div>
+
+                        <div className="rounded-md bg-success-soft/60 border border-success-line p-3">
+                          <span className="text-[11px] font-semibold uppercase tracking-wider text-success block mb-1">
+                            Official On-Chain SHA-256 Digest ({result.id})
+                          </span>
+                          <code className="font-mono text-[11.5px] text-success break-all select-all">
+                            {result.expectedHash || 'Anchored On-Chain Digest'}
+                          </code>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {(result.status === 'NOT_FOUND' || result.status === 'ERROR') && (
+                    <div className="space-y-3 text-xs text-muted">
+                      <div className="rounded-md bg-sunken border border-line p-3">
+                        <span className="text-[11px] font-semibold uppercase tracking-wider text-ink-2 block">
+                          Queried Identifier / File
+                        </span>
+                        <code className="font-mono text-xs text-ink mt-1 block break-all">
+                          {result.id}
+                        </code>
+                        {result.computedHash && (
+                          <p className="font-mono text-[11px] text-muted mt-1 break-all">
+                            Computed SHA-256: {result.computedHash}
+                          </p>
+                        )}
+                      </div>
+                      <p>
+                        Verify that the Certificate ID matches the format <code className="font-mono text-ink">PUB-DEG-YYYY-XXXXXX</code> or upload the unmodified PDF issued by the university registrar.
+                      </p>
+                    </div>
+                  )}
+                </CardBody>
+              </Card>
             )}
-
-            {/* Helper Subtext */}
-            <p className="text-xs text-slate-400">
-              You can also scan the QR code on the certificate or upload the official PDF file.
-            </p>
-
           </div>
-
-          {/* Right Column: Enlarged Prominent Image Display (ONLY the image) */}
-          <div className="lg:col-span-6 relative flex items-center justify-center lg:justify-end">
-            <div className="relative w-full max-w-[620px] lg:max-w-none lg:w-[130%] xl:w-[140%] lg:-mr-16 xl:-mr-24 lg:scale-115 xl:scale-125 origin-center lg:origin-left transition-transform duration-300">
-              <Image
-                src={verificationImage}
-                alt="Certificate Quick Verification"
-                priority
-                className="w-full h-auto object-contain"
-              />
-            </div>
-          </div>
-
         </div>
       </div>
 
-      {/* Verification Result Popup Modal */}
-      {modalResult && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
-          onClick={() => setModalResult(null)}
-        >
-          <div
-            className="relative w-full max-w-lg bg-[#0D1424] text-white rounded-3xl shadow-2xl border border-white/15 overflow-hidden transform animate-in zoom-in-95 duration-200"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {/* Modal Header Banner */}
-            <div
-              className={`p-6 sm:p-7 text-white relative overflow-hidden ${
-                modalResult.status === 'VALID'
-                  ? 'bg-gradient-to-br from-[#064E3B] via-[#047857] to-[#10B981]'
-                  : modalResult.status === 'REVOKED'
-                  ? 'bg-gradient-to-br from-[#78350F] via-[#B45309] to-[#D97706]'
-                  : modalResult.status === 'INVALID_MODIFIED'
-                  ? 'bg-gradient-to-br from-[#7F1D1D] via-[#991B1B] to-[#EF4444]'
-                  : 'bg-gradient-to-br from-[#1F2937] via-[#374151] to-[#4B5563]'
-              }`}
-            >
-              {/* Subtle background glow */}
-              <div className="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none" />
-
-              {/* Close button */}
-              <button
-                type="button"
-                onClick={() => setModalResult(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-black/20 hover:bg-black/30 text-white/90 hover:text-white transition-colors cursor-pointer"
-                aria-label="Close modal"
+      {/* Full Certificate Preview Modal */}
+      <Dialog
+        open={previewOpen && Boolean(result && (result.status === 'VALID' || result.status === 'REVOKED'))}
+        onClose={() => setPreviewOpen(false)}
+        size="xl"
+        title={result ? `Certificate Specimen — ${result.id}` : 'Certificate Preview'}
+        description="Official academic record rendered from verified ledger metadata."
+        footer={
+          result ? (
+            <>
+              <Button variant="secondary" onClick={() => setPreviewOpen(false)}>
+                Close
+              </Button>
+              <a
+                href={`/api/certificates/${encodeURIComponent(result.id)}/pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center justify-center gap-2 h-9.5 px-4 text-sm font-medium rounded-md bg-brand text-white hover:bg-brand-hover"
               >
-                <X className="w-5 h-5" />
-              </button>
-
-              <div className="flex items-center gap-3 mb-3">
-                <div
-                  className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
-                    modalResult.status === 'VALID'
-                      ? 'bg-white/20 backdrop-blur-md text-white'
-                      : modalResult.status === 'REVOKED'
-                      ? 'bg-white/20 backdrop-blur-md text-white'
-                      : 'bg-white/20 backdrop-blur-md text-white'
-                  }`}
-                >
-                  {modalResult.status === 'VALID' ? (
-                    <ShieldCheck className="w-7 h-7 text-white" />
-                  ) : modalResult.status === 'REVOKED' ? (
-                    <ShieldAlert className="w-7 h-7 text-white" />
-                  ) : (
-                    <AlertTriangle className="w-7 h-7 text-white" />
-                  )}
-                </div>
-                <div>
-                  <span
-                    className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase ${
-                      modalResult.status === 'VALID'
-                        ? 'bg-emerald-300/20 text-emerald-100 border border-emerald-300/30'
-                        : modalResult.status === 'REVOKED'
-                        ? 'bg-amber-300/20 text-amber-100 border border-amber-300/30'
-                        : 'bg-red-300/20 text-red-100 border border-red-300/30'
-                    }`}
-                  >
-                    {modalResult.status === 'VALID'
-                      ? '● Verified Authentic'
-                      : modalResult.status === 'REVOKED'
-                      ? '● Revoked Certificate'
-                      : modalResult.status === 'INVALID_MODIFIED'
-                      ? '● Tampered Document'
-                      : '● Not Found'}
-                  </span>
-                  <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1">
-                    {modalResult.status === 'VALID'
-                      ? 'Certificate Verified'
-                      : modalResult.status === 'REVOKED'
-                      ? 'Certificate Revoked'
-                      : modalResult.status === 'INVALID_MODIFIED'
-                      ? 'Verification Failed: Tamper Detected'
-                      : 'Record Not Found'}
-                  </h3>
-                </div>
-              </div>
-
-              <p className="text-xs text-white/90 leading-relaxed max-w-md">
-                {modalResult.status === 'VALID'
-                  ? 'Cryptographic SHA-256 fingerprint authenticated against the immutable Ethereum Sepolia ledger. The certificate data has not been modified or tampered with since issuance.'
-                  : modalResult.status === 'REVOKED'
-                  ? 'Warning: This credential was revoked by the University Controller of Examinations and is no longer valid for official academic or employment verification.'
-                  : modalResult.status === 'INVALID_MODIFIED'
-                  ? (modalResult.message || 'Warning: The cryptographic SHA-256 hash does not match the ledger record. This document has been altered or forged.')
-                  : (modalResult.message || 'No certificate record with this identifier was found on the blockchain ledger.')}
-              </p>
-            </div>
-
-            {/* Modal Body: Certificate Details */}
-            <div className="p-6 sm:p-7 space-y-4 bg-[#0D1424]">
-              {modalResult.status === 'NOT_FOUND' ? (
-                <div className="bg-[#121C2E] p-4 rounded-xl border border-white/10 text-xs space-y-2 text-slate-300">
-                  <p className="font-semibold text-white">Searched Identifier:</p>
-                  <p className="font-mono bg-[#080D18] p-2 rounded border border-white/10 text-cyan-300 break-all">
-                    {modalResult.id}
-                  </p>
-                  <p className="text-slate-400 pt-1">
-                    Please ensure the Certificate ID is typed correctly, or scan the official QR code found on the certificate.
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-                  {/* Recipient */}
-                  <div className="bg-[#121C2E] p-3 rounded-xl border border-white/10">
-                    <span className="text-[11px] text-slate-400 uppercase font-semibold block">
-                      Graduate Name
-                    </span>
-                    <span className="text-sm font-bold text-white mt-0.5 block">
-                      {modalResult.name}
-                    </span>
-                  </div>
-
-                  {/* Certificate ID */}
-                  <div className="bg-[#121C2E] p-3 rounded-xl border border-white/10">
-                    <span className="text-[11px] text-slate-400 uppercase font-semibold block">
-                      Certificate ID
-                    </span>
-                    <span className="text-xs sm:text-sm font-mono font-bold text-cyan-300 mt-0.5 block">
-                      {modalResult.id}
-                    </span>
-                  </div>
-
-                  {/* Academic Degree & Institution */}
-                  <div className="sm:col-span-2 bg-[#121C2E] p-3.5 rounded-xl border border-white/10">
-                    <span className="text-[11px] text-slate-400 uppercase font-semibold block">
-                      Academic Degree Awarded
-                    </span>
-                    <span className="text-sm font-bold text-white mt-0.5 block">
-                      {modalResult.degree}
-                    </span>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400 mt-1.5 font-medium">
-                      <span>Institution: Pundra University of Science &amp; Technology (PUST)</span>
-                      {modalResult.session && <span>Session: {modalResult.session}</span>}
-                      {modalResult.cgpa && (
-                        <span className="font-semibold text-emerald-400">CGPA: {modalResult.cgpa}</span>
-                      )}
-                      {modalResult.issueDate && <span>Issued: {modalResult.issueDate}</span>}
-                    </div>
-
-                    {modalResult.revocationReason && (
-                      <div className="mt-2.5 pt-2 border-t border-amber-500/20 text-amber-300 text-xs font-semibold">
-                        Reason for Revocation: {modalResult.revocationReason}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Blockchain Proof & Explorer Link */}
-                  {modalResult.txHash && (
-                    <div className="sm:col-span-2 p-3.5 rounded-xl bg-blue-500/10 border border-cyan-400/30 text-[11px] space-y-1.5">
-                      <div className="flex items-center justify-between text-cyan-300 font-bold">
-                        <span>On-Chain Ledger Anchor</span>
-                        <span className="font-mono text-[10px] text-cyan-400">{modalResult.blockNumber}</span>
-                      </div>
-                      <div className="flex items-center justify-between gap-2 font-mono text-slate-300 bg-[#080D18] p-2 rounded-lg border border-white/10">
-                        <span className="truncate">{modalResult.txHash}</span>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              navigator.clipboard?.writeText(modalResult.txHash);
-                              setCopiedHash(true);
-                              setTimeout(() => setCopiedHash(false), 2000);
-                            }}
-                            className="text-xs text-cyan-400 hover:text-cyan-300 font-sans font-semibold cursor-pointer"
-                          >
-                            {copiedHash ? 'Copied!' : 'Copy'}
-                          </button>
-                          {modalResult.txHash.startsWith('0x') && (
-                            <a
-                              href={`https://sepolia.etherscan.io/tx/${modalResult.txHash}`}
-                              target="_blank"
-                              rel="noreferrer"
-                              className="text-xs text-blue-400 hover:text-blue-300 font-sans font-semibold underline cursor-pointer"
-                            >
-                              Explorer &rarr;
-                            </a>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Tamper Detection Cryptographic Comparison */}
-                  {modalResult.status === 'INVALID_MODIFIED' && (
-                    <div className="sm:col-span-2 p-3.5 rounded-xl bg-red-950/40 border border-red-500/30 text-xs space-y-2.5">
-                      <div className="flex items-center gap-1.5 text-red-300 font-bold">
-                        <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
-                        <span>Cryptographic Hash Mismatch (Tamper Detected)</span>
-                      </div>
-                      <div className="space-y-2 font-mono text-[11px]">
-                        <div>
-                          <span className="text-[10px] uppercase font-sans font-semibold text-red-400 block mb-0.5">
-                            Computed File Hash (Uploaded File):
-                          </span>
-                          <div className="bg-[#080D18] p-2 rounded-lg border border-red-500/30 text-red-400 break-all select-all">
-                            {modalResult.computedHash || 'Mismatch Detected'}
-                          </div>
-                        </div>
-                        <div>
-                          <span className="text-[10px] uppercase font-sans font-semibold text-emerald-400 block mb-0.5">
-                            Anchored Ledger Hash (Official Record):
-                          </span>
-                          <div className="bg-[#080D18] p-2 rounded-lg border border-emerald-500/30 text-emerald-400 break-all select-all">
-                            {modalResult.expectedHash || 'Anchored On-Chain Fingerprint'}
-                          </div>
-                        </div>
-                      </div>
-                      <p className="text-[11px] text-red-300/80 font-sans leading-tight pt-0.5">
-                        Security Notice: Even a 1-character alteration in student name, CGPA, or degree text fundamentally changes the SHA-256 fingerprint, triggering instant fraud prevention.
-                      </p>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              {/* Modal Footer Buttons */}
-              <div className="pt-2 flex items-center justify-end gap-3">
-                <button
-                  type="button"
-                  onClick={() => setModalResult(null)}
-                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/25 border border-cyan-400/30 transition-all cursor-pointer text-center"
-                >
-                  Done &amp; Close
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+                <Download className="size-4" />
+                <span>Download Official PDF</span>
+              </a>
+            </>
+          ) : undefined
+        }
+      >
+        {result && (
+          <CertificateDocumentPreview
+            certificate={{
+              id: result.id,
+              type: result.type || 'Degree Certificate',
+              studentName: result.name,
+              studentId: result.studentId || 'Verified Graduate',
+              program: result.program || result.degree,
+              degreeName: result.degree,
+              session: result.session || '—',
+              cgpa: result.cgpa || '—',
+              issueDate: result.issueDate || '—',
+              sha256Hash: result.sha256Hash,
+              txHash: result.txHash,
+              blockNumber: result.numericBlock,
+              status: result.status === 'REVOKED' ? 'revoked' : 'valid',
+              revocationReason: result.revocationReason,
+            }}
+          />
+        )}
+      </Dialog>
     </section>
   );
 };

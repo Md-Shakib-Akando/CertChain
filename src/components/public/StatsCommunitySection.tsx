@@ -1,112 +1,106 @@
 'use client';
 
 import React from 'react';
-import { Award, ShieldCheck, Cpu, Database, CheckCircle2 } from 'lucide-react';
+import { Shield, KeyRound, FileSignature, GraduationCap } from 'lucide-react';
+import { Badge } from '@/components/ui';
 
 export const StatsCommunitySection: React.FC = () => {
+  const roles = [
+    {
+      role: 'Controller of Examinations',
+      contractRole: 'CONTROLLER_ROLE',
+      icon: KeyRound,
+      scope: 'Executive Academic Authority',
+      responsibilities: [
+        'Reviews and approves Registrar / Issuer staff applications',
+        'Authorizes issuer wallet addresses on the CertChain smart contract',
+        'Provides mandatory cryptographic co-signature for certificate revocations',
+      ],
+    },
+    {
+      role: 'Registrar & Certificate Issuer',
+      contractRole: 'ISSUER_ROLE',
+      icon: FileSignature,
+      scope: 'Credential Synthesis & Anchoring',
+      responsibilities: [
+        'Matches graduating students against verified academic records',
+        'Issues single certificates or batch CSV cohorts onto Ethereum',
+        'Submits formal revocation requests with documented justification',
+      ],
+    },
+    {
+      role: 'Super Administrator',
+      contractRole: 'DEFAULT_ADMIN_ROLE',
+      icon: Shield,
+      scope: 'Platform & Node Infrastructure',
+      responsibilities: [
+        'Provisions Controller of Examinations accounts and monitors system health',
+        'Audits platform-wide security logs and tamper-detection alerts',
+        'Strictly separated from academic issuance and revocation decisions',
+      ],
+    },
+    {
+      role: 'Graduates & Public Verifiers',
+      contractRole: 'PUBLIC / STUDENT',
+      icon: GraduationCap,
+      scope: 'Self-Sovereign Holding & Zero-Gas Lookup',
+      responsibilities: [
+        'Students download vector PDFs and create expiring /s/[token] share links',
+        'Employers verify credentials by ID, QR scan, or PDF SHA-256 hash',
+        'Zero gas fees and no Web3 wallet required for verification',
+      ],
+    },
+  ];
+
   return (
-    <section id="about" className="bg-[#080D18] py-20 sm:py-28 border-b border-white/10 relative overflow-hidden">
-      {/* Background Soft Lighting */}
-      <div className="absolute top-1/2 left-1/3 w-[600px] h-[350px] bg-blue-600/10 rounded-full blur-[140px] pointer-events-none" />
+    <section id="governance" className="bg-surface py-16 sm:py-24 border-b border-line">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-2xl mb-12">
+          <p className="eyebrow mb-1.5">Institutional Governance Model</p>
+          <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink tracking-tight">
+            Separation of Academic and Technical Authority
+          </h2>
+          <p className="mt-2 text-sm sm:text-base text-muted leading-relaxed">
+            In accordance with university examination bylaws, no single account can unilaterally issue and revoke credentials or alter audit history.
+          </p>
+        </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          
-          {/* Left Box: Institutional Vision & Problem Context */}
-          <div className="lg:col-span-5 relative dark-liquid-glass rounded-3xl overflow-hidden p-8 sm:p-10 text-white flex flex-col justify-between border border-white/15 shadow-2xl">
-            <div className="space-y-4">
-              <span className="text-4xl sm:text-5xl font-serif text-cyan-400 font-black block leading-none">
-                “
-              </span>
-              <p className="text-base sm:text-lg font-medium text-slate-200 leading-relaxed italic">
-                Academic credential fraud and slow, manual background checks cost institutions and graduates valuable time. By combining immutable smart contracts with deterministic cryptography, CertChain establishes immediate mathematical trust.
-              </p>
-            </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {roles.map((r) => {
+            const Icon = r.icon;
+            return (
+              <div
+                key={r.role}
+                className="bg-canvas border border-line rounded-lg p-6 space-y-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="size-10 rounded-md bg-surface border border-line text-brand inline-flex items-center justify-center shrink-0">
+                      <Icon className="size-5" aria-hidden />
+                    </span>
+                    <div>
+                      <h3 className="font-serif text-lg font-semibold text-ink">
+                        {r.role}
+                      </h3>
+                      <p className="text-xs text-muted">{r.scope}</p>
+                    </div>
+                  </div>
+                  <Badge tone="brand" size="sm" className="font-mono">
+                    {r.contractRole}
+                  </Badge>
+                </div>
 
-            <div className="pt-6 border-t border-white/10 mt-6">
-              <div className="font-extrabold text-white text-sm sm:text-base">
-                Pundra University of Science & Technology
+                <ul className="space-y-2 text-xs sm:text-[13px] text-ink-2 pt-2 border-t border-line">
+                  {r.responsibilities.map((line) => (
+                    <li key={line} className="flex items-start gap-2">
+                      <span className="mt-1.5 size-1.5 rounded-full bg-seal shrink-0" aria-hidden />
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-              <div className="text-xs text-cyan-300 font-mono mt-0.5">
-                Department of Computer Science & Engineering · Hackathon 2026
-              </div>
-            </div>
-          </div>
-
-          {/* Right Box: Architecture Specs & Cryptographic Guarantees */}
-          <div className="lg:col-span-7 dark-liquid-glass rounded-3xl p-8 sm:p-12 border border-white/10 flex flex-col justify-between space-y-8 shadow-2xl">
-            
-            {/* Header */}
-            <div className="space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-400/30 text-cyan-300 text-xs font-semibold">
-                <ShieldCheck className="w-3.5 h-3.5" />
-                <span>Technical Specifications & Standards</span>
-              </div>
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#F1F5F9] tracking-tight">
-                Architectural Integrity by Design
-              </h2>
-              <p className="text-slate-400 text-sm sm:text-base leading-relaxed font-normal">
-                Engineered to meet real-world institutional standards with enterprise role governance.
-              </p>
-            </div>
-
-            {/* 3 Metric Columns with Honest, True Metrics */}
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-2">
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                <div className="text-2xl sm:text-3xl font-extrabold text-cyan-400 font-mono">
-                  256-bit
-                </div>
-                <div className="text-xs text-slate-300 font-semibold mt-1">
-                  SHA-256 Digest
-                </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
-                  Deterministic PDF fingerprinting
-                </div>
-              </div>
-
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                <div className="text-2xl sm:text-3xl font-extrabold text-cyan-400 font-mono">
-                  0 Gas
-                </div>
-                <div className="text-xs text-slate-300 font-semibold mt-1">
-                  Public Verifier Cost
-                </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
-                  Read-only EVM view queries
-                </div>
-              </div>
-
-              <div className="bg-white/5 p-4 rounded-2xl border border-white/5">
-                <div className="text-2xl sm:text-3xl font-extrabold text-emerald-400 font-mono">
-                  100%
-                </div>
-                <div className="text-xs text-slate-300 font-semibold mt-1">
-                  Tamper Detection
-                </div>
-                <div className="text-[11px] text-slate-400 mt-0.5">
-                  Single-byte mismatch triggers alert
-                </div>
-              </div>
-            </div>
-
-            {/* Architecture Highlights Row */}
-            <div className="pt-6 border-t border-white/10 grid grid-cols-1 sm:grid-cols-3 gap-4 items-center text-xs">
-              <div className="flex items-center gap-2.5 text-slate-300 font-medium">
-                <Cpu className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span>OpenZeppelin RBAC</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-slate-300 font-medium">
-                <Database className="w-4 h-4 text-blue-400 shrink-0" />
-                <span>Off-Chain Data Protection</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-slate-300 font-medium">
-                <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
-                <span>Ethers.js v6 Signatures</span>
-              </div>
-            </div>
-
-          </div>
-
+            );
+          })}
         </div>
       </div>
     </section>

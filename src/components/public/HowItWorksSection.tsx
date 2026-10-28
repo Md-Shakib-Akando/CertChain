@@ -10,9 +10,8 @@ import {
   Building,
   GraduationCap,
   Briefcase,
-  ArrowRight,
-  CheckCircle2,
 } from 'lucide-react';
+import { Card, CardBody, Segmented, Badge } from '@/components/ui';
 
 export const HowItWorksSection: React.FC = () => {
   const [activeRoleTab, setActiveRoleTab] = useState<'issuers' | 'students' | 'verifiers'>('issuers');
@@ -20,295 +19,207 @@ export const HowItWorksSection: React.FC = () => {
   const lifecycleStages = [
     {
       num: '01',
-      title: 'Issue',
-      subtitle: 'Official Synthesis',
+      title: 'Synthesize Record',
+      tag: 'Deterministic PDF',
       description:
-        'Authorized Registrar generates authentic degree credentials with student identity and academic records pre-matched against institutional data.',
-      icon: <FileText className="w-5 h-5 text-blue-400" />,
-      tag: 'Vector PDF',
+        'Authorized Registrar validates student academic standing against official records and synthesizes a deterministic A4 vector PDF.',
+      icon: FileText,
     },
     {
       num: '02',
-      title: 'Generate Fingerprint',
-      subtitle: 'Cryptographic Hash',
+      title: 'Compute SHA-256',
+      tag: '256-Bit Digest',
       description:
-        'A deterministic SHA-256 cryptographic digest is computed directly from the PDF bytes. Changing even one character produces a totally different hash.',
-      icon: <Fingerprint className="w-5 h-5 text-cyan-400" />,
-      tag: 'SHA-256 Digest',
+        'A canonical SHA-256 cryptographic digest is computed directly from the normalized PDF byte buffer.',
+      icon: Fingerprint,
     },
     {
       num: '03',
-      title: 'Anchor on Chain',
-      subtitle: 'Smart Contract',
-      description:
-        'The hash, unique Certificate ID, issuer address, and timestamp are permanently inscribed onto the decentralized blockchain ledger.',
-      icon: <ChainLink className="w-5 h-5 text-teal-400" />,
+      title: 'Anchor On-Chain',
       tag: 'Zero Personal Data',
+      description:
+        'Only the Certificate ID, 32-byte SHA-256 hash, issuer wallet, and timestamp are committed to the Ethereum smart contract.',
+      icon: ChainLink,
     },
     {
       num: '04',
-      title: 'Verify',
-      subtitle: 'Zero-Gas Lookup',
+      title: 'Instant Verification',
+      tag: 'Zero-Gas View Call',
       description:
-        'Anyone can instantly verify credentials worldwide using the Certificate ID, scanning the printed QR code, or uploading the PDF for browser-based checking.',
-      icon: <ShieldCheck className="w-5 h-5 text-emerald-400" />,
-      tag: 'Sub-Second',
+        'Verifiers query the ledger by ID, scan the high-density QR code, or drop the PDF to verify byte-level authenticity.',
+      icon: ShieldCheck,
     },
     {
       num: '05',
-      title: 'Share',
-      subtitle: 'Expiring Permissions',
+      title: 'Time-Bound Sharing',
+      tag: 'Tokenized Access',
       description:
-        'Graduates generate time-limited verification links (/s/[token]) for job applications, allowing employers to inspect authenticated records directly.',
-      icon: <Share2 className="w-5 h-5 text-indigo-400" />,
-      tag: 'Time-Limited Links',
+        'Graduates generate time-expiring employer share links (/s/[token]) with optional view caps and instant revocation.',
+      icon: Share2,
     },
   ];
 
   const roleWorkflows = {
     issuers: {
-      roleTitle: 'University Issuers & Controller of Examinations',
-      roleIcon: <Building className="w-5 h-5 text-cyan-400" />,
+      roleTitle: 'Registrar & Controller of Examinations',
       description:
-        'Institutional authorities manage credential governance with cryptographic accountability.',
+        'Separation of duties between credential issuance (Registrar) and executive oversight / revocation co-signing (Controller of Examinations).',
       steps: [
         {
-          step: '1',
-          name: 'Registrar Authorization',
-          detail: 'Controller of Examinations approves authorized issuer wallets on the smart contract.',
+          step: '01',
+          name: 'Controller Wallet Authorization',
+          detail: 'The Controller of Examinations reviews staff applications and grants ISSUER_ROLE on the CertChain smart contract.',
         },
         {
-          step: '2',
-          name: 'Single & Bulk Batch Issuance',
-          detail: 'Issue individual degrees or batch-process graduating cohorts from CSV files in a single transaction.',
+          step: '02',
+          name: 'Single or Cohort CSV Issuance',
+          detail: 'Registrar matches student records, previews the academic certificate, and anchors single or batch cohorts on-chain.',
         },
         {
-          step: '3',
-          name: 'Automated Student Dispatch',
-          detail: 'Synthesizes tamper-proof PDFs with QR stamps and triggers automated congratulatory emails.',
-        },
-        {
-          step: '4',
-          name: 'Deliberate Revocation Governance',
-          detail: 'Initiate or co-sign revocation requests with documented justification for errors or disciplinary actions.',
+          step: '03',
+          name: 'Dual-Authority Revocation',
+          detail: 'If an error or disciplinary action occurs, the Registrar submits a revocation request that requires Controller co-signature.',
         },
       ],
     },
     students: {
-      roleTitle: 'Graduates & Students',
-      roleIcon: <GraduationCap className="w-5 h-5 text-blue-400" />,
+      roleTitle: 'Graduating Students & Alumni',
       description:
-        'Graduates maintain complete, lifetime ownership of their academic credentials.',
+        'Self-service onboarding matched against official university records, with full control over how credentials are shared.',
       steps: [
         {
-          step: '1',
-          name: 'Secure Portal Access',
-          detail: 'Sign in to access your complete portfolio of degree certificates, provisional certificates, and transcripts.',
+          step: '01',
+          name: 'OTP & Academic Record Verification',
+          detail: 'Students verify their university email via OTP and match their Student ID against pre-seeded graduation records.',
         },
         {
-          step: '2',
-          name: 'Download Official PDFs',
-          detail: 'Export high-resolution, vector-rendered certificates with embedded QR codes and blockchain anchors.',
+          step: '02',
+          name: 'Download Vector PDF with QR Stamp',
+          detail: 'Access official degree certificates and transcripts with embedded high-density verification QR codes.',
         },
         {
-          step: '3',
-          name: 'Generate Employer Share Links',
-          detail: 'Create time-limited verification URLs (24h, 48h, 7 days) to attach directly to CVs and job applications.',
-        },
-        {
-          step: '4',
-          name: 'Personal Verification Log',
-          detail: 'Track when employers and scholarship boards view or verify your credentials.',
+          step: '03',
+          name: 'Create Expiring Employer Share Links',
+          detail: 'Generate custom /s/[token] links for recruiters with configurable expiration windows and view counters.',
         },
       ],
     },
     verifiers: {
-      roleTitle: 'Employers, Foreign Universities & Embassies',
-      roleIcon: <Briefcase className="w-5 h-5 text-emerald-400" />,
+      roleTitle: 'Employers, Embassies & Other Universities',
       description:
-        'Verify applicant credentials instantaneously without phone calls, delays, or paying blockchain gas.',
+        'Frictionless public verification without creating an account, connecting a Web3 wallet, or paying gas fees.',
       steps: [
         {
-          step: '1',
-          name: 'No Account Required',
-          detail: 'Visit the public verification page on any browser or mobile device — 100% free and open.',
+          step: '01',
+          name: 'Enter ID, Scan QR, or Drop PDF',
+          detail: 'Choose any of the three verification modes in the public workbench above.',
         },
         {
-          step: '2',
-          name: 'Multi-Modal Verification',
-          detail: 'Verify by typing Certificate ID, scanning the certificate QR code, or uploading the student PDF.',
+          step: '02',
+          name: 'Client-Side Cryptographic Comparison',
+          detail: 'Uploaded PDFs are hashed in the browser via Web Crypto API and compared against the immutable smart contract record.',
         },
         {
-          step: '3',
-          name: 'Instant Ledger Comparison',
-          detail: 'System recomputes the SHA-256 digest client-side and validates against the blockchain record.',
-        },
-        {
-          step: '4',
-          name: 'Unmistakable Results',
-          detail: 'Get instant, definitive status: VALID (Authentic), REVOKED (with reason), or INVALID (Tampered / Not Found).',
+          step: '03',
+          name: 'Inspect On-Chain Proof',
+          detail: 'Confirm VALID, REVOKED, or TAMPERED status along with block number and transaction hash.',
         },
       ],
     },
   };
 
-  return (
-    <section
-      id="how-it-works"
-      className="bg-[#0D1424] py-20 sm:py-28 border-b border-white/10 relative overflow-hidden"
-    >
-      {/* Background Soft Lighting */}
-      <div className="absolute top-1/4 right-1/4 w-[600px] h-[350px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none" />
+  const currentRole = roleWorkflows[activeRoleTab];
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 shadow-inner">
-            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
-            <span className="text-[11px] font-bold tracking-widest uppercase text-cyan-300">
-              End-to-End Workflow
-            </span>
-          </div>
-          <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-[#F1F5F9] tracking-tight">
-            The Credential Lifecycle
+  return (
+    <section id="how-it-works" className="bg-surface py-16 sm:py-24 border-b border-line">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-14">
+        {/* Header */}
+        <div className="max-w-2xl">
+          <p className="eyebrow mb-1.5">Credential Lifecycle</p>
+          <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink tracking-tight">
+            From Registrar Issuance to Global Verification
           </h2>
-          <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-normal">
-            From university issuance to global employer verification. Five simple stages powered by mathematical cryptography.
+          <p className="mt-2 text-sm sm:text-base text-muted leading-relaxed">
+            Every certificate follows a five-stage cryptographic pipeline designed to preserve student privacy while making forgery mathematically detectable.
           </p>
         </div>
 
-        {/* 5 Lifecycle Steps Horizontal Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5 mb-16">
-          {lifecycleStages.map((stage, idx) => (
-            <div
-              key={stage.num}
-              className="dark-liquid-glass rounded-2xl p-5 border border-white/10 relative flex flex-col justify-between text-left group hover:border-cyan-400/40 transition-all duration-200"
-            >
-              <div>
-                {/* Header: Icon & Step Number */}
-                <div className="flex items-center justify-between mb-4">
-                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform">
-                    {stage.icon}
+        {/* 5-Stage Pipeline Grid */}
+        <ol className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+          {lifecycleStages.map((stage) => {
+            const Icon = stage.icon;
+            return (
+              <li
+                key={stage.num}
+                className="bg-canvas border border-line rounded-lg p-5 flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <span className="font-mono text-xs font-semibold text-seal">
+                      STEP {stage.num}
+                    </span>
+                    <span className="size-8 rounded-md bg-surface border border-line text-brand inline-flex items-center justify-center">
+                      <Icon className="size-4" aria-hidden />
+                    </span>
                   </div>
-                  <span className="text-xs font-mono font-bold text-cyan-400/60 group-hover:text-cyan-400 transition-colors">
-                    {stage.num}
-                  </span>
-                </div>
-
-                <div className="mb-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                    {stage.subtitle}
-                  </span>
-                  <h3 className="text-base font-bold text-white group-hover:text-cyan-200 transition-colors">
+                  <h3 className="font-serif text-base font-semibold text-ink">
                     {stage.title}
                   </h3>
+                  <p className="mt-1.5 text-xs text-muted leading-relaxed">
+                    {stage.description}
+                  </p>
                 </div>
+                <div className="mt-4 pt-3 border-t border-line">
+                  <Badge tone="neutral" size="sm">
+                    {stage.tag}
+                  </Badge>
+                </div>
+              </li>
+            );
+          })}
+        </ol>
 
-                <p className="text-xs text-slate-400 leading-relaxed font-normal">
-                  {stage.description}
-                </p>
-              </div>
-
-              <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[10px] font-medium text-slate-400">
-                <span className="text-cyan-300">{stage.tag}</span>
-                {idx < lifecycleStages.length - 1 && (
-                  <ArrowRight className="w-3 h-3 text-slate-400 hidden lg:block opacity-60" />
-                )}
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Role-Specific Workflows Tabs Container */}
-        <div className="dark-liquid-glass rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl">
-          
-          {/* Header & Tabs */}
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-white/10 pb-6 mb-8">
-            <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 block mb-1">
-                Audience Workflows
-              </span>
-              <h3 className="text-xl sm:text-2xl font-extrabold text-white">
-                How CertChain Works For You
-              </h3>
-            </div>
-
-            {/* Tab Buttons */}
-            <div className="flex flex-wrap items-center gap-2 bg-[#080D18] p-1.5 rounded-2xl border border-white/10">
-              <button
-                onClick={() => setActiveRoleTab('issuers')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                  activeRoleTab === 'issuers'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                <Building className="w-4 h-4" />
-                <span>University Staff</span>
-              </button>
-
-              <button
-                onClick={() => setActiveRoleTab('students')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                  activeRoleTab === 'students'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                <GraduationCap className="w-4 h-4" />
-                <span>Graduates & Students</span>
-              </button>
-
-              <button
-                onClick={() => setActiveRoleTab('verifiers')}
-                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
-                  activeRoleTab === 'verifiers'
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'text-slate-400 hover:text-white'
-                }`}
-              >
-                <Briefcase className="w-4 h-4" />
-                <span>Employers & Verifiers</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Active Role Content */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
-                {roleWorkflows[activeRoleTab].roleIcon}
-              </div>
+        {/* Role-Specific Workflows */}
+        <Card className="bg-canvas">
+          <CardBody className="p-6 sm:p-8 space-y-6">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-5 border-b border-line">
               <div>
-                <h4 className="text-base sm:text-lg font-bold text-white">
-                  {roleWorkflows[activeRoleTab].roleTitle}
-                </h4>
-                <p className="text-xs sm:text-sm text-slate-400">
-                  {roleWorkflows[activeRoleTab].description}
+                <p className="eyebrow">Role-Based Workflows</p>
+                <h3 className="font-serif text-xl font-semibold text-ink mt-1">
+                  {currentRole.roleTitle}
+                </h3>
+                <p className="text-xs sm:text-sm text-muted mt-0.5">
+                  {currentRole.description}
                 </p>
               </div>
+              <Segmented
+                ariaLabel="Select stakeholder role"
+                value={activeRoleTab}
+                onChange={setActiveRoleTab}
+                items={[
+                  { key: 'issuers', label: 'University Staff', icon: <Building /> },
+                  { key: 'students', label: 'Students', icon: <GraduationCap /> },
+                  { key: 'verifiers', label: 'Public Verifiers', icon: <Briefcase /> },
+                ]}
+              />
             </div>
 
-            {/* 4 Steps Bento Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {roleWorkflows[activeRoleTab].steps.map((st) => (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+              {currentRole.steps.map((s) => (
                 <div
-                  key={st.step}
-                  className="bg-white/5 rounded-2xl p-5 border border-white/5 hover:border-white/15 transition-all text-left"
+                  key={s.step}
+                  className="bg-surface border border-line rounded-md p-4 space-y-1.5"
                 >
-                  <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-cyan-300 font-mono font-bold text-xs flex items-center justify-center mb-3">
-                    {st.step}
-                  </div>
-                  <h5 className="text-sm font-bold text-slate-200 mb-1.5">{st.name}</h5>
-                  <p className="text-xs text-slate-400 leading-relaxed font-normal">{st.detail}</p>
+                  <span className="font-mono text-xs font-semibold text-brand">
+                    {s.step}
+                  </span>
+                  <h4 className="text-sm font-semibold text-ink">{s.name}</h4>
+                  <p className="text-xs text-muted leading-relaxed">{s.detail}</p>
                 </div>
               ))}
             </div>
-          </div>
-
-        </div>
-
+          </CardBody>
+        </Card>
       </div>
     </section>
   );
