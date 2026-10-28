@@ -3,19 +3,34 @@
 import React, { useState } from 'react';
 import {
   Users,
-  Search,
-  Filter,
-  CheckCircle2,
-  XCircle,
-  Clock,
   ShieldAlert,
-  Copy,
   Eye,
-  AlertTriangle,
-  Lock,
-  Unlock,
 } from 'lucide-react';
-import { IssuerApplication, ContractAuthorizationStatus, AccountStatus } from '@/types/controller';
+import { IssuerApplication } from '@/types/controller';
+import {
+  PageHeader,
+  Alert,
+  Card,
+  TableToolbar,
+  SearchInput,
+  Select,
+  Badge,
+  StatusBadge,
+  HashText,
+  Button,
+  IconButton,
+  TableContainer,
+  Table,
+  THead,
+  TBody,
+  TR,
+  TH,
+  TD,
+  Dialog,
+  Field,
+  Textarea,
+  EmptyState,
+} from '@/components/ui';
 
 interface IssuerDirectorySectionProps {
   issuers: IssuerApplication[];
@@ -40,306 +55,203 @@ export const IssuerDirectorySection: React.FC<IssuerDirectorySectionProps> = ({
   onReactivateIssuer,
   isActionLoading,
 }) => {
-  const [copiedAddress, setCopiedAddress] = useState<string | null>(null);
   const [suspensionModalUser, setSuspensionModalUser] = useState<IssuerApplication | null>(null);
   const [suspendReason, setSuspendReason] = useState('');
 
-  const handleCopy = (address: string, id: string) => {
-    navigator.clipboard.writeText(address);
-    setCopiedAddress(id);
-    setTimeout(() => setCopiedAddress(null), 2000);
-  };
-
-  const getContractAuthBadge = (status: ContractAuthorizationStatus) => {
-    switch (status) {
-      case 'authorized':
-        return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-3 h-3" />
-            Authorized
-          </span>
-        );
-      case 'unauthorized':
-        return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-            <XCircle className="w-3 h-3" />
-            Unauthorized
-          </span>
-        );
-      case 'pending':
-        return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-            <Clock className="w-3 h-3" />
-            Pending On-Chain
-          </span>
-        );
-      case 'unknown':
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
-            Unknown
-          </span>
-        );
-    }
-  };
-
-  const getAccountStatusBadge = (status: AccountStatus) => {
-    if (status === 'suspended') {
-      return (
-        <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-          <Lock className="w-3 h-3" />
-          Suspended
-        </span>
-      );
-    }
-    return (
-      <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-        <Unlock className="w-3 h-3" />
-        Active
-      </span>
-    );
-  };
-
   return (
-    <div className="space-y-5 animate-in fade-in duration-200">
-      {/* Header Info Banner */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h3 className="text-base font-bold text-[#0B2545] flex items-center gap-2">
-            <Users className="w-5 h-5 text-teal-600" />
-            <span>Authorized Registrar &amp; Issuer Directory</span>
-          </h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
-            Searchable registry of approved academic issuers, bound cryptographic wallet addresses, and active authorization state on the Ethereum Sepolia smart contract.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Authorized Signers"
+        title="Authorized Registrar & Issuer Directory"
+        description="Searchable registry of approved academic issuers, bound cryptographic wallet addresses, and active authorization state on the Ethereum Sepolia smart contract."
+        actions={
+          <Badge tone="neutral">
             Total Issuers: {issuers.length}
-          </span>
-        </div>
-      </div>
+          </Badge>
+        }
+      />
 
-      {/* Critical Institutional Policy Banner per PDF Section 7 */}
-      <div className="p-3.5 rounded-xl bg-blue-50/70 border border-blue-200 text-xs text-blue-900 flex items-start gap-2.5">
-        <ShieldAlert className="w-4 h-4 text-blue-700 shrink-0 mt-0.5" />
-        <div className="leading-relaxed">
-          <span className="font-bold">Institutional Policy Boundary:</span> Suspending an issuer does not automatically revoke certificates previously issued by them. Application account status and smart-contract authorization status are maintained as distinct fields.
-        </div>
-      </div>
+      <Alert
+        tone="info"
+        icon={<ShieldAlert className="w-4 h-4" />}
+        title="Institutional Policy Boundary"
+      >
+        Suspending an issuer prevents them from issuing new credentials, but does not automatically revoke diplomas previously anchored by them. Application account status and smart-contract authorization state are maintained as distinct attributes.
+      </Alert>
 
-      {/* Search and Filters Bar */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search by issuer name, email, department, or wallet address..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B2545] placeholder-slate-400 focus:bg-white focus:outline-none transition"
-          />
-        </div>
+      <Card>
+        <TableToolbar
+          left={
+            <>
+              <SearchInput
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onClear={() => onSearchChange('')}
+                placeholder="Search by issuer name, email, department, or wallet address..."
+                className="w-full sm:w-96"
+              />
+              <Select
+                value={statusFilter}
+                onChange={(e) => onStatusFilterChange(e.target.value)}
+                className="w-full sm:w-48"
+                aria-label="Filter issuers by account status"
+              >
+                <option value="all">All Account Statuses</option>
+                <option value="active">Active Only</option>
+                <option value="suspended">Suspended Only</option>
+              </Select>
+            </>
+          }
+        />
 
-        {/* Status Filter */}
-        <div className="flex items-center gap-2 shrink-0">
-          <Filter className="w-4 h-4 text-slate-400 hidden sm:block" />
-          <select
-            value={statusFilter}
-            onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:bg-white cursor-pointer"
-          >
-            <option value="all">All Account Statuses</option>
-            <option value="active">Active Only</option>
-            <option value="suspended">Suspended Only</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Issuers Data Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
         {issuers.length === 0 ? (
-          <div className="py-16 text-center flex flex-col items-center justify-center p-6">
-            <Users className="w-12 h-12 text-slate-300 mb-3" />
-            <h4 className="text-sm font-bold text-[#0B2545]">No Issuers Found</h4>
-            <p className="text-xs text-slate-500 max-w-sm mt-1">
-              There are currently no authorized registrar or examination issuers registered in the system.
-            </p>
-          </div>
+          <EmptyState
+            icon={<Users className="w-5 h-5" />}
+            title="No issuers found"
+            description="There are currently no authorized registrar or examination issuers matching your filter."
+          />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/90 text-slate-500 uppercase tracking-wider font-bold text-[10px]">
-                  <th className="py-3.5 px-4">Issuer Profile</th>
-                  <th className="py-3.5 px-4">Bound Wallet Address</th>
-                  <th className="py-3.5 px-4">Contract Authorization</th>
-                  <th className="py-3.5 px-4">Application Status</th>
-                  <th className="py-3.5 px-4">Account Status</th>
-                  <th className="py-3.5 px-4">Issued Credentials</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+          <TableContainer className="border-0 rounded-none">
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Issuer Profile</TH>
+                  <TH>Bound Wallet Address</TH>
+                  <TH>Contract Auth</TH>
+                  <TH>Vetting Status</TH>
+                  <TH>Account Status</TH>
+                  <TH>Issued</TH>
+                  <TH align="right">Actions</TH>
+                </TR>
+              </THead>
+              <TBody>
                 {issuers.map((issuer) => (
-                  <tr key={issuer.id} className="hover:bg-slate-50/60 transition">
-                    {/* Issuer Profile */}
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-[#0B2545]">{issuer.name}</div>
-                      <div className="text-[11px] text-slate-500 font-mono">{issuer.email}</div>
-                      <div className="text-[10px] text-slate-400 mt-0.5">
-                        {issuer.department} &bull; {issuer.designation}
+                  <TR key={issuer.id}>
+                    <TD>
+                      <div className="font-semibold text-ink text-xs">{issuer.name}</div>
+                      <div className="text-[11px] text-muted font-mono">{issuer.email}</div>
+                      <div className="text-[11px] text-subtle mt-0.5">
+                        {issuer.department} • {issuer.designation}
                       </div>
-                    </td>
+                    </TD>
 
-                    {/* Bound Wallet */}
-                    <td className="py-3 px-4">
+                    <TD>
                       {issuer.walletAddress ? (
-                        <div className="flex items-center gap-1.5 font-mono text-[11px] text-slate-700">
-                          <span>
-                            {issuer.walletAddress.slice(0, 6)}...{issuer.walletAddress.slice(-4)}
-                          </span>
-                          <button
-                            onClick={() => handleCopy(issuer.walletAddress!, issuer.id)}
-                            className="p-1 rounded text-slate-400 hover:text-slate-700 transition cursor-pointer"
-                            title="Copy Wallet Address"
-                          >
-                            <Copy className="w-3 h-3" />
-                          </button>
-                          {copiedAddress === issuer.id && (
-                            <span className="text-[9px] font-bold text-emerald-600">Copied!</span>
-                          )}
-                        </div>
+                        <HashText value={issuer.walletAddress} start={6} end={4} />
                       ) : (
-                        <span className="text-[11px] text-slate-400 italic">No wallet bound</span>
+                        <span className="text-xs text-subtle italic">No wallet bound</span>
                       )}
-                    </td>
+                    </TD>
 
-                    {/* Contract Authorization */}
-                    <td className="py-3 px-4">
-                      {getContractAuthBadge(issuer.contractAuthorization)}
-                    </td>
+                    <TD>
+                      <StatusBadge status={issuer.contractAuthorization} />
+                    </TD>
 
-                    {/* Application Status */}
-                    <td className="py-3 px-4 capitalize font-semibold text-slate-700">
-                      {issuer.status}
-                    </td>
+                    <TD>
+                      <StatusBadge status={issuer.status} />
+                    </TD>
 
-                    {/* Account Status */}
-                    <td className="py-3 px-4">
-                      {getAccountStatusBadge(issuer.accountStatus)}
-                    </td>
+                    <TD>
+                      <StatusBadge status={issuer.accountStatus} />
+                    </TD>
 
-                    {/* Issued Certificates */}
-                    <td className="py-3 px-4">
-                      <span className="font-mono font-bold text-[#0B2545] px-2 py-0.5 rounded bg-slate-100">
+                    <TD>
+                      <Badge tone="neutral" size="xs" className="font-mono">
                         {issuer.issuedCertificatesCount || 0}
-                      </span>
-                    </td>
+                      </Badge>
+                    </TD>
 
-                    {/* Actions */}
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
+                    <TD align="right">
+                      <div className="inline-flex items-center justify-end gap-1.5">
+                        <IconButton
+                          label="View issuer details"
+                          variant="secondary"
+                          size="xs"
                           onClick={() => onOpenDetailModal(issuer)}
-                          className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition cursor-pointer"
-                          title="View Details"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                        </button>
+                        </IconButton>
 
                         {issuer.accountStatus === 'active' ? (
-                          <button
+                          <Button
+                            variant="danger-outline"
+                            size="xs"
+                            disabled={isActionLoading}
                             onClick={() => {
                               setSuspensionModalUser(issuer);
                               setSuspendReason('');
                             }}
-                            disabled={isActionLoading}
-                            className="px-2 py-1 rounded-lg text-[11px] font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer disabled:opacity-50"
-                            title="Suspend Issuer Account"
                           >
                             Suspend
-                          </button>
+                          </Button>
                         ) : (
-                          <button
-                            onClick={() => onReactivateIssuer(issuer.id)}
+                          <Button
+                            variant="secondary"
+                            size="xs"
                             disabled={isActionLoading}
-                            className="px-2 py-1 rounded-lg text-[11px] font-bold text-emerald-700 bg-emerald-50 hover:bg-emerald-100 border border-emerald-200 transition cursor-pointer disabled:opacity-50"
-                            title="Reactivate Issuer Account"
+                            onClick={() => onReactivateIssuer(issuer.id)}
                           >
                             Reactivate
-                          </button>
+                          </Button>
                         )}
                       </div>
-                    </td>
-                  </tr>
+                    </TD>
+                  </TR>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TBody>
+            </Table>
+          </TableContainer>
         )}
-      </div>
+      </Card>
 
-      {/* Suspension Modal */}
-      {suspensionModalUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in">
-          <div className="bg-white rounded-2xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
-            <div className="flex items-start gap-3">
-              <div className="p-2.5 rounded-xl bg-rose-50 text-rose-700 shrink-0">
-                <AlertTriangle className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-base font-bold text-[#0B2545]">
-                  Suspend Issuer Account
-                </h4>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Are you sure you want to suspend {suspensionModalUser.name}?
-                </p>
-              </div>
-            </div>
+      <Dialog
+        open={Boolean(suspensionModalUser)}
+        onClose={() => setSuspensionModalUser(null)}
+        size="md"
+        eyebrow="Access Control"
+        title="Suspend Issuer Account"
+        description={
+          suspensionModalUser
+            ? `Are you sure you want to suspend ${suspensionModalUser.name} (${suspensionModalUser.email})?`
+            : ''
+        }
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setSuspensionModalUser(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              loading={isActionLoading}
+              disabled={!suspendReason.trim()}
+              onClick={() => {
+                if (suspensionModalUser && suspendReason.trim()) {
+                  onSuspendIssuer(suspensionModalUser.id, suspendReason.trim());
+                  setSuspensionModalUser(null);
+                }
+              }}
+            >
+              Confirm Suspension
+            </Button>
+          </>
+        }
+      >
+        <div className="space-y-4">
+          <Alert tone="warning" title="Policy Note">
+            Suspending this account prevents them from issuing new certificates. Certificates already issued remain valid unless explicitly revoked.
+          </Alert>
 
-            <div className="p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-900">
-              <span className="font-bold">Policy Note:</span> Suspending this account prevents them from issuing new certificates. Certificates already issued remain valid unless explicitly revoked.
-            </div>
-
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">
-                Reason for Suspension (Mandatory):
-              </label>
-              <textarea
-                value={suspendReason}
-                onChange={(e) => setSuspendReason(e.target.value)}
-                placeholder="State administrative reason for suspending issuer..."
-                rows={3}
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-slate-800 focus:bg-white focus:outline-none"
-              />
-            </div>
-
-            <div className="pt-2 flex items-center justify-end gap-2">
-              <button
-                onClick={() => setSuspensionModalUser(null)}
-                className="px-4 py-2 rounded-xl text-xs font-semibold text-slate-600 hover:bg-slate-100 transition cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                onClick={() => {
-                  if (suspendReason.trim()) {
-                    onSuspendIssuer(suspensionModalUser.id, suspendReason.trim());
-                    setSuspensionModalUser(null);
-                  }
-                }}
-                disabled={!suspendReason.trim() || isActionLoading}
-                className="px-4 py-2 rounded-xl text-xs font-bold bg-rose-600 hover:bg-rose-700 text-white transition shadow-xs cursor-pointer disabled:opacity-50"
-              >
-                Confirm Suspension
-              </button>
-            </div>
-          </div>
+          <Field label="Reason for Suspension" required>
+            <Textarea
+              rows={3}
+              value={suspendReason}
+              onChange={(e) => setSuspendReason(e.target.value)}
+              placeholder="State administrative grounds for suspending this issuer..."
+            />
+          </Field>
         </div>
-      )}
+      </Dialog>
     </div>
   );
 };

@@ -1,123 +1,106 @@
 'use client';
 
 import React from 'react';
-import { Award, GraduationCap, Building2, ShieldCheck } from 'lucide-react';
+import { Shield, KeyRound, FileSignature, GraduationCap } from 'lucide-react';
+import { Badge } from '@/components/ui';
 
 export const StatsCommunitySection: React.FC = () => {
+  const roles = [
+    {
+      role: 'Controller of Examinations',
+      contractRole: 'CONTROLLER_ROLE',
+      icon: KeyRound,
+      scope: 'Executive Academic Authority',
+      responsibilities: [
+        'Reviews and approves Registrar / Issuer staff applications',
+        'Authorizes issuer wallet addresses on the CertChain smart contract',
+        'Provides mandatory cryptographic co-signature for certificate revocations',
+      ],
+    },
+    {
+      role: 'Registrar & Certificate Issuer',
+      contractRole: 'ISSUER_ROLE',
+      icon: FileSignature,
+      scope: 'Credential Synthesis & Anchoring',
+      responsibilities: [
+        'Matches graduating students against verified academic records',
+        'Issues single certificates or batch CSV cohorts onto Ethereum',
+        'Submits formal revocation requests with documented justification',
+      ],
+    },
+    {
+      role: 'Super Administrator',
+      contractRole: 'DEFAULT_ADMIN_ROLE',
+      icon: Shield,
+      scope: 'Platform & Node Infrastructure',
+      responsibilities: [
+        'Provisions Controller of Examinations accounts and monitors system health',
+        'Audits platform-wide security logs and tamper-detection alerts',
+        'Strictly separated from academic issuance and revocation decisions',
+      ],
+    },
+    {
+      role: 'Graduates & Public Verifiers',
+      contractRole: 'PUBLIC / STUDENT',
+      icon: GraduationCap,
+      scope: 'Self-Sovereign Holding & Zero-Gas Lookup',
+      responsibilities: [
+        'Students download vector PDFs and create expiring /s/[token] share links',
+        'Employers verify credentials by ID, QR scan, or PDF SHA-256 hash',
+        'Zero gas fees and no Web3 wallet required for verification',
+      ],
+    },
+  ];
+
   return (
-    <section id="about" className="bg-white py-16 sm:py-24 border-b border-slate-200">
+    <section id="governance" className="bg-surface py-16 sm:py-24 border-b border-line">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-stretch">
-          
-          {/* Left Box: Graduation Photo with Overlay & Quote */}
-          <div className="lg:col-span-5 relative rounded-3xl overflow-hidden shadow-xl min-h-[340px] flex flex-col justify-end p-8 sm:p-10 text-white">
-            {/* Background Graduation Photo */}
-            <div
-              className="absolute inset-0 bg-cover bg-center"
-              style={{ backgroundImage: `url('/images/graduation.jpg')` }}
-            />
-            {/* Dark Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-[#040B18] via-[#040B18]/70 to-[#040B18]/40" />
+        <div className="max-w-2xl mb-12">
+          <p className="eyebrow mb-1.5">Institutional Governance Model</p>
+          <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink tracking-tight">
+            Separation of Academic and Technical Authority
+          </h2>
+          <p className="mt-2 text-sm sm:text-base text-muted leading-relaxed">
+            In accordance with university examination bylaws, no single account can unilaterally issue and revoke credentials or alter audit history.
+          </p>
+        </div>
 
-            {/* Content on Photo */}
-            <div className="relative z-10 space-y-4">
-              <span className="text-4xl sm:text-5xl font-serif text-sky-400 font-black block leading-none">
-                “
-              </span>
-              <p className="text-base sm:text-lg font-medium text-slate-100 leading-relaxed italic">
-                PUB CertChain gives us confidence that our certificates are genuine, secure and globally verifiable.
-              </p>
-              <div className="pt-2 border-t border-white/20">
-                <div className="font-bold text-white text-sm sm:text-base">
-                  &mdash; Prof. Dr. Ahmed Karim
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          {roles.map((r) => {
+            const Icon = r.icon;
+            return (
+              <div
+                key={r.role}
+                className="bg-canvas border border-line rounded-lg p-6 space-y-4"
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-center gap-3">
+                    <span className="size-10 rounded-md bg-surface border border-line text-brand inline-flex items-center justify-center shrink-0">
+                      <Icon className="size-5" aria-hidden />
+                    </span>
+                    <div>
+                      <h3 className="font-serif text-lg font-semibold text-ink">
+                        {r.role}
+                      </h3>
+                      <p className="text-xs text-muted">{r.scope}</p>
+                    </div>
+                  </div>
+                  <Badge tone="brand" size="sm" className="font-mono">
+                    {r.contractRole}
+                  </Badge>
                 </div>
-                <div className="text-xs text-sky-300 font-medium">
-                  Controller of Examinations, Global University
-                </div>
+
+                <ul className="space-y-2 text-xs sm:text-[13px] text-ink-2 pt-2 border-t border-line">
+                  {r.responsibilities.map((line) => (
+                    <li key={line} className="flex items-start gap-2">
+                      <span className="mt-1.5 size-1.5 rounded-full bg-seal shrink-0" aria-hidden />
+                      <span>{line}</span>
+                    </li>
+                  ))}
+                </ul>
               </div>
-            </div>
-          </div>
-
-          {/* Right Box: Community Stats & Partner Logos */}
-          <div className="lg:col-span-7 bg-[#F8FAFC] rounded-3xl p-8 sm:p-12 border border-slate-200/80 flex flex-col justify-between space-y-8">
-            
-            {/* Header */}
-            <div className="space-y-2">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0B2545] tracking-tight">
-                Trusted by the Academic Community
-              </h2>
-              <p className="text-slate-500 text-sm sm:text-base leading-relaxed">
-                A reliable solution for universities, students and employers worldwide.
-              </p>
-            </div>
-
-            {/* 3 Metric Columns */}
-            <div className="grid grid-cols-3 gap-4 sm:gap-6 pt-2">
-              <div>
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2563EB] tracking-tight">
-                  25+
-                </div>
-                <div className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                  Universities
-                </div>
-              </div>
-
-              <div>
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2563EB] tracking-tight">
-                  100K+
-                </div>
-                <div className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                  Certificates Issued
-                </div>
-              </div>
-
-              <div>
-                <div className="text-3xl sm:text-4xl lg:text-5xl font-extrabold text-[#2563EB] tracking-tight">
-                  99.9%
-                </div>
-                <div className="text-xs sm:text-sm text-slate-500 font-medium mt-1">
-                  Verification Success
-                </div>
-              </div>
-            </div>
-
-            {/* University Partners Logos Row */}
-            <div className="pt-6 border-t border-slate-200 grid grid-cols-2 sm:grid-cols-4 gap-4 items-center">
-              {/* Partner 1: Global University */}
-              <div className="flex items-center gap-2 text-slate-700">
-                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
-                  <Award className="w-4 h-4 text-slate-700" />
-                </div>
-                <span className="text-xs font-bold leading-tight">Global University</span>
-              </div>
-
-              {/* Partner 2: East West University */}
-              <div className="flex items-center gap-2 text-slate-700">
-                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
-                  <Building2 className="w-4 h-4 text-slate-700" />
-                </div>
-                <span className="text-xs font-bold leading-tight">East West University</span>
-              </div>
-
-              {/* Partner 3: National University */}
-              <div className="flex items-center gap-2 text-slate-700">
-                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
-                  <ShieldCheck className="w-4 h-4 text-slate-700" />
-                </div>
-                <span className="text-xs font-bold leading-tight">National University</span>
-              </div>
-
-              {/* Partner 4: Tech University */}
-              <div className="flex items-center gap-2 text-slate-700">
-                <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center shrink-0">
-                  <GraduationCap className="w-4 h-4 text-slate-700" />
-                </div>
-                <span className="text-xs font-bold leading-tight">Tech University</span>
-              </div>
-            </div>
-
-          </div>
-
+            );
+          })}
         </div>
       </div>
     </section>

@@ -11,8 +11,6 @@ import {
   ArrowRight,
   ShieldAlert,
   ExternalLink,
-  Copy,
-  Check,
   Activity,
   Layers,
   Database,
@@ -28,6 +26,19 @@ import {
   AdminTab,
   AnalyticsTrendPoint,
 } from '@/types/admin';
+import {
+  PageHeader,
+  Card,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardBody,
+  Button,
+  Badge,
+  StatusBadge,
+  Segmented,
+  HashText,
+} from '@/components/ui';
 
 interface OverviewSectionProps {
   kpis: DashboardKPIs;
@@ -47,227 +58,181 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
   analyticsTrends,
   onNavigateTab,
 }) => {
-  const [copiedContract, setCopiedContract] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState<'7d' | '30d' | '90d'>('7d');
 
-  const handleCopyContract = () => {
-    navigator.clipboard.writeText(kpis.contractAddress);
-    setCopiedContract(true);
-    setTimeout(() => setCopiedContract(false), 2000);
-  };
+  const kpiCards = [
+    {
+      label: 'Total Users',
+      value: kpis.totalUsers,
+      hint: 'Accounts on Platform',
+      icon: <Users className="w-4 h-4 text-brand" />,
+      tab: 'users' as AdminTab,
+      tone: 'text-ink',
+    },
+    {
+      label: 'Certificates',
+      value: kpis.totalCertificates,
+      hint: 'Indexed On-Chain',
+      icon: <Award className="w-4 h-4 text-brand" />,
+      tab: 'reports' as AdminTab,
+      tone: 'text-ink',
+    },
+    {
+      label: 'Revoked',
+      value: kpis.revokedCertificates,
+      hint: 'Flagged on Chain',
+      icon: <AlertTriangle className="w-4 h-4 text-danger" />,
+      tab: 'reports' as AdminTab,
+      tone: 'text-danger',
+    },
+    {
+      label: 'Pending Staff',
+      value: kpis.pendingIssuerApprovals,
+      hint: 'Controller Review',
+      icon: <Clock className="w-4 h-4 text-warning" />,
+      tab: 'users' as AdminTab,
+      tone: 'text-warning',
+    },
+    {
+      label: 'Verifications',
+      value: kpis.verificationEvents,
+      hint: 'QR & Link Queries',
+      icon: <CheckCircle2 className="w-4 h-4 text-success" />,
+      tab: 'audit' as AdminTab,
+      tone: 'text-success',
+    },
+    {
+      label: 'Network',
+      value: 'Connected',
+      hint: `Sepolia #${kpis.latestBlock}`,
+      icon: <Boxes className="w-4 h-4 text-success" />,
+      tab: 'monitoring' as AdminTab,
+      tone: 'text-success',
+    },
+  ];
 
   return (
     <div className="space-y-6">
+      <PageHeader
+        eyebrow="Platform Infrastructure · Pundra University of Science & Technology"
+        title="Super Admin Command Center"
+        description="Monitor platform services, manage institutional user accounts, and audit cryptographic ledger operations."
+        actions={
+          <Button
+            variant="secondary"
+            size="sm"
+            onClick={() => onNavigateTab('roles')}
+            rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+          >
+            View Permission Matrix
+          </Button>
+        }
+      />
+
       {/* Institutional Role Boundary Notice (PDF Spec Section 2) */}
-      <div className="rounded-2xl bg-white border border-slate-200/90 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-start gap-3.5">
-          <div className="w-10 h-10 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center shrink-0 mt-0.5">
-            <ShieldAlert className="w-5 h-5 text-blue-600" />
-          </div>
-          <div>
-            <h3 className="text-sm font-bold text-[#0B2545] flex items-center gap-2">
-              <span>Technical Administration Workspace</span>
-              <span className="text-[10px] font-bold uppercase bg-blue-50 text-blue-700 border border-blue-200 px-2 py-0.5 rounded">
-                Read-Only Academic Scope
-              </span>
-            </h3>
-            <p className="text-xs text-slate-500 mt-1 max-w-3xl leading-relaxed">
-              Super Admin manages infrastructure, platform accounts, and network integrity. In accordance with university academic bylaws, certificate issuance, revocation co-signing, and academic issuer authorizations remain under the exclusive governance of the <strong>Controller of Examinations</strong>.
-            </p>
+      <Card padding="md" className="bg-brand-soft/40 border-brand/20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-start gap-3.5">
+            <div className="w-10 h-10 rounded-lg bg-brand/10 border border-brand/20 text-brand flex items-center justify-center shrink-0 mt-0.5">
+              <ShieldAlert className="w-5 h-5" />
+            </div>
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h3 className="text-sm font-semibold text-ink">
+                  Technical Administration Workspace
+                </h3>
+                <Badge tone="brand" size="sm">
+                  Read-Only Academic Scope
+                </Badge>
+              </div>
+              <p className="text-xs text-muted mt-1 max-w-3xl leading-relaxed">
+                Super Admin manages infrastructure, platform accounts, and network integrity. In accordance with university academic bylaws, certificate issuance, revocation co-signing, and academic issuer authorizations remain under the exclusive governance of the <strong className="text-ink font-semibold">Controller of Examinations</strong>.
+              </p>
+            </div>
           </div>
         </div>
+      </Card>
 
-        <button
-          onClick={() => onNavigateTab('roles')}
-          className="self-start md:self-center px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-[#0B2545] text-xs font-semibold flex items-center gap-1.5 transition shrink-0 cursor-pointer"
-        >
-          <span>View Permission Matrix</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </button>
-      </div>
-
-      {/* 6 Core KPI Cards (PDF Spec Section 4.2) */}
+      {/* 6 Core KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3.5">
-        {/* Card 1: Total Users */}
-        <div
-          onClick={() => onNavigateTab('users')}
-          className="group cursor-pointer rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 p-4 transition shadow-xs hover:shadow-sm"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Total Users
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Users className="w-4 h-4" />
+        {kpiCards.map((item) => (
+          <Card
+            key={item.label}
+            padding="md"
+            interactive
+            onClick={() => onNavigateTab(item.tab)}
+            className="flex flex-col justify-between"
+          >
+            <div className="flex items-center justify-between">
+              <span className="eyebrow">{item.label}</span>
+              <div className="w-7 h-7 rounded-md bg-sunken border border-line flex items-center justify-center">
+                {item.icon}
+              </div>
             </div>
-          </div>
-          <div className="mt-2.5">
-            <span className="text-2xl font-black text-[#0B2545]">{kpis.totalUsers}</span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">Accounts on Platform</span>
-          </div>
-        </div>
-
-        {/* Card 2: Total Certificates */}
-        <div
-          onClick={() => onNavigateTab('reports')}
-          className="group cursor-pointer rounded-2xl bg-white border border-slate-200/90 hover:border-blue-400 p-4 transition shadow-xs hover:shadow-sm"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Certificates
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-indigo-50 text-indigo-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Award className="w-4 h-4" />
+            <div className="mt-3">
+              <div className={`font-serif text-2xl font-semibold tabular ${item.tone}`}>
+                {item.value}
+              </div>
+              <span className="text-[11px] text-muted block mt-0.5 font-mono truncate">
+                {item.hint}
+              </span>
             </div>
-          </div>
-          <div className="mt-2.5">
-            <span className="text-2xl font-black text-[#0B2545]">{kpis.totalCertificates}</span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">Indexed On-Chain</span>
-          </div>
-        </div>
-
-        {/* Card 3: Revoked Certificates */}
-        <div
-          onClick={() => onNavigateTab('reports')}
-          className="group cursor-pointer rounded-2xl bg-white border border-slate-200/90 hover:border-red-400 p-4 transition shadow-xs hover:shadow-sm"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Revoked
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2.5">
-            <span className="text-2xl font-black text-red-600">{kpis.revokedCertificates}</span>
-            <span className="text-[10px] text-red-600/70 block mt-0.5 font-medium">Flagged on Chain</span>
-          </div>
-        </div>
-
-        {/* Card 4: Pending Issuer Approvals (Controller governed, read-only count) */}
-        <div
-          onClick={() => onNavigateTab('users')}
-          className="group cursor-pointer rounded-2xl bg-white border border-slate-200/90 hover:border-amber-400 p-4 transition shadow-xs hover:shadow-sm"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Pending Staff
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Clock className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2.5">
-            <span className="text-2xl font-black text-amber-600">
-              {kpis.pendingIssuerApprovals}
-            </span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">Controller Review</span>
-          </div>
-        </div>
-
-        {/* Card 5: Verification Events */}
-        <div
-          onClick={() => onNavigateTab('audit')}
-          className="group cursor-pointer rounded-2xl bg-white border border-slate-200/90 hover:border-emerald-400 p-4 transition shadow-xs hover:shadow-sm"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Verifications
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2.5">
-            <span className="text-2xl font-black text-emerald-600">
-              {kpis.verificationEvents}
-            </span>
-            <span className="text-[10px] text-slate-400 block mt-0.5">QR &amp; Link Queries</span>
-          </div>
-        </div>
-
-        {/* Card 6: Network Status */}
-        <div
-          onClick={() => onNavigateTab('monitoring')}
-          className="group cursor-pointer rounded-2xl bg-white border border-slate-200/90 hover:border-emerald-400 p-4 transition shadow-xs hover:shadow-sm"
-        >
-          <div className="flex items-center justify-between">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-              Network
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Boxes className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-2.5">
-            <span className="text-base font-extrabold text-emerald-600 flex items-center gap-1.5">
-              <span>Connected</span>
-              <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-            </span>
-            <span className="text-[10px] font-mono text-slate-400 block mt-0.5">Sepolia #7421890</span>
-          </div>
-        </div>
+          </Card>
+        ))}
       </div>
 
       {/* Main Grid: Activity Trend Chart & System Health */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left (8 Cols): Certificate & Verification Activity Chart */}
-        <div className="lg:col-span-8 bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-5">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <Card padding="lg" className="lg:col-span-8 space-y-5">
+          <CardHeader className="mb-0 pb-3 border-b border-line">
             <div>
-              <h3 className="text-sm font-bold text-[#0B2545] flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-blue-600" />
+              <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-brand" />
                 <span>Certificate Issuance &amp; Verification Volume</span>
-              </h3>
-              <p className="text-xs text-slate-500 mt-0.5">
+              </CardTitle>
+              <CardDescription>
                 On-chain credential operations and public verification query trends
-              </p>
+              </CardDescription>
             </div>
 
-            {/* Time Filter Buttons */}
-            <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl self-start sm:self-auto">
-              {(['7d', '30d', '90d'] as const).map((period) => (
-                <button
-                  key={period}
-                  onClick={() => setSelectedPeriod(period)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                    selectedPeriod === period
-                      ? 'bg-white text-blue-600 shadow-2xs font-bold'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  {period === '7d' ? 'Last 7 Days' : period === '30d' ? '30 Days' : '90 Days'}
-                </button>
-              ))}
-            </div>
-          </div>
+            <Segmented
+              size="sm"
+              value={selectedPeriod}
+              onChange={setSelectedPeriod}
+              options={[
+                { value: '7d', label: '7 Days' },
+                { value: '30d', label: '30 Days' },
+                { value: '90d', label: '90 Days' },
+              ]}
+            />
+          </CardHeader>
 
-          {/* Bar Chart Representation (Institutional Style) */}
-          <div className="pt-4">
-            <div className="h-56 flex items-end justify-between gap-2 sm:gap-4 border-b border-slate-200 pb-3">
+          <CardBody className="pt-2 space-y-3">
+            <div className="h-56 flex items-end justify-between gap-2 sm:gap-4 border-b border-line pb-3">
               {analyticsTrends.map((pt) => {
                 const maxVal = 60;
                 const issuedHeight = Math.max(12, (pt.issued / maxVal) * 100);
                 const verifiedHeight = Math.max(16, (pt.verified / maxVal) * 100);
 
                 return (
-                  <div key={pt.date} className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group">
-                    <div className="w-full flex items-end justify-center gap-1 h-full">
-                      {/* Issued Bar */}
+                  <div
+                    key={pt.date}
+                    className="flex-1 flex flex-col items-center gap-1.5 h-full justify-end group"
+                  >
+                    <div className="w-full flex items-end justify-center gap-1.5 h-full">
                       <div
                         style={{ height: `${issuedHeight}%` }}
-                        className="w-full max-w-[14px] bg-blue-500 rounded-t-md group-hover:bg-blue-600 transition-all relative"
+                        className="w-full max-w-[14px] bg-brand rounded-t-sm group-hover:bg-brand-hover transition-all"
                         title={`${pt.issued} Certificates Issued on ${pt.date}`}
                       />
-                      {/* Verified Bar */}
                       <div
                         style={{ height: `${verifiedHeight}%` }}
-                        className="w-full max-w-[14px] bg-emerald-400 rounded-t-md group-hover:bg-emerald-500 transition-all relative"
+                        className="w-full max-w-[14px] bg-success rounded-t-sm opacity-85 group-hover:opacity-100 transition-all"
                         title={`${pt.verified} Verifications on ${pt.date}`}
                       />
                     </div>
-                    <span className="text-[10px] font-mono text-slate-400 group-hover:text-slate-700 whitespace-nowrap">
+                    <span className="text-[11px] font-mono text-muted group-hover:text-ink whitespace-nowrap">
                       {pt.date}
                     </span>
                   </div>
@@ -275,193 +240,174 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
               })}
             </div>
 
-            {/* Legend */}
-            <div className="flex items-center justify-between pt-3 text-xs text-slate-500">
-              <div className="flex items-center gap-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 pt-1 text-xs text-muted">
+              <div className="flex items-center gap-5">
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded bg-blue-500" />
-                  <span className="font-medium text-slate-700">Issued On-Chain</span>
+                  <span className="w-2.5 h-2.5 rounded-xs bg-brand" />
+                  <span className="font-medium text-ink">Issued On-Chain</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <span className="w-3 h-3 rounded bg-emerald-400" />
-                  <span className="font-medium text-slate-700">Public Verifications</span>
+                  <span className="w-2.5 h-2.5 rounded-xs bg-success" />
+                  <span className="font-medium text-ink">Public Verifications</span>
                 </div>
               </div>
-              <span className="text-[10px] text-slate-400 italic">Data synchronized from MongoDB &amp; Sepolia Indexer</span>
+              <span className="text-[11px] font-mono text-muted">
+                Synchronized from MongoDB Atlas &amp; Sepolia Indexer
+              </span>
             </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
 
         {/* Right (4 Cols): Blockchain Node & Smart Contract Status Panel */}
-        <div className="lg:col-span-4 bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <Boxes className="w-4 h-4 text-blue-600" />
-              <h3 className="text-sm font-bold text-[#0B2545]">Blockchain Node Status</h3>
-            </div>
-            <span className="text-[10px] px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
+        <Card padding="lg" className="lg:col-span-4 space-y-4">
+          <CardHeader className="mb-0 pb-3 border-b border-line">
+            <CardTitle className="flex items-center gap-2">
+              <Boxes className="w-4 h-4 text-brand" />
+              <span>Blockchain Node Status</span>
+            </CardTitle>
+            <Badge tone="success" dot size="sm">
               Synchronized
-            </span>
-          </div>
+            </Badge>
+          </CardHeader>
 
-          <div className="space-y-3 text-xs">
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1">
-              <span className="text-[10px] font-bold uppercase text-slate-400 block">
-                Network &amp; Chain ID
-              </span>
-              <div className="flex items-center justify-between font-mono font-bold text-slate-800">
+          <CardBody className="space-y-3 text-xs">
+            <div className="p-3 bg-sunken rounded-md border border-line space-y-1">
+              <span className="eyebrow block">Network &amp; Chain ID</span>
+              <div className="flex items-center justify-between font-mono font-semibold text-ink pt-0.5">
                 <span>{blockchainConfig.networkName}</span>
-                <span className="text-blue-600 bg-blue-50 px-2 py-0.5 rounded border border-blue-200">
+                <Badge tone="brand" size="sm">
                   ID: {blockchainConfig.chainId}
-                </span>
+                </Badge>
               </div>
             </div>
 
-            {/* Smart Contract Address */}
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-1.5">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-bold uppercase text-slate-400">
-                  Smart Contract Address
-                </span>
-                <button
-                  onClick={handleCopyContract}
-                  className="text-blue-600 hover:text-blue-700 flex items-center gap-1 font-semibold text-[11px] cursor-pointer"
-                >
-                  {copiedContract ? <Check className="w-3 h-3 text-emerald-600" /> : <Copy className="w-3 h-3" />}
-                  <span>{copiedContract ? 'Copied' : 'Copy'}</span>
-                </button>
-              </div>
-              <div className="font-mono text-[11px] text-blue-700 font-semibold break-all bg-white p-2 rounded-lg border border-slate-200 select-all">
-                {blockchainConfig.contractAddress}
+            <div className="p-3 bg-sunken rounded-md border border-line space-y-2">
+              <span className="eyebrow block">Smart Contract Address</span>
+              <div className="p-2 rounded bg-surface border border-line">
+                <HashText value={blockchainConfig.contractAddress} head={10} tail={8} size="xs" />
               </div>
               <a
                 href={blockchainConfig.explorerUrl}
                 target="_blank"
                 rel="noreferrer"
-                className="text-[11px] text-slate-600 hover:text-blue-600 flex items-center gap-1 font-semibold pt-1"
+                className="text-xs text-brand hover:underline inline-flex items-center gap-1 font-medium pt-0.5"
               >
                 <span>View on Sepolia Etherscan</span>
                 <ExternalLink className="w-3 h-3" />
               </a>
             </div>
 
-            {/* Latest Block & Last Action */}
-            <div className="grid grid-cols-2 gap-2 text-[11px]">
-              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                <span className="text-slate-400 block font-medium">Latest Block:</span>
-                <span className="font-mono font-bold text-slate-800">#{kpis.latestBlock}</span>
+            <div className="grid grid-cols-2 gap-2.5">
+              <div className="p-3 bg-sunken rounded-md border border-line">
+                <span className="eyebrow block">Latest Block</span>
+                <span className="font-mono font-semibold text-ink text-sm mt-0.5 block">
+                  #{kpis.latestBlock}
+                </span>
               </div>
-              <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200">
-                <span className="text-slate-400 block font-medium">RPC Latency:</span>
-                <span className="font-mono font-bold text-emerald-600">146ms</span>
+              <div className="p-3 bg-sunken rounded-md border border-line">
+                <span className="eyebrow block">RPC Latency</span>
+                <span className="font-mono font-semibold text-success text-sm mt-0.5 block">
+                  146ms
+                </span>
               </div>
             </div>
-          </div>
-        </div>
+          </CardBody>
+        </Card>
       </div>
 
       {/* Lower Row: Live System Monitoring (4 Services) & Recent Activity Audit Stream */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left (6 Cols): System Health Monitoring Overview */}
-        <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <Activity className="w-4 h-4 text-emerald-600" />
-              <h3 className="text-sm font-bold text-[#0B2545]">System Health Checks</h3>
-            </div>
-            <button
+        <Card padding="lg" className="lg:col-span-6 space-y-4">
+          <CardHeader className="mb-0 pb-3 border-b border-line">
+            <CardTitle className="flex items-center gap-2">
+              <Activity className="w-4 h-4 text-success" />
+              <span>System Health Checks</span>
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="xs"
               onClick={() => onNavigateTab('monitoring')}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
+              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
             >
-              <span>Detailed Diagnostics</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          </div>
+              Detailed Diagnostics
+            </Button>
+          </CardHeader>
 
-          <div className="space-y-3">
-            {systemHealth.map((svc) => {
-              const isHealthy = svc.status === 'healthy';
-              return (
-                <div
-                  key={svc.service}
-                  className="p-3.5 rounded-xl border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 transition flex items-start justify-between gap-3"
-                >
-                  <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center shrink-0 mt-0.5">
-                      {svc.service === 'api' && <Server className="w-4 h-4 text-blue-600" />}
-                      {svc.service === 'database' && <Database className="w-4 h-4 text-emerald-600" />}
-                      {svc.service === 'email' && <Mail className="w-4 h-4 text-indigo-600" />}
-                      {svc.service === 'blockchain' && <Boxes className="w-4 h-4 text-sky-600" />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-bold text-[#0B2545]">{svc.displayName}</span>
-                        {svc.latencyMs !== undefined && (
-                          <span className="text-[10px] font-mono text-slate-400">
-                            {svc.latencyMs}ms
-                          </span>
-                        )}
-                      </div>
-                      <p className="text-[11px] text-slate-500 mt-0.5 leading-relaxed">{svc.message}</p>
-                    </div>
+          <CardBody className="space-y-2.5">
+            {systemHealth.map((svc) => (
+              <div
+                key={svc.service}
+                className="p-3.5 rounded-md border border-line bg-sunken/50 hover:bg-sunken transition flex items-start justify-between gap-3"
+              >
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-md bg-surface border border-line flex items-center justify-center shrink-0 mt-0.5">
+                    {svc.service === 'api' && <Server className="w-4 h-4 text-brand" />}
+                    {svc.service === 'database' && <Database className="w-4 h-4 text-success" />}
+                    {svc.service === 'email' && <Mail className="w-4 h-4 text-seal" />}
+                    {svc.service === 'blockchain' && <Boxes className="w-4 h-4 text-info" />}
                   </div>
-
-                  <span
-                    className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase shrink-0 border ${
-                      isHealthy
-                        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                        : 'bg-amber-50 text-amber-700 border-amber-200'
-                    }`}
-                  >
-                    {isHealthy ? 'Online' : 'Degraded'}
-                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-ink">{svc.displayName}</span>
+                      {svc.latencyMs !== undefined && (
+                        <span className="text-[11px] font-mono text-muted">{svc.latencyMs}ms</span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted mt-0.5 leading-relaxed">{svc.message}</p>
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </div>
+
+                <StatusBadge status={svc.status} />
+              </div>
+            ))}
+          </CardBody>
+        </Card>
 
         {/* Right (6 Cols): Recent Administrative Audit Stream */}
-        <div className="lg:col-span-6 bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
-          <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-            <div className="flex items-center gap-2">
-              <Layers className="w-4 h-4 text-blue-600" />
-              <h3 className="text-sm font-bold text-[#0B2545]">Recent Platform Activity</h3>
-            </div>
-            <button
+        <Card padding="lg" className="lg:col-span-6 space-y-4">
+          <CardHeader className="mb-0 pb-3 border-b border-line">
+            <CardTitle className="flex items-center gap-2">
+              <Layers className="w-4 h-4 text-brand" />
+              <span>Recent Platform Activity</span>
+            </CardTitle>
+            <Button
+              variant="ghost"
+              size="xs"
               onClick={() => onNavigateTab('audit')}
-              className="text-xs font-semibold text-blue-600 hover:text-blue-700 flex items-center gap-1 cursor-pointer"
+              rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
             >
-              <span>View All Audit Logs</span>
-              <ArrowRight className="w-3 h-3" />
-            </button>
-          </div>
+              View All Audit Logs
+            </Button>
+          </CardHeader>
 
-          <div className="space-y-3">
+          <CardBody className="space-y-2.5">
             {recentLogs.length === 0 ? (
-              <div className="py-8 text-center text-xs text-slate-400">
+              <div className="py-8 text-center text-xs text-muted">
                 No recent activity logged in this session.
               </div>
             ) : (
               recentLogs.slice(0, 4).map((item) => (
                 <div
                   key={item.id}
-                  className="p-3 rounded-xl border border-slate-200/80 bg-slate-50/70 hover:bg-slate-50 transition space-y-1"
+                  className="p-3.5 rounded-md border border-line bg-sunken/50 hover:bg-sunken transition space-y-1"
                 >
                   <div className="flex items-center justify-between gap-2">
-                    <span className="text-xs font-bold text-[#0B2545]">{item.action}</span>
-                    <span className="text-[10px] text-slate-400 font-mono">{item.timestamp}</span>
+                    <span className="text-xs font-semibold text-ink">{item.action}</span>
+                    <span className="text-[11px] text-muted font-mono">{item.timestamp}</span>
                   </div>
-                  <p className="text-[11px] text-slate-600 line-clamp-1">{item.details || item.targetReference}</p>
-                  <div className="flex items-center gap-2 text-[10px] text-slate-400 pt-0.5">
-                    <span className="font-mono text-blue-600">{item.actorEmail}</span>
+                  <p className="text-xs text-muted line-clamp-1">
+                    {item.details || item.targetReference}
+                  </p>
+                  <div className="flex flex-wrap items-center gap-2 text-[11px] text-muted pt-0.5">
+                    <span className="font-mono text-brand font-medium">{item.actorEmail}</span>
                     <span>•</span>
                     <span className="capitalize">{item.actorRole}</span>
                     {item.transactionHash && (
                       <>
                         <span>•</span>
-                        <span className="font-mono text-emerald-600 truncate max-w-[140px]">
-                          Tx: {item.transactionHash.slice(0, 10)}...
+                        <span className="font-mono text-success truncate max-w-[160px]">
+                          Tx: {item.transactionHash.slice(0, 10)}…
                         </span>
                       </>
                     )}
@@ -469,8 +415,8 @@ export const OverviewSection: React.FC<OverviewSectionProps> = ({
                 </div>
               ))
             )}
-          </div>
-        </div>
+          </CardBody>
+        </Card>
       </div>
     </div>
   );

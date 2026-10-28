@@ -5,11 +5,7 @@ import { useRouter } from 'next/navigation';
 import QRCode from 'qrcode';
 import {
   CheckCircle2,
-  AlertCircle,
-  Loader2,
   ShieldCheck,
-  Upload,
-  Search,
   Plus,
   ShieldAlert,
   ArrowRight,
@@ -19,15 +15,49 @@ import {
   Download,
   Users,
   Eye,
-  X,
   ExternalLink,
   Award,
   QrCode,
+  RefreshCw,
+  Activity,
 } from 'lucide-react';
 import { IssuerSidebar, IssuerTab } from './IssuerSidebar';
 import { IssuerTopHeader } from './IssuerTopHeader';
 import { ReportsSection } from './ReportsSection';
 import { clearSessionUser } from '@/lib/authSession';
+import {
+  PageHeader,
+  StatStrip,
+  Card,
+  CardHeader,
+  Button,
+  ButtonLink,
+  Badge,
+  StatusBadge,
+  HashText,
+  explorerTxUrl,
+  TableToolbar,
+  SearchInput,
+  Select,
+  Input,
+  Textarea,
+  Field,
+  TableContainer,
+  Table,
+  THead,
+  TBody,
+  TR,
+  TH,
+  TD,
+  Stepper,
+  FileDrop,
+  Dialog,
+  Alert,
+  EmptyState,
+  Spinner,
+  StateToast,
+  CertificateDocumentPreview,
+} from '@/components/ui';
 
 interface IssuedCert {
   id: string;
@@ -107,7 +137,6 @@ export const IssuerDashboard: React.FC = () => {
   const [previewCert, setPreviewCert] = useState<IssuedCert | null>(null);
   const [previewCertQrUrl, setPreviewCertQrUrl] = useState<string>('');
 
-  // Generate QR for newly issued certificate
   useEffect(() => {
     let isMounted = true;
     if (!issuedResult?.id) return;
@@ -127,7 +156,6 @@ export const IssuerDashboard: React.FC = () => {
     };
   }, [issuedResult?.id]);
 
-  // Generate QR for previewed certificate
   useEffect(() => {
     let isMounted = true;
     if (!previewCert?.id) return;
@@ -170,6 +198,7 @@ export const IssuerDashboard: React.FC = () => {
   const [isSubmittingStudent, setIsSubmittingStudent] = useState(false);
 
   // Batch CSV Issuance States
+  const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvRows, setCsvRows] = useState<CsvParsedRow[]>([]);
   const [isProcessingBatch, setIsProcessingBatch] = useState(false);
   const [batchResult, setBatchResult] = useState<{
@@ -272,7 +301,6 @@ export const IssuerDashboard: React.FC = () => {
     };
   }, []);
 
-  // Handle single certificate issuance
   const handleIssueSubmit = async () => {
     setIsSubmitting(true);
     try {
@@ -307,7 +335,6 @@ export const IssuerDashboard: React.FC = () => {
     }
   };
 
-  // Pre-fill Issue Wizard from student directory
   const handleSelectStudentForIssue = (student: StudentRecord) => {
     setStudentName(student.name);
     setStudentId(student.studentId);
@@ -320,7 +347,6 @@ export const IssuerDashboard: React.FC = () => {
     showToast(`Pre-filled academic record for ${student.name}`, 'info');
   };
 
-  // Add new student
   const handleCreateStudent = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStudentData.studentId || !newStudentData.name || !newStudentData.email) {
@@ -360,10 +386,13 @@ export const IssuerDashboard: React.FC = () => {
     }
   };
 
-  // Parse CSV file content
-  const handleCsvFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const parseCsvFile = (file: File | null) => {
+    setCsvFile(file);
+    if (!file) {
+      setCsvRows([]);
+      setBatchResult(null);
+      return;
+    }
 
     const reader = new FileReader();
     reader.onload = (event) => {
@@ -416,10 +445,18 @@ export const IssuerDashboard: React.FC = () => {
       showToast(`Loaded ${parsed.length} rows from CSV file.`, 'info');
     };
     reader.readAsText(file);
-    e.target.value = '';
   };
 
-  // Execute batch issuance to Smart Contract
+  const handleDownloadCsvTemplate = () => {
+    const csvSample = `student_id,name,email,program,session,cert_type,cgpa\n0322410105102001,Rahim Ahmed,rahim@pub.ac.bd,B.Sc. in Computer Science & Engineering,2020 - 2024,Degree Certificate,3.92\n0322410105102002,Fatima Begum,fatima@pub.ac.bd,B.Sc. in Computer Science & Engineering,2020 - 2024,Degree Certificate,3.85\n0322410105102003,Tanvir Islam,tanvir@pub.ac.bd,B.Sc. in Electrical & Electronic Engineering,2020 - 2024,Degree Certificate,3.78`;
+    const blob = new Blob([csvSample], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'students_batch_template.csv';
+    a.click();
+  };
+
   const handleExecuteBatchIssuance = async () => {
     const validRows = csvRows.filter((r) => r.isValid);
     if (validRows.length === 0) {
@@ -457,7 +494,6 @@ export const IssuerDashboard: React.FC = () => {
     }
   };
 
-  // Revocation request to Controller
   const handleRevokeRequestSubmit = async () => {
     if (!revokeModalCert || !revokeReason.trim()) return;
     setIsSubmittingRevoke(true);
@@ -511,38 +547,12 @@ export const IssuerDashboard: React.FC = () => {
   });
 
   return (
-    <div className="h-screen overflow-hidden bg-[#F8FAFC] text-[#0B2545] flex font-sans antialiased">
-      {/* Toast Feedback */}
-      {toast && (
-        <div
-          className={`fixed bottom-6 right-6 z-50 px-4 py-3 rounded-2xl shadow-xl border flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-200 ${
-            toast.type === 'success'
-              ? 'bg-[#0B1F3A] text-white border-slate-700'
-              : toast.type === 'error'
-              ? 'bg-rose-950 text-white border-rose-700'
-              : 'bg-slate-900 text-white border-slate-800'
-          }`}
-        >
-          {toast.type === 'success' && (
-            <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          )}
-          {toast.type === 'error' && (
-            <div className="w-6 h-6 rounded-full bg-rose-500/20 text-rose-400 flex items-center justify-center shrink-0">
-              <AlertCircle className="w-4 h-4" />
-            </div>
-          )}
-          {toast.type === 'info' && (
-            <div className="w-6 h-6 rounded-full bg-blue-500/20 text-blue-400 flex items-center justify-center shrink-0">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-          )}
-          <span className="text-xs sm:text-sm font-medium">{toast.message}</span>
-        </div>
-      )}
+    <div className="h-screen overflow-hidden bg-canvas text-ink flex font-sans antialiased">
+      <StateToast
+        message={toast?.message ?? null}
+        tone={toast?.type === 'error' ? 'danger' : toast?.type === 'info' ? 'info' : 'success'}
+      />
 
-      {/* Left Sidebar */}
       <IssuerSidebar
         activeTab={activeTab}
         onSelectTab={setActiveTab}
@@ -554,7 +564,6 @@ export const IssuerDashboard: React.FC = () => {
         onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
-      {/* Main Content Area */}
       <div className="flex-1 h-screen flex flex-col min-w-0 overflow-hidden">
         <IssuerTopHeader
           activeTab={activeTab}
@@ -575,925 +584,975 @@ export const IssuerDashboard: React.FC = () => {
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
           {/* TAB 1: OVERVIEW */}
           {activeTab === 'overview' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              {/* Hero Card */}
-              <div className="bg-gradient-to-r from-[#0B1F3A] to-[#12325C] rounded-3xl p-6 sm:p-8 text-white relative overflow-hidden shadow-xl border border-blue-900/40">
-                <div className="relative z-10 max-w-2xl space-y-3">
-                  <span className="px-3 py-1 rounded-full bg-white/10 text-blue-200 text-xs font-semibold uppercase tracking-wider backdrop-blur-xs">
-                    Academic Issuance Authority
-                  </span>
-                  <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
+            <div className="space-y-6">
+              <Card className="bg-night text-night-text border-night-line on-night" padding="lg">
+                <div className="max-w-3xl space-y-3">
+                  <Badge tone="seal" size="sm">
+                    Academic Issuance Authority • Pundra University
+                  </Badge>
+                  <h2 className="text-2xl sm:text-3xl font-serif font-semibold tracking-tight text-night-text">
                     Registrar Credential Management Portal
                   </h2>
-                  <p className="text-slate-300 text-sm leading-relaxed">
-                    Issue tamper-proof academic degrees, transcripts, and provisional certificates anchored to the Ethereum blockchain ledger with zero cryptographic drift.
+                  <p className="text-night-muted text-sm leading-relaxed">
+                    Compile deterministic A4 academic diplomas, transcripts, and provisional certificates, and anchor their SHA-256 digests onto Ethereum Sepolia with zero cryptographic drift.
                   </p>
-                  <div className="pt-2 flex flex-wrap gap-3">
-                    <button
-                      type="button"
+                  <div className="pt-2 flex flex-wrap gap-2.5">
+                    <Button
+                      variant="seal"
+                      size="sm"
+                      leftIcon={<FilePlus className="w-4 h-4" />}
                       onClick={() => setActiveTab('issue')}
-                      className="px-5 py-2.5 bg-[#2563EB] hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow cursor-pointer flex items-center gap-2"
                     >
-                      <FilePlus className="w-4 h-4" />
-                      <span>Issue Certificate</span>
-                    </button>
-                    <button
-                      type="button"
+                      Issue Single Credential
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      leftIcon={<FileSpreadsheet className="w-4 h-4" />}
                       onClick={() => setActiveTab('batch')}
-                      className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl backdrop-blur-xs cursor-pointer flex items-center gap-2"
+                      className="bg-night-2 text-night-text border-night-line hover:bg-night-3"
                     >
-                      <FileSpreadsheet className="w-4 h-4" />
-                      <span>Batch CSV Issuance</span>
-                    </button>
-                    <button
-                      type="button"
+                      Batch CSV Issuance
+                    </Button>
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      leftIcon={<Users className="w-4 h-4" />}
                       onClick={() => setActiveTab('students')}
-                      className="px-5 py-2.5 bg-white/10 hover:bg-white/20 text-white font-bold text-xs rounded-xl backdrop-blur-xs cursor-pointer flex items-center gap-2"
+                      className="bg-night-2 text-night-text border-night-line hover:bg-night-3"
                     >
-                      <Users className="w-4 h-4" />
-                      <span>Student Directory</span>
-                    </button>
+                      Student Directory
+                    </Button>
                   </div>
                 </div>
-              </div>
+              </Card>
 
-              {/* Quick Metrics */}
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-4">
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-slate-400 uppercase">Total Issued</span>
-                    <p className="text-2xl font-black text-[#0B1F3A] mt-1">{certificates.length}</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center font-bold">
-                    {certificates.length}
-                  </div>
-                </div>
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-slate-400 uppercase">Valid Active</span>
-                    <p className="text-2xl font-black text-emerald-600 mt-1">{validCount}</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <CheckCircle2 className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-slate-400 uppercase">Registered Students</span>
-                    <p className="text-2xl font-black text-[#2563EB] mt-1">{students.length}</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center">
-                    <UserCheck className="w-5 h-5" />
-                  </div>
-                </div>
-                <div className="bg-white p-5 rounded-2xl border border-slate-200/90 shadow-xs flex items-center justify-between">
-                  <div>
-                    <span className="text-xs font-bold text-slate-400 uppercase">Revoked</span>
-                    <p className="text-2xl font-black text-amber-600 mt-1">{revokedCount}</p>
-                  </div>
-                  <div className="w-10 h-10 rounded-xl bg-amber-50 text-amber-600 flex items-center justify-center">
-                    <ShieldAlert className="w-5 h-5" />
-                  </div>
-                </div>
-              </div>
+              <StatStrip
+                cols={4}
+                stats={[
+                  {
+                    label: 'Total Issued',
+                    value: certificates.length,
+                    sublabel: 'Anchored on-chain',
+                    icon: <Award className="w-4 h-4" />,
+                    tone: 'brand',
+                    onClick: () => setActiveTab('certificates'),
+                  },
+                  {
+                    label: 'Valid Active',
+                    value: validCount,
+                    sublabel: 'Cryptographically intact',
+                    icon: <CheckCircle2 className="w-4 h-4" />,
+                    tone: 'success',
+                    onClick: () => setActiveTab('certificates'),
+                  },
+                  {
+                    label: 'Enrolled Students',
+                    value: students.length,
+                    sublabel: 'Matriculation directory',
+                    icon: <UserCheck className="w-4 h-4" />,
+                    tone: 'seal',
+                    onClick: () => setActiveTab('students'),
+                  },
+                  {
+                    label: 'Revoked',
+                    value: revokedCount,
+                    sublabel: 'Co-signed revocations',
+                    icon: <ShieldAlert className="w-4 h-4" />,
+                    tone: revokedCount > 0 ? 'warning' : 'default',
+                    onClick: () => setActiveTab('certificates'),
+                  },
+                ]}
+              />
 
-              {/* Recent Activity Table */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
-                <div className="p-6 border-b border-slate-100 flex items-center justify-between">
-                  <div>
-                    <h3 className="text-base font-bold text-[#0B1F3A]">Recently Issued Credentials</h3>
-                    <p className="text-xs text-slate-500">Live feed from Ethereum smart contract and MongoDB ledger</p>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={() => setActiveTab('certificates')}
-                    className="text-xs font-bold text-[#2563EB] hover:underline cursor-pointer"
-                  >
-                    View All ({certificates.length}) &rarr;
-                  </button>
-                </div>
+              <Card>
+                <CardHeader
+                  eyebrow="Live Ledger Feed"
+                  title="Recently Issued Credentials"
+                  description="Synchronized from Ethereum Sepolia smart contract and institutional MongoDB registry."
+                  actions={
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
+                      onClick={() => setActiveTab('certificates')}
+                    >
+                      View All ({certificates.length})
+                    </Button>
+                  }
+                />
 
                 {isLoading ? (
-                  <div className="p-12 text-center">
-                    <Loader2 className="w-8 h-8 text-[#2563EB] animate-spin mx-auto" />
+                  <div className="p-12 flex justify-center">
+                    <Spinner size="lg" />
                   </div>
                 ) : certificates.length === 0 ? (
-                  <div className="p-12 text-center text-slate-400 text-xs">
-                    No certificates issued yet. Click &quot;Issue Certificate&quot; to begin.
-                  </div>
+                  <EmptyState
+                    icon={<Award className="w-5 h-5" />}
+                    title="No certificates issued yet"
+                    description="Click 'Issue Single Credential' or upload a batch CSV to anchor your first academic diploma."
+                    action={
+                      <Button variant="primary" size="sm" onClick={() => setActiveTab('issue')}>
+                        Issue First Credential
+                      </Button>
+                    }
+                  />
                 ) : (
-                  <div className="divide-y divide-slate-100">
-                    {certificates.slice(0, 5).map((cert) => (
-                      <div
-                        key={cert.id}
-                        className="p-4 sm:p-5 flex items-center justify-between hover:bg-slate-50/50"
-                      >
-                        <div className="space-y-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-mono font-bold text-xs text-[#2563EB]">{cert.id}</span>
-                            <span
-                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                                cert.status === 'valid'
-                                  ? 'bg-emerald-50 text-emerald-700'
-                                  : 'bg-amber-50 text-amber-700'
-                              }`}
-                            >
-                              {cert.status.toUpperCase()}
-                            </span>
-                          </div>
-                          <p className="text-sm font-bold text-slate-800">
-                            {cert.studentName} —{' '}
-                            <span className="text-slate-500 font-normal">{cert.program}</span>
-                          </p>
-                          <span className="text-[11px] text-slate-400">Issued: {cert.issueDate}</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setPreviewCert(cert)}
-                            className="p-2 rounded-xl bg-blue-50 hover:bg-blue-100 text-[#2563EB] text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                            title="View Certificate & Unique QR Code"
-                          >
-                            <Eye className="w-4 h-4" />
-                            <span className="hidden sm:inline">View</span>
-                          </button>
-                          <a
-                            href={`/api/certificates/${cert.id}/pdf`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <Download className="w-4 h-4" />
-                            <span className="hidden sm:inline">PDF</span>
-                          </a>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
+                  <TableContainer className="border-0 rounded-none">
+                    <Table>
+                      <THead>
+                        <TR>
+                          <TH>Certificate ID</TH>
+                          <TH>Candidate</TH>
+                          <TH>Program</TH>
+                          <TH>Issued</TH>
+                          <TH>Status</TH>
+                          <TH align="right">Actions</TH>
+                        </TR>
+                      </THead>
+                      <TBody>
+                        {certificates.slice(0, 6).map((cert) => (
+                          <TR key={cert.id}>
+                            <TD>
+                              <span className="font-mono text-xs font-semibold text-brand">
+                                {cert.id}
+                              </span>
+                            </TD>
+                            <TD>
+                              <div className="font-semibold text-ink text-sm">{cert.studentName}</div>
+                              <div className="text-xs font-mono text-muted">{cert.studentId}</div>
+                            </TD>
+                            <TD>
+                              <span className="text-xs text-ink-2">{cert.program}</span>
+                            </TD>
+                            <TD>
+                              <span className="text-xs text-muted">{cert.issueDate}</span>
+                            </TD>
+                            <TD>
+                              <StatusBadge status={cert.status} />
+                            </TD>
+                            <TD align="right">
+                              <div className="inline-flex items-center justify-end gap-1.5">
+                                <Button
+                                  variant="secondary"
+                                  size="xs"
+                                  leftIcon={<Eye className="w-3.5 h-3.5" />}
+                                  onClick={() => setPreviewCert(cert)}
+                                >
+                                  Inspect
+                                </Button>
+                                <ButtonLink
+                                  href={`/api/certificates/${cert.id}/pdf`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  variant="secondary"
+                                  size="xs"
+                                  leftIcon={<Download className="w-3.5 h-3.5" />}
+                                >
+                                  PDF
+                                </ButtonLink>
+                              </div>
+                            </TD>
+                          </TR>
+                        ))}
+                      </TBody>
+                    </Table>
+                  </TableContainer>
                 )}
-              </div>
+              </Card>
             </div>
           )}
 
           {/* TAB 2: STUDENT DIRECTORY */}
           {activeTab === 'students' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-xl font-bold text-[#0B1F3A]">Student Academic Records</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Maintain student identities, graduation batches, and issue authentic credentials.
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setIsNewStudentModalOpen(true)}
-                  className="px-4 py-2.5 bg-[#2563EB] hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow cursor-pointer flex items-center gap-2"
-                >
-                  <Plus className="w-4 h-4" />
-                  <span>Add New Student</span>
-                </button>
-              </div>
+            <div className="space-y-6">
+              <PageHeader
+                eyebrow="Matriculation Roll"
+                title="Student Academic Directory"
+                description="Maintain verified student profiles, graduation batches, and launch single-click credential issuance."
+                actions={
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    leftIcon={<Plus className="w-4 h-4" />}
+                    onClick={() => setIsNewStudentModalOpen(true)}
+                  >
+                    Add Student Record
+                  </Button>
+                }
+              />
 
-              {/* Search Bar */}
-              <div className="relative">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                <input
-                  type="text"
-                  value={studentSearch}
-                  onChange={(e) => {
-                    setStudentSearch(e.target.value);
-                    fetchStudents(e.target.value);
-                  }}
-                  placeholder="Search students by name, Student ID, email, or department..."
-                  className="w-full pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB] shadow-xs"
+              <Card>
+                <TableToolbar
+                  left={
+                    <SearchInput
+                      value={studentSearch}
+                      onChange={(e) => {
+                        setStudentSearch(e.target.value);
+                        fetchStudents(e.target.value);
+                      }}
+                      onClear={() => {
+                        setStudentSearch('');
+                        fetchStudents('');
+                      }}
+                      placeholder="Search students by name, Student Roll ID, email, or department..."
+                      className="w-full sm:w-96"
+                    />
+                  }
+                  right={
+                    <Badge tone="neutral">
+                      {students.length} Enrolled Records
+                    </Badge>
+                  }
                 />
-              </div>
 
-              {/* Students Table */}
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
                 {isLoadingStudents ? (
-                  <div className="p-12 text-center">
-                    <Loader2 className="w-8 h-8 text-[#2563EB] animate-spin mx-auto" />
+                  <div className="p-12 flex justify-center">
+                    <Spinner size="lg" />
                   </div>
                 ) : students.length === 0 ? (
-                  <div className="p-12 text-center text-slate-400 text-xs">
-                    No students found matching your query. Click &quot;Add New Student&quot; to register one.
-                  </div>
+                  <EmptyState
+                    icon={<Users className="w-5 h-5" />}
+                    title="No student records found"
+                    description="No student profiles match your search query. Add a new student record to begin."
+                    action={
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        leftIcon={<Plus className="w-4 h-4" />}
+                        onClick={() => setIsNewStudentModalOpen(true)}
+                      >
+                        Add New Student
+                      </Button>
+                    }
+                  />
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold">
-                        <tr>
-                          <th className="px-5 py-3">Student ID</th>
-                          <th className="px-5 py-3">Student Name</th>
-                          <th className="px-5 py-3">Program / Dept</th>
-                          <th className="px-5 py-3">Batch &amp; Session</th>
-                          <th className="px-5 py-3">CGPA</th>
-                          <th className="px-5 py-3">Certs</th>
-                          <th className="px-5 py-3 text-right">Action</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
+                  <TableContainer className="border-0 rounded-none">
+                    <Table>
+                      <THead>
+                        <TR>
+                          <TH>Student Roll ID</TH>
+                          <TH>Candidate Name &amp; Email</TH>
+                          <TH>Department / Program</TH>
+                          <TH>Batch &amp; Session</TH>
+                          <TH>CGPA</TH>
+                          <TH>Credentials</TH>
+                          <TH align="right">Action</TH>
+                        </TR>
+                      </THead>
+                      <TBody>
                         {students.map((st) => (
-                          <tr key={st.id} className="hover:bg-slate-50/50">
-                            <td className="px-5 py-3.5 font-mono font-bold text-[#2563EB]">{st.studentId}</td>
-                            <td className="px-5 py-3.5 font-bold text-slate-800">
-                              <div>{st.name}</div>
-                              <div className="text-[11px] text-slate-400 font-normal">{st.email}</div>
-                            </td>
-                            <td className="px-5 py-3.5 text-slate-600">{st.department || st.program}</td>
-                            <td className="px-5 py-3.5 text-slate-600">
-                              {st.batch} ({st.session})
-                            </td>
-                            <td className="px-5 py-3.5 font-bold text-emerald-700">{st.cgpa || 'N/A'}</td>
-                            <td className="px-5 py-3.5">
-                              <span className="px-2 py-0.5 rounded-full bg-blue-50 text-[#2563EB] font-bold text-[10px]">
-                                {st.certificateCount} Issued
+                          <TR key={st.id}>
+                            <TD>
+                              <span className="font-mono font-semibold text-xs text-brand">
+                                {st.studentId}
                               </span>
-                            </td>
-                            <td className="px-5 py-3.5 text-right">
-                              <button
-                                type="button"
+                            </TD>
+                            <TD>
+                              <div className="font-semibold text-ink text-sm">{st.name}</div>
+                              <div className="text-xs text-muted">{st.email}</div>
+                            </TD>
+                            <TD>
+                              <span className="text-xs text-ink-2">{st.department || st.program}</span>
+                            </TD>
+                            <TD>
+                              <span className="text-xs text-muted">
+                                {st.batch} ({st.session})
+                              </span>
+                            </TD>
+                            <TD>
+                              <span className="font-mono font-semibold text-xs text-success">
+                                {st.cgpa || 'N/A'}
+                              </span>
+                            </TD>
+                            <TD>
+                              <Badge tone="brand" size="xs">
+                                {st.certificateCount} Issued
+                              </Badge>
+                            </TD>
+                            <TD align="right">
+                              <Button
+                                variant="primary"
+                                size="xs"
+                                rightIcon={<ArrowRight className="w-3.5 h-3.5" />}
                                 onClick={() => handleSelectStudentForIssue(st)}
-                                className="px-3 py-1.5 bg-[#2563EB] hover:bg-blue-600 text-white rounded-lg text-xs font-bold shadow-xs cursor-pointer inline-flex items-center gap-1.5"
                               >
-                                <span>Issue Cert</span>
-                                <ArrowRight className="w-3.5 h-3.5" />
-                              </button>
-                            </td>
-                          </tr>
+                                Issue Cert
+                              </Button>
+                            </TD>
+                          </TR>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </TBody>
+                    </Table>
+                  </TableContainer>
                 )}
-              </div>
+              </Card>
             </div>
           )}
 
           {/* TAB 3: SINGLE ISSUANCE WIZARD */}
           {activeTab === 'issue' && (
-            <div className="max-w-2xl mx-auto bg-white rounded-3xl border border-slate-200/90 shadow-xl p-6 sm:p-8 space-y-6 animate-in fade-in duration-200">
-              {/* Step Progress Bar */}
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                {[
-                  { step: 1, label: 'Student Info' },
-                  { step: 2, label: 'Academic Details' },
-                  { step: 3, label: 'Confirm & Sign' },
-                  { step: 4, label: 'Complete' },
-                ].map((s) => (
-                  <div key={s.step} className="flex items-center gap-2">
-                    <div
-                      className={`w-7 h-7 rounded-full text-xs font-bold flex items-center justify-center ${
-                        wizardStep === s.step
-                          ? 'bg-[#2563EB] text-white shadow'
-                          : wizardStep > s.step
-                          ? 'bg-emerald-500 text-white'
-                          : 'bg-slate-100 text-slate-500'
-                      }`}
-                    >
-                      {wizardStep > s.step ? '✓' : s.step}
-                    </div>
-                    <span className="text-xs font-bold text-slate-700 hidden sm:inline">{s.label}</span>
-                  </div>
-                ))}
-              </div>
+            <div className="max-w-3xl mx-auto space-y-6">
+              <PageHeader
+                eyebrow="Cryptographic Credential Compiler"
+                title="Single Certificate Issuance"
+                description="Generate a deterministic A4 PDF credential with embedded QR verification and anchor its SHA-256 hash on Ethereum Sepolia."
+              />
 
-              {/* Step 1: Student Information */}
-              {wizardStep === 1 && (
-                <div className="space-y-4">
-                  <h3 className="text-base font-bold text-[#0B1F3A]">Step 1: Student Identification</h3>
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 block mb-1">Full Student Name</label>
-                    <input
-                      type="text"
-                      value={studentName}
-                      onChange={(e) => setStudentName(e.target.value)}
-                      placeholder="e.g. Md. Shakib Akando"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 block mb-1">Student ID (Unique)</label>
-                    <input
-                      type="text"
-                      value={studentId}
-                      onChange={(e) => setStudentId(e.target.value.toUpperCase())}
-                      placeholder="e.g. 0322410105101055"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-mono focus:outline-none focus:border-[#2563EB]"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 block mb-1">Student University Email</label>
-                    <input
-                      type="email"
-                      value={studentEmail}
-                      onChange={(e) => setStudentEmail(e.target.value)}
-                      placeholder="e.g. student@pub.ac.bd"
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
-                    />
-                  </div>
-                  <div className="pt-2 flex justify-end">
-                    <button
-                      type="button"
-                      disabled={!studentName.trim() || !studentId.trim()}
-                      onClick={() => setWizardStep(2)}
-                      className="px-6 py-2.5 bg-[#2563EB] hover:bg-blue-600 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow cursor-pointer"
-                    >
-                      Next: Academic Details &rarr;
-                    </button>
-                  </div>
-                </div>
-              )}
+              <Card padding="lg" className="space-y-6">
+                <Stepper
+                  currentStep={wizardStep - 1}
+                  steps={[
+                    { label: 'Candidate Identity', description: 'Roll ID & Email' },
+                    { label: 'Academic Parameters', description: 'Degree & CGPA' },
+                    { label: 'Cryptographic Sign', description: 'Anchor on-chain' },
+                    { label: 'Ledger Receipt', description: 'Download PDF' },
+                  ]}
+                />
 
-              {/* Step 2: Academic Program & Type */}
-              {wizardStep === 2 && (
-                <div className="space-y-4">
-                  <h3 className="text-base font-bold text-[#0B1F3A]">Step 2: Credential Parameters</h3>
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 block mb-1">Certificate Type</label>
-                    <select
-                      value={certType}
-                      onChange={(e) => setCertType(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
-                    >
-                      <option value="Degree Certificate">Degree Certificate (Main Parchment)</option>
-                      <option value="Provisional Certificate">Provisional Certificate</option>
-                      <option value="Academic Transcript">Official Academic Transcript</option>
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-xs font-bold text-slate-600 block mb-1">Degree / Program</label>
-                    <select
-                      value={program}
-                      onChange={(e) => setProgram(e.target.value)}
-                      className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
-                    >
-                      <option value="B.Sc. in Computer Science & Engineering">B.Sc. in Computer Science & Engineering</option>
-                      <option value="B.Sc. in Electrical & Electronic Engineering">B.Sc. in Electrical & Electronic Engineering</option>
-                      <option value="B.Sc. in Civil Engineering">B.Sc. in Civil Engineering</option>
-                      <option value="Bachelor of Business Administration (BBA)">Bachelor of Business Administration (BBA)</option>
-                      <option value="Bachelor of Laws (LL.B Honors)">Bachelor of Laws (LL.B Honors)</option>
-                    </select>
-                  </div>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div>
-                      <label className="text-xs font-bold text-slate-600 block mb-1">Academic Session</label>
-                      <input
-                        type="text"
-                        value={session}
-                        onChange={(e) => setSession(e.target.value)}
-                        placeholder="2020 - 2024"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
+                {wizardStep === 1 && (
+                  <div className="space-y-4 pt-2">
+                    <Field label="Full Candidate Name (As on Matriculation Roll)" required>
+                      <Input
+                        value={studentName}
+                        onChange={(e) => setStudentName(e.target.value)}
+                        placeholder="e.g. Md. Shakib Akando"
                       />
-                    </div>
-                    <div>
-                      <label className="text-xs font-bold text-slate-600 block mb-1">CGPA (Out of 4.00)</label>
-                      <input
-                        type="text"
-                        value={cgpa}
-                        onChange={(e) => setCgpa(e.target.value)}
-                        placeholder="3.88"
-                        className="w-full px-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-emerald-700 focus:outline-none focus:border-[#2563EB]"
+                    </Field>
+
+                    <Field label="Student Identification Roll (Unique)" required>
+                      <Input
+                        mono
+                        value={studentId}
+                        onChange={(e) => setStudentId(e.target.value.toUpperCase())}
+                        placeholder="e.g. 0322410105101055"
                       />
-                    </div>
-                  </div>
-                  <div className="pt-2 flex justify-between">
-                    <button
-                      type="button"
-                      onClick={() => setWizardStep(1)}
-                      className="px-5 py-2.5 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
+                    </Field>
+
+                    <Field
+                      label="Candidate Institutional Email"
+                      optional="optional"
+                      hint="Used to link this credential to the student's self-service vault."
                     >
-                      &larr; Back
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setWizardStep(3)}
-                      className="px-6 py-2.5 bg-[#2563EB] hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow cursor-pointer"
-                    >
-                      Next: Review &amp; Confirm &rarr;
-                    </button>
-                  </div>
-                </div>
-              )}
+                      <Input
+                        type="email"
+                        value={studentEmail}
+                        onChange={(e) => setStudentEmail(e.target.value)}
+                        placeholder="e.g. student@pub.ac.bd"
+                      />
+                    </Field>
 
-              {/* Step 3: Review, Hash, and Sign */}
-              {wizardStep === 3 && (
-                <div className="space-y-4">
-                  <h3 className="text-base font-bold text-[#0B1F3A]">Step 3: Cryptographic Review &amp; Blockchain Anchoring</h3>
-                  <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs space-y-2">
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Student:</span>
-                      <span className="font-bold text-slate-800">
-                        {studentName} ({studentId})
-                      </span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Document Type:</span>
-                      <span className="font-bold text-slate-800">{certType}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Program:</span>
-                      <span className="font-bold text-slate-800">{program}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span className="text-slate-500">Session &amp; GPA:</span>
-                      <span className="font-bold text-emerald-700">
-                        {session} | CGPA {cgpa}
-                      </span>
+                    <div className="pt-2 flex justify-end">
+                      <Button
+                        variant="primary"
+                        disabled={!studentName.trim() || !studentId.trim()}
+                        rightIcon={<ArrowRight className="w-4 h-4" />}
+                        onClick={() => setWizardStep(2)}
+                      >
+                        Continue to Academic Parameters
+                      </Button>
                     </div>
                   </div>
+                )}
 
-                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-xs text-blue-900 flex items-start gap-2">
-                    <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-                    <span>
-                      Submitting will compile deterministic PDF bytes, calculate the SHA-256 fingerprint, and broadcast an immutable transaction to the CertChain smart contract.
-                    </span>
-                  </div>
+                {wizardStep === 2 && (
+                  <div className="space-y-4 pt-2">
+                    <Field label="Credential Document Type" required>
+                      <Select value={certType} onChange={(e) => setCertType(e.target.value)}>
+                        <option value="Degree Certificate">Degree Certificate (Main Parchment)</option>
+                        <option value="Provisional Certificate">Provisional Certificate</option>
+                        <option value="Academic Transcript">Official Academic Transcript</option>
+                      </Select>
+                    </Field>
 
-                  <div className="pt-2 flex justify-between">
-                    <button
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={() => setWizardStep(2)}
-                      className="px-5 py-2.5 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
-                    >
-                      &larr; Back
-                    </button>
-                    <button
-                      type="button"
-                      disabled={isSubmitting}
-                      onClick={handleIssueSubmit}
-                      className="px-7 py-2.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs rounded-xl shadow cursor-pointer flex items-center gap-2"
-                    >
-                      {isSubmitting ? (
-                        <>
-                          <Loader2 className="w-4 h-4 animate-spin" />
-                          <span>Generating &amp; Anchoring...</span>
-                        </>
-                      ) : (
-                        <>
-                          <ShieldCheck className="w-4 h-4" />
-                          <span>Confirm &amp; Issue On-Chain</span>
-                        </>
-                      )}
-                    </button>
-                  </div>
-                </div>
-              )}
+                    <Field label="Academic Degree Program" required>
+                      <Select value={program} onChange={(e) => setProgram(e.target.value)}>
+                        <option value="B.Sc. in Computer Science & Engineering">
+                          B.Sc. in Computer Science &amp; Engineering
+                        </option>
+                        <option value="B.Sc. in Electrical & Electronic Engineering">
+                          B.Sc. in Electrical &amp; Electronic Engineering
+                        </option>
+                        <option value="B.Sc. in Civil Engineering">B.Sc. in Civil Engineering</option>
+                        <option value="Bachelor of Business Administration (BBA)">
+                          Bachelor of Business Administration (BBA)
+                        </option>
+                        <option value="Bachelor of Laws (LL.B Honors)">
+                          Bachelor of Laws (LL.B Honors)
+                        </option>
+                      </Select>
+                    </Field>
 
-              {/* Step 4: Issue Complete */}
-              {wizardStep === 4 && issuedResult && (
-                <div className="text-center space-y-5 py-4">
-                  <div className="w-16 h-16 mx-auto rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                    <CheckCircle2 className="w-10 h-10" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-extrabold text-[#0B1F3A]">Certificate Issued Successfully!</h3>
-                    <p className="text-xs text-slate-500 mt-1">
-                      Anchored to Ethereum blockchain with verifiable SHA-256 fingerprint.
-                    </p>
-                  </div>
-
-                  <div className="flex flex-col sm:flex-row items-center gap-4 bg-slate-50 p-5 rounded-2xl border border-slate-200 text-left">
-                    {issuedQrUrl ? (
-                      <div className="w-28 h-28 bg-white p-1 rounded-xl border border-slate-300 shadow-xs shrink-0 flex items-center justify-center">
-                        {/* eslint-disable-next-line @next/next/no-img-element */}
-                        <img
-                          src={issuedQrUrl}
-                          alt={`QR Code for ${issuedResult.id}`}
-                          className="w-full h-full object-contain"
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <Field label="Academic Session" required>
+                        <Input
+                          value={session}
+                          onChange={(e) => setSession(e.target.value)}
+                          placeholder="2020 - 2024"
                         />
-                      </div>
-                    ) : (
-                      <div className="w-28 h-28 bg-white p-2 rounded-xl border border-slate-300 shadow-xs shrink-0 flex items-center justify-center">
-                        <QrCode className="w-10 h-10 text-slate-300 animate-pulse" />
-                      </div>
-                    )}
-                    <div className="space-y-1.5 min-w-0 flex-1 text-xs font-mono">
-                      <div>
-                        <span className="text-slate-400 font-sans block text-[11px]">Certificate ID:</span>
-                        <span className="font-bold text-[#2563EB] text-sm">{issuedResult.id}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 font-sans block text-[11px]">Recipient:</span>
-                        <span className="text-slate-800 font-sans font-medium">{issuedResult.studentName} ({issuedResult.studentId})</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 font-sans block text-[11px]">Blockchain Tx Hash:</span>
-                        <span className="text-slate-700 break-all text-[11px]">{issuedResult.txHash}</span>
-                      </div>
-                      <div className="pt-1">
-                        <a
-                          href={`/?id=${encodeURIComponent(issuedResult.id)}#verify`}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="inline-flex items-center gap-1 text-[#2563EB] hover:underline font-sans font-bold text-xs"
-                        >
-                          <ExternalLink className="w-3.5 h-3.5" />
-                          <span>Open Public Verification Page</span>
-                        </a>
-                      </div>
+                      </Field>
+
+                      <Field label="Cumulative GPA (Out of 4.00)" required>
+                        <Input
+                          mono
+                          value={cgpa}
+                          onChange={(e) => setCgpa(e.target.value)}
+                          placeholder="3.88"
+                        />
+                      </Field>
+                    </div>
+
+                    <div className="pt-2 flex items-center justify-between">
+                      <Button variant="secondary" onClick={() => setWizardStep(1)}>
+                        Back
+                      </Button>
+                      <Button
+                        variant="primary"
+                        rightIcon={<ArrowRight className="w-4 h-4" />}
+                        onClick={() => setWizardStep(3)}
+                      >
+                        Review &amp; Anchor
+                      </Button>
                     </div>
                   </div>
+                )}
 
-                  <div className="flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">
-                    <a
-                      href={`/api/certificates/${issuedResult.id}/pdf`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="w-full sm:w-auto px-6 py-2.5 bg-[#2563EB] hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow flex items-center justify-center gap-2 cursor-pointer"
+                {wizardStep === 3 && (
+                  <div className="space-y-5 pt-2">
+                    <CertificateDocumentPreview
+                      certId="PUB-DEG-2026-PREVIEW"
+                      studentName={studentName}
+                      studentId={studentId}
+                      degree={certType}
+                      department={program}
+                      session={session}
+                      cgpa={cgpa}
+                      issuedAt="Upon Blockchain Anchor"
+                    />
+
+                    <Alert
+                      tone="info"
+                      icon={<ShieldCheck className="w-4 h-4" />}
+                      title="Deterministic PDF Compilation & Blockchain Anchoring"
                     >
-                      <Download className="w-4 h-4" />
-                      <span>Download Issued PDF</span>
-                    </a>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setStudentName('');
-                        setStudentId('');
-                        setWizardStep(1);
-                      }}
-                      className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
-                    >
-                      Issue Another
-                    </button>
+                      Confirming will compile the deterministic PDF byte stream, compute its SHA-256 cryptographic digest, and invoke <code className="font-mono">CertChain.issueCertificate()</code> on Ethereum Sepolia.
+                    </Alert>
+
+                    <div className="pt-2 flex items-center justify-between">
+                      <Button
+                        variant="secondary"
+                        disabled={isSubmitting}
+                        onClick={() => setWizardStep(2)}
+                      >
+                        Back to Edit
+                      </Button>
+                      <Button
+                        variant="primary"
+                        loading={isSubmitting}
+                        leftIcon={<ShieldCheck className="w-4 h-4" />}
+                        onClick={handleIssueSubmit}
+                      >
+                        Confirm &amp; Anchor On-Chain
+                      </Button>
+                    </div>
                   </div>
-                </div>
-              )}
+                )}
+
+                {wizardStep === 4 && issuedResult && (
+                  <div className="space-y-5 pt-2">
+                    <Alert
+                      tone="success"
+                      title={`Credential ${issuedResult.id} Anchored to Blockchain`}
+                    >
+                      The official PDF diploma has been compiled and its SHA-256 fingerprint is permanently recorded on the smart contract ledger.
+                    </Alert>
+
+                    <div className="flex flex-col sm:flex-row items-center gap-5 bg-sunken p-5 rounded-xl border border-line">
+                      {issuedQrUrl ? (
+                        <div className="w-28 h-28 bg-surface p-1.5 rounded-lg border border-line shrink-0 flex items-center justify-center">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={issuedQrUrl}
+                            alt={`QR Code for ${issuedResult.id}`}
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      ) : (
+                        <div className="w-28 h-28 bg-surface p-2 rounded-lg border border-line shrink-0 flex items-center justify-center">
+                          <QrCode className="w-10 h-10 text-muted animate-pulse" />
+                        </div>
+                      )}
+                      <div className="space-y-2 min-w-0 flex-1 text-xs">
+                        <div>
+                          <span className="text-muted block text-[11px] uppercase tracking-wider font-semibold">
+                            Certificate ID
+                          </span>
+                          <span className="font-mono font-bold text-brand text-sm">
+                            {issuedResult.id}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted block text-[11px] uppercase tracking-wider font-semibold">
+                            Candidate
+                          </span>
+                          <span className="text-ink font-semibold">
+                            {issuedResult.studentName} ({issuedResult.studentId})
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted block text-[11px] uppercase tracking-wider font-semibold">
+                            Blockchain Transaction Hash
+                          </span>
+                          <HashText
+                            value={issuedResult.txHash}
+                            start={14}
+                            end={10}
+                            href={explorerTxUrl(issuedResult.txHash)}
+                          />
+                        </div>
+                        <div className="pt-1">
+                          <a
+                            href={`/?id=${encodeURIComponent(issuedResult.id)}#verify`}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="inline-flex items-center gap-1.5 text-brand hover:underline font-semibold text-xs"
+                          >
+                            <ExternalLink className="w-3.5 h-3.5" />
+                            <span>Open Public Verification Record</span>
+                          </a>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap items-center justify-end gap-3 pt-2">
+                      <Button
+                        variant="secondary"
+                        onClick={() => {
+                          setStudentName('');
+                          setStudentId('');
+                          setIssuedResult(null);
+                          setWizardStep(1);
+                        }}
+                      >
+                        Issue Another Credential
+                      </Button>
+                      <ButtonLink
+                        href={`/api/certificates/${issuedResult.id}/pdf`}
+                        target="_blank"
+                        rel="noreferrer"
+                        variant="primary"
+                        leftIcon={<Download className="w-4 h-4" />}
+                      >
+                        Download Official PDF
+                      </ButtonLink>
+                    </div>
+                  </div>
+                )}
+              </Card>
             </div>
           )}
 
           {/* TAB 4: BATCH CSV ISSUANCE */}
           {activeTab === 'batch' && (
-            <div className="max-w-4xl mx-auto space-y-6 animate-in fade-in duration-200">
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl p-6 sm:p-8 space-y-6">
-                <div>
-                  <h3 className="text-xl font-bold text-[#0B1F3A]">Batch CSV Certificate Issuance</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Upload a student CSV file to batch issue an entire graduating class in a single smart contract execution.
-                  </p>
-                </div>
+            <div className="max-w-5xl mx-auto space-y-6">
+              <PageHeader
+                eyebrow="Automated Smart Contract Batching"
+                title="Batch CSV Certificate Issuance"
+                description="Upload a graduating class spreadsheet to compile deterministic PDFs and anchor all credentials in a single batch workflow."
+                actions={
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    leftIcon={<Download className="w-4 h-4" />}
+                    onClick={handleDownloadCsvTemplate}
+                  >
+                    Download Sample CSV Template
+                  </Button>
+                }
+              />
 
-                {/* Upload Zone */}
-                <div className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center space-y-3 bg-slate-50/50">
-                  <div className="w-12 h-12 mx-auto rounded-full bg-blue-50 text-[#2563EB] flex items-center justify-center">
-                    <Upload className="w-6 h-6" />
-                  </div>
-                  <h4 className="text-sm font-bold text-slate-800">Upload Students CSV File</h4>
-                  <p className="text-xs text-slate-500 max-w-md mx-auto">
-                    Columns: <code className="text-[#2563EB]">student_id, name, email, program, session, cert_type, cgpa</code>
-                  </p>
-                  <div className="pt-2 flex justify-center gap-3">
-                    <button
-                      type="button"
-                      onClick={() => {
-                        const csvSample = `student_id,name,email,program,session,cert_type,cgpa\n0322410105102001,Rahim Ahmed,rahim@pub.ac.bd,B.Sc. in Computer Science & Engineering,2020 - 2024,Degree Certificate,3.92\n0322410105102002,Fatima Begum,fatima@pub.ac.bd,B.Sc. in Computer Science & Engineering,2020 - 2024,Degree Certificate,3.85\n0322410105102003,Tanvir Islam,tanvir@pub.ac.bd,B.Sc. in Electrical & Electronic Engineering,2020 - 2024,Degree Certificate,3.78`;
-                        const blob = new Blob([csvSample], { type: 'text/csv' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = 'students_batch_template.csv';
-                        a.click();
-                      }}
-                      className="px-4 py-2 bg-white border border-slate-300 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-50 shadow-xs cursor-pointer"
-                    >
-                      Download Template CSV
-                    </button>
-                    <label className="px-5 py-2 bg-[#2563EB] text-white text-xs font-bold rounded-xl hover:bg-blue-600 shadow cursor-pointer">
-                      <span>Browse CSV File</span>
-                      <input type="file" accept=".csv" onChange={handleCsvFileUpload} className="hidden" />
-                    </label>
-                  </div>
-                </div>
+              <Card padding="lg" className="space-y-6">
+                <FileDrop
+                  accept=".csv,text/csv"
+                  file={csvFile}
+                  onFileChange={parseCsvFile}
+                  title="Drop graduating batch CSV spreadsheet here, or click to browse"
+                  hint="Expected columns: student_id, name, email, program, session, cert_type, cgpa"
+                />
 
-                {/* Parsed Rows Preview */}
                 {csvRows.length > 0 && (
-                  <div className="space-y-4 pt-4 border-t border-slate-100">
-                    <div className="flex items-center justify-between">
+                  <div className="space-y-4 pt-4 border-t border-line">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                       <div>
-                        <h4 className="text-sm font-bold text-[#0B1F3A]">
-                          Preview Loaded Records ({csvRows.length} Rows)
+                        <h4 className="text-sm font-serif font-semibold text-ink">
+                          Parsed Candidate Rows ({csvRows.length} Total)
                         </h4>
-                        <p className="text-xs text-slate-500">
-                          {csvRows.filter((r) => r.isValid).length} valid records ready for on-chain anchoring.
+                        <p className="text-xs text-muted">
+                          {csvRows.filter((r) => r.isValid).length} valid candidate records ready for on-chain anchoring.
                         </p>
                       </div>
-                      <button
-                        type="button"
-                        disabled={isProcessingBatch || csvRows.filter((r) => r.isValid).length === 0}
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        loading={isProcessingBatch}
+                        disabled={csvRows.filter((r) => r.isValid).length === 0}
+                        leftIcon={<ShieldCheck className="w-4 h-4" />}
                         onClick={handleExecuteBatchIssuance}
-                        className="px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow cursor-pointer flex items-center gap-2"
                       >
-                        {isProcessingBatch ? (
-                          <>
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                            <span>Issuing Batch On-Chain...</span>
-                          </>
-                        ) : (
-                          <>
-                            <ShieldCheck className="w-4 h-4" />
-                            <span>Execute Batch Issuance ({csvRows.filter((r) => r.isValid).length})</span>
-                          </>
-                        )}
-                      </button>
+                        Execute Batch Issuance ({csvRows.filter((r) => r.isValid).length})
+                      </Button>
                     </div>
 
-                    <div className="border border-slate-200 rounded-2xl overflow-hidden max-h-72 overflow-y-auto">
-                      <table className="w-full text-left text-xs">
-                        <thead className="bg-slate-50 text-slate-500 font-bold sticky top-0">
-                          <tr>
-                            <th className="px-4 py-2.5">#</th>
-                            <th className="px-4 py-2.5">Student ID</th>
-                            <th className="px-4 py-2.5">Name</th>
-                            <th className="px-4 py-2.5">Program</th>
-                            <th className="px-4 py-2.5">CGPA</th>
-                            <th className="px-4 py-2.5">Status</th>
-                          </tr>
-                        </thead>
-                        <tbody className="divide-y divide-slate-100">
+                    <TableContainer className="max-h-80 overflow-y-auto">
+                      <Table>
+                        <THead>
+                          <TR>
+                            <TH>#</TH>
+                            <TH>Student Roll ID</TH>
+                            <TH>Candidate Name</TH>
+                            <TH>Program</TH>
+                            <TH>CGPA</TH>
+                            <TH>Validation</TH>
+                          </TR>
+                        </THead>
+                        <TBody>
                           {csvRows.map((row, idx) => (
-                            <tr key={idx} className={row.isValid ? 'hover:bg-slate-50/50' : 'bg-red-50/30'}>
-                              <td className="px-4 py-2 text-slate-400">{idx + 1}</td>
-                              <td className="px-4 py-2 font-mono font-bold text-[#2563EB]">{row.studentId}</td>
-                              <td className="px-4 py-2 font-bold text-slate-800">{row.studentName}</td>
-                              <td className="px-4 py-2 text-slate-600">{row.program}</td>
-                              <td className="px-4 py-2 font-bold text-emerald-700">{row.cgpa}</td>
-                              <td className="px-4 py-2">
+                            <TR key={idx} className={!row.isValid ? 'bg-danger-bg/40' : undefined}>
+                              <TD className="text-muted font-mono text-xs">{idx + 1}</TD>
+                              <TD className="font-mono font-semibold text-xs text-brand">
+                                {row.studentId}
+                              </TD>
+                              <TD className="font-medium text-ink text-xs">{row.studentName}</TD>
+                              <TD className="text-xs text-ink-2">{row.program}</TD>
+                              <TD className="font-mono font-semibold text-xs text-success">
+                                {row.cgpa}
+                              </TD>
+                              <TD>
                                 {row.isValid ? (
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700">
+                                  <Badge tone="success" size="xs">
                                     Valid
-                                  </span>
+                                  </Badge>
                                 ) : (
-                                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-50 text-red-700">
+                                  <Badge tone="danger" size="xs">
                                     {row.validationError || 'Invalid'}
-                                  </span>
+                                  </Badge>
                                 )}
-                              </td>
-                            </tr>
+                              </TD>
+                            </TR>
                           ))}
-                        </tbody>
-                      </table>
-                    </div>
+                        </TBody>
+                      </Table>
+                    </TableContainer>
                   </div>
                 )}
 
-                {/* Batch Success Result Box */}
                 {batchResult && (
-                  <div className="p-5 bg-emerald-50 border border-emerald-200 rounded-2xl text-xs space-y-3">
-                    <div className="flex items-center gap-2 text-emerald-800 font-bold text-sm">
-                      <CheckCircle2 className="w-5 h-5 text-emerald-600" />
-                      <span>Batch Issuance Completed Successfully!</span>
+                  <Alert
+                    tone="success"
+                    title="Batch Smart Contract Execution Completed"
+                  >
+                    <div className="space-y-3 mt-2 text-xs">
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3 rounded-lg bg-surface border border-success-border">
+                        <div>
+                          <span className="text-muted block text-[11px]">Issued Credentials</span>
+                          <span className="font-bold text-base text-success tabular">
+                            {batchResult.processedCount}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted block text-[11px]">Failed Rows</span>
+                          <span className="font-bold text-base text-danger tabular">
+                            {batchResult.failedCount}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted block text-[11px]">Block Height</span>
+                          <span className="font-mono font-bold text-base text-ink">
+                            #{batchResult.blockNumber}
+                          </span>
+                        </div>
+                        <div>
+                          <span className="text-muted block text-[11px]">Contract Method</span>
+                          <span className="font-mono font-semibold text-xs text-brand">
+                            issueBatchCertificates
+                          </span>
+                        </div>
+                      </div>
+
+                      {batchResult.txHash && (
+                        <div className="flex items-center gap-2">
+                          <span className="text-muted">Batch Transaction Hash:</span>
+                          <HashText
+                            value={batchResult.txHash}
+                            start={14}
+                            end={10}
+                            href={explorerTxUrl(batchResult.txHash)}
+                          />
+                        </div>
+                      )}
+
+                      {batchResult.failedRows && batchResult.failedRows.length > 0 && (
+                        <div className="p-3 bg-danger-bg rounded-lg border border-danger-border text-danger space-y-1">
+                          <span className="font-semibold block">Failed Rows Report:</span>
+                          {batchResult.failedRows.map((f, i) => (
+                            <p key={i}>
+                              Row #{f.row} ({f.studentId}): {f.reason}
+                            </p>
+                          ))}
+                        </div>
+                      )}
                     </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-slate-700">
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Issued Certificates:</span>
-                        <span className="font-bold text-base text-emerald-700">{batchResult.processedCount}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Failed Rows:</span>
-                        <span className="font-bold text-base text-red-600">{batchResult.failedCount}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Block Number:</span>
-                        <span className="font-bold text-base text-[#0B1F3A]">#{batchResult.blockNumber}</span>
-                      </div>
-                      <div>
-                        <span className="text-slate-400 block text-[10px]">Smart Contract:</span>
-                        <span className="font-bold text-xs text-blue-700 font-mono">CertChain</span>
-                      </div>
-                    </div>
-                    {batchResult.txHash && (
-                      <div className="pt-1">
-                        <span className="text-slate-500 font-sans block text-[11px]">Blockchain Tx Hash:</span>
-                        <code className="font-mono text-emerald-900 break-all">{batchResult.txHash}</code>
-                      </div>
-                    )}
-                    {batchResult.failedRows && batchResult.failedRows.length > 0 && (
-                      <div className="p-3 bg-red-50 rounded-xl border border-red-200 text-red-800 space-y-1">
-                        <span className="font-bold block">Failed Rows Report:</span>
-                        {batchResult.failedRows.map((f, i) => (
-                          <p key={i}>
-                            Row #{f.row} ({f.studentId}): {f.reason}
-                          </p>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  </Alert>
                 )}
-              </div>
+              </Card>
             </div>
           )}
 
           {/* TAB 5: ISSUED REGISTRY */}
           {activeTab === 'certificates' && (
-            <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden space-y-4 animate-in fade-in duration-200">
-              <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-base font-bold text-[#0B1F3A]">
-                    Registered Credentials ({filteredCertificates.length})
-                  </h3>
-                  <p className="text-xs text-slate-500">Live cryptographic register with on-chain revocation initiation</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={registryStatusFilter}
-                    onChange={(e) => setRegistryStatusFilter(e.target.value as 'all' | 'valid' | 'revoked')}
-                    className="px-3 py-1.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none"
-                  >
-                    <option value="all">All Status</option>
-                    <option value="valid">Valid Active</option>
-                    <option value="revoked">Revoked</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={fetchCertificates}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
-                  >
-                    Refresh
-                  </button>
-                </div>
-              </div>
+            <div className="space-y-6">
+              <PageHeader
+                eyebrow="Anchored Diploma Ledger"
+                title="Issued Certificates Registry"
+                description="Inspect all issued credentials, download deterministic PDFs, or initiate a formal revocation request for Controller co-signature."
+                actions={
+                  <Badge tone="brand">
+                    {filteredCertificates.length} of {certificates.length} Shown
+                  </Badge>
+                }
+              />
 
-              {/* Search Bar */}
-              <div className="px-6">
-                <div className="relative">
-                  <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3.5" />
-                  <input
-                    type="text"
-                    value={registrySearch}
-                    onChange={(e) => setRegistrySearch(e.target.value)}
-                    placeholder="Search certificates by ID, Student Name, Student ID, or Program..."
-                    className="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
+              <Card>
+                <TableToolbar
+                  left={
+                    <>
+                      <SearchInput
+                        value={registrySearch}
+                        onChange={(e) => setRegistrySearch(e.target.value)}
+                        onClear={() => setRegistrySearch('')}
+                        placeholder="Search by Certificate ID, candidate name, roll ID, or program..."
+                        className="w-full sm:w-96"
+                      />
+                      <Select
+                        value={registryStatusFilter}
+                        onChange={(e) =>
+                          setRegistryStatusFilter(e.target.value as 'all' | 'valid' | 'revoked')
+                        }
+                        className="w-full sm:w-44"
+                        aria-label="Filter by certificate status"
+                      >
+                        <option value="all">All Statuses</option>
+                        <option value="valid">Valid Active</option>
+                        <option value="revoked">Revoked</option>
+                      </Select>
+                    </>
+                  }
+                  right={
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                      onClick={fetchCertificates}
+                    >
+                      Refresh
+                    </Button>
+                  }
+                />
+
+                {filteredCertificates.length === 0 ? (
+                  <EmptyState
+                    icon={<Award className="w-5 h-5" />}
+                    title="No matching certificates"
+                    description="Adjust your search query or status filter to view anchored credentials."
                   />
-                </div>
-              </div>
-
-              <div className="overflow-x-auto">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold">
-                    <tr>
-                      <th className="px-5 py-3">Certificate ID</th>
-                      <th className="px-5 py-3">Student Name</th>
-                      <th className="px-5 py-3">Program</th>
-                      <th className="px-5 py-3">Issue Date</th>
-                      <th className="px-5 py-3">Status</th>
-                      <th className="px-5 py-3 text-right">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100">
-                    {filteredCertificates.map((cert) => (
-                      <tr key={cert.id} className="hover:bg-slate-50/50">
-                        <td className="px-5 py-3.5 font-mono font-bold text-[#2563EB]">{cert.id}</td>
-                        <td className="px-5 py-3.5 font-bold text-slate-800">{cert.studentName}</td>
-                        <td className="px-5 py-3.5 text-slate-600">{cert.program}</td>
-                        <td className="px-5 py-3.5 text-slate-500">{cert.issueDate}</td>
-                        <td className="px-5 py-3.5">
-                          <span
-                            className={`px-2 py-0.5 rounded-full font-bold text-[10px] ${
-                              cert.status === 'valid'
-                                ? 'bg-emerald-50 text-emerald-700'
-                                : 'bg-amber-50 text-amber-700'
-                            }`}
-                          >
-                            {cert.status.toUpperCase()}
-                          </span>
-                        </td>
-                        <td className="px-5 py-3.5 text-right space-x-2">
-                          <button
-                            type="button"
-                            onClick={() => setPreviewCert(cert)}
-                            className="px-3 py-1.5 rounded-lg bg-blue-50 hover:bg-blue-100 text-[#2563EB] font-bold inline-flex items-center gap-1 cursor-pointer"
-                            title="View Certificate & Unique QR Code"
-                          >
-                            <Eye className="w-3.5 h-3.5" />
-                            <span>View</span>
-                          </button>
-                          <a
-                            href={`/api/certificates/${cert.id}/pdf`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="px-3 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold inline-flex items-center gap-1 cursor-pointer"
-                          >
-                            <Download className="w-3.5 h-3.5" />
-                            <span>PDF</span>
-                          </a>
-                          {cert.status === 'valid' && (
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setRevokeModalCert(cert);
-                                setRevokeReason('');
-                              }}
-                              className="px-3 py-1.5 rounded-lg bg-red-50 hover:bg-red-100 text-red-600 font-bold cursor-pointer"
-                            >
-                              Request Revocation
-                            </button>
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                ) : (
+                  <TableContainer className="border-0 rounded-none">
+                    <Table>
+                      <THead>
+                        <TR>
+                          <TH>Certificate ID</TH>
+                          <TH>Candidate</TH>
+                          <TH>Program</TH>
+                          <TH>Issue Date</TH>
+                          <TH>Status</TH>
+                          <TH align="right">Actions</TH>
+                        </TR>
+                      </THead>
+                      <TBody>
+                        {filteredCertificates.map((cert) => (
+                          <TR key={cert.id}>
+                            <TD>
+                              <span className="font-mono font-semibold text-xs text-brand">
+                                {cert.id}
+                              </span>
+                            </TD>
+                            <TD>
+                              <div className="font-semibold text-ink text-sm">{cert.studentName}</div>
+                              <div className="text-xs font-mono text-muted">{cert.studentId}</div>
+                            </TD>
+                            <TD>
+                              <span className="text-xs text-ink-2">{cert.program}</span>
+                            </TD>
+                            <TD>
+                              <span className="text-xs text-muted">{cert.issueDate}</span>
+                            </TD>
+                            <TD>
+                              <StatusBadge status={cert.status} />
+                            </TD>
+                            <TD align="right">
+                              <div className="inline-flex items-center justify-end gap-1.5">
+                                <Button
+                                  variant="secondary"
+                                  size="xs"
+                                  leftIcon={<Eye className="w-3.5 h-3.5" />}
+                                  onClick={() => setPreviewCert(cert)}
+                                >
+                                  Inspect
+                                </Button>
+                                <ButtonLink
+                                  href={`/api/certificates/${cert.id}/pdf`}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                  variant="secondary"
+                                  size="xs"
+                                  leftIcon={<Download className="w-3.5 h-3.5" />}
+                                >
+                                  PDF
+                                </ButtonLink>
+                                {cert.status === 'valid' && (
+                                  <Button
+                                    variant="danger-outline"
+                                    size="xs"
+                                    onClick={() => {
+                                      setRevokeModalCert(cert);
+                                      setRevokeReason('');
+                                    }}
+                                  >
+                                    Request Revocation
+                                  </Button>
+                                )}
+                              </div>
+                            </TD>
+                          </TR>
+                        ))}
+                      </TBody>
+                    </Table>
+                  </TableContainer>
+                )}
+              </Card>
             </div>
           )}
 
           {/* TAB 6: AUDIT TRAIL */}
           {activeTab === 'audit' && (
-            <div className="space-y-6 animate-in fade-in duration-200">
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
-                <div>
-                  <h3 className="text-xl font-bold text-[#0B1F3A]">Cryptographic Audit Trail</h3>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Immutable record of certificate issuances, revocations, and blockchain transactions.
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <select
-                    value={auditFilterAction}
-                    onChange={(e) => {
-                      setAuditFilterAction(e.target.value);
-                      fetchAuditLogs(e.target.value);
-                    }}
-                    className="px-3 py-1.5 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-700 focus:outline-none"
-                  >
-                    <option value="all">All Audit Actions</option>
-                    <option value="CERTIFICATE_ISSUED">Certificate Issued</option>
-                    <option value="BATCH_CERTIFICATES_ISSUED">Batch Certificates Issued</option>
-                    <option value="REVOCATION_REQUESTED">Revocation Requested</option>
-                    <option value="STUDENT_RECORD_CREATED">Student Record Created</option>
-                  </select>
-                  <button
-                    type="button"
-                    onClick={() => fetchAuditLogs(auditFilterAction)}
-                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold cursor-pointer"
-                  >
-                    Refresh
-                  </button>
-                </div>
-              </div>
+            <div className="space-y-6">
+              <PageHeader
+                eyebrow="Tamper-Evident Activity Log"
+                title="Cryptographic Audit Trail"
+                description="Immutable record of single issuances, batch CSV executions, revocation requests, and student directory updates."
+              />
 
-              <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xs overflow-hidden">
+              <Card>
+                <TableToolbar
+                  left={
+                    <Select
+                      value={auditFilterAction}
+                      onChange={(e) => {
+                        setAuditFilterAction(e.target.value);
+                        fetchAuditLogs(e.target.value);
+                      }}
+                      className="w-full sm:w-64"
+                      aria-label="Filter audit logs by action"
+                    >
+                      <option value="all">All Audit Actions</option>
+                      <option value="CERTIFICATE_ISSUED">Certificate Issued</option>
+                      <option value="BATCH_CERTIFICATES_ISSUED">Batch Certificates Issued</option>
+                      <option value="REVOCATION_REQUESTED">Revocation Requested</option>
+                      <option value="STUDENT_RECORD_CREATED">Student Record Created</option>
+                    </Select>
+                  }
+                  right={
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      leftIcon={<RefreshCw className="w-3.5 h-3.5" />}
+                      onClick={() => fetchAuditLogs(auditFilterAction)}
+                    >
+                      Refresh
+                    </Button>
+                  }
+                />
+
                 {isLoadingAudit ? (
-                  <div className="p-12 text-center">
-                    <Loader2 className="w-8 h-8 text-[#2563EB] animate-spin mx-auto" />
+                  <div className="p-12 flex justify-center">
+                    <Spinner size="lg" />
                   </div>
                 ) : auditLogs.length === 0 ? (
-                  <div className="p-12 text-center text-slate-400 text-xs">
-                    No audit logs recorded for this category yet.
-                  </div>
+                  <EmptyState
+                    icon={<Activity className="w-5 h-5" />}
+                    title="No audit events recorded"
+                    description="No audit logs match the selected action filter."
+                  />
                 ) : (
-                  <div className="overflow-x-auto">
-                    <table className="w-full text-left text-xs">
-                      <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-bold">
-                        <tr>
-                          <th className="px-5 py-3">Timestamp</th>
-                          <th className="px-5 py-3">Action</th>
-                          <th className="px-5 py-3">Actor Role</th>
-                          <th className="px-5 py-3">Details &amp; Target</th>
-                          <th className="px-5 py-3">Blockchain Tx</th>
-                        </tr>
-                      </thead>
-                      <tbody className="divide-y divide-slate-100">
+                  <TableContainer className="border-0 rounded-none">
+                    <Table>
+                      <THead>
+                        <TR>
+                          <TH>Timestamp</TH>
+                          <TH>Action</TH>
+                          <TH>Actor Role</TH>
+                          <TH>Details &amp; Target</TH>
+                          <TH>Blockchain Tx</TH>
+                        </TR>
+                      </THead>
+                      <TBody>
                         {auditLogs.map((log) => (
-                          <tr key={log.id} className="hover:bg-slate-50/50">
-                            <td className="px-5 py-3.5 text-slate-500 whitespace-nowrap">{log.timestamp}</td>
-                            <td className="px-5 py-3.5 font-bold">
-                              <span
-                                className={`px-2 py-0.5 rounded-full text-[10px] ${
+                          <TR key={log.id}>
+                            <TD className="text-xs text-muted whitespace-nowrap">
+                              {log.timestamp}
+                            </TD>
+                            <TD>
+                              <Badge
+                                tone={
                                   log.action.includes('ISSUED')
-                                    ? 'bg-blue-50 text-[#2563EB]'
+                                    ? 'brand'
                                     : log.action.includes('REVOKE')
-                                    ? 'bg-amber-50 text-amber-700'
-                                    : 'bg-slate-100 text-slate-700'
-                                }`}
+                                    ? 'warning'
+                                    : 'neutral'
+                                }
+                                size="xs"
                               >
                                 {log.action}
-                              </span>
-                            </td>
-                            <td className="px-5 py-3.5 text-slate-600 font-semibold">{log.actorRole.toUpperCase()}</td>
-                            <td className="px-5 py-3.5 text-slate-800 max-w-sm">
-                              <div className="font-bold text-xs">{log.targetReference || log.targetId}</div>
-                              <div className="text-[11px] text-slate-500">{log.details}</div>
-                            </td>
-                            <td className="px-5 py-3.5 font-mono text-[11px]">
+                              </Badge>
+                            </TD>
+                            <TD className="text-xs font-semibold text-ink uppercase">
+                              {log.actorRole}
+                            </TD>
+                            <TD className="max-w-md">
+                              <div className="font-semibold text-xs text-ink">
+                                {log.targetReference || log.targetId}
+                              </div>
+                              <div className="text-xs text-muted">{log.details}</div>
+                            </TD>
+                            <TD>
                               {log.transactionHash ? (
-                                <span className="text-slate-600 truncate block max-w-[140px]" title={log.transactionHash}>
-                                  {log.transactionHash.slice(0, 10)}...{log.transactionHash.slice(-6)}
-                                </span>
+                                <HashText
+                                  value={log.transactionHash}
+                                  start={8}
+                                  end={6}
+                                  href={explorerTxUrl(log.transactionHash)}
+                                />
                               ) : (
-                                <span className="text-slate-400">N/A</span>
+                                <span className="text-xs text-subtle">—</span>
                               )}
-                            </td>
-                          </tr>
+                            </TD>
+                          </TR>
                         ))}
-                      </tbody>
-                    </table>
-                  </div>
+                      </TBody>
+                    </Table>
+                  </TableContainer>
                 )}
-              </div>
+              </Card>
             </div>
           )}
 
@@ -1510,282 +1569,218 @@ export const IssuerDashboard: React.FC = () => {
       </div>
 
       {/* MODAL 1: ADD NEW STUDENT */}
-      {isNewStudentModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-              <h4 className="text-base font-bold text-[#0B1F3A]">Add New Student Record</h4>
-              <button
-                type="button"
-                onClick={() => setIsNewStudentModalOpen(false)}
-                className="text-slate-400 hover:text-slate-600 font-bold"
-              >
-                ✕
-              </button>
-            </div>
-            <form onSubmit={handleCreateStudent} className="space-y-3 text-xs">
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Student ID *</label>
-                <input
-                  type="text"
-                  required
-                  value={newStudentData.studentId}
-                  onChange={(e) => setNewStudentData({ ...newStudentData, studentId: e.target.value.toUpperCase() })}
-                  placeholder="e.g. 0322410105102010"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-sm focus:outline-none focus:border-[#2563EB]"
-                />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Full Student Name *</label>
-                <input
-                  type="text"
-                  required
-                  value={newStudentData.name}
-                  onChange={(e) => setNewStudentData({ ...newStudentData, name: e.target.value })}
-                  placeholder="e.g. Nusrat Jahan"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
-                />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Student Email *</label>
-                <input
-                  type="email"
-                  required
-                  value={newStudentData.email}
-                  onChange={(e) => setNewStudentData({ ...newStudentData, email: e.target.value })}
-                  placeholder="e.g. nusrat@pub.ac.bd"
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
-                />
-              </div>
-              <div>
-                <label className="font-bold text-slate-700 block mb-1">Program / Department</label>
-                <select
-                  value={newStudentData.program}
-                  onChange={(e) =>
-                    setNewStudentData({
-                      ...newStudentData,
-                      program: e.target.value,
-                      department: e.target.value.replace(/^B\.Sc\. in |Bachelor of /i, ''),
-                    })
-                  }
-                  className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm focus:outline-none focus:border-[#2563EB]"
-                >
-                  <option value="B.Sc. in Computer Science & Engineering">B.Sc. in Computer Science & Engineering</option>
-                  <option value="B.Sc. in Electrical & Electronic Engineering">B.Sc. in Electrical & Electronic Engineering</option>
-                  <option value="B.Sc. in Civil Engineering">B.Sc. in Civil Engineering</option>
-                  <option value="Bachelor of Business Administration (BBA)">Bachelor of Business Administration (BBA)</option>
-                  <option value="Bachelor of Laws (LL.B Honors)">Bachelor of Laws (LL.B Honors)</option>
-                </select>
-              </div>
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">Session</label>
-                  <input
-                    type="text"
-                    value={newStudentData.session}
-                    onChange={(e) => setNewStudentData({ ...newStudentData, session: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm"
-                  />
-                </div>
-                <div>
-                  <label className="font-bold text-slate-700 block mb-1">CGPA</label>
-                  <input
-                    type="text"
-                    value={newStudentData.cgpa}
-                    onChange={(e) => setNewStudentData({ ...newStudentData, cgpa: e.target.value })}
-                    className="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold text-emerald-700"
-                  />
-                </div>
-              </div>
-              <div className="pt-3 flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setIsNewStudentModalOpen(false)}
-                  className="px-4 py-2 bg-slate-100 text-slate-700 font-bold rounded-xl"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={isSubmittingStudent}
-                  className="px-5 py-2 bg-[#2563EB] hover:bg-blue-600 disabled:opacity-50 text-white font-bold rounded-xl shadow flex items-center gap-2 cursor-pointer"
-                >
-                  {isSubmittingStudent && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                  <span>Save Record</span>
-                </button>
-              </div>
-            </form>
+      <Dialog
+        open={isNewStudentModalOpen}
+        onClose={() => setIsNewStudentModalOpen(false)}
+        size="md"
+        eyebrow="Matriculation Directory"
+        title="Register New Student Record"
+        description="Create an official student record in the university registry prior to degree issuance."
+      >
+        <form onSubmit={handleCreateStudent} className="space-y-4">
+          <Field label="Student Identification Roll" required>
+            <Input
+              mono
+              required
+              value={newStudentData.studentId}
+              onChange={(e) =>
+                setNewStudentData({ ...newStudentData, studentId: e.target.value.toUpperCase() })
+              }
+              placeholder="e.g. 0322410105102010"
+            />
+          </Field>
+
+          <Field label="Full Candidate Name" required>
+            <Input
+              required
+              value={newStudentData.name}
+              onChange={(e) => setNewStudentData({ ...newStudentData, name: e.target.value })}
+              placeholder="e.g. Nusrat Jahan"
+            />
+          </Field>
+
+          <Field label="Institutional Email" required>
+            <Input
+              type="email"
+              required
+              value={newStudentData.email}
+              onChange={(e) => setNewStudentData({ ...newStudentData, email: e.target.value })}
+              placeholder="e.g. nusrat@pub.ac.bd"
+            />
+          </Field>
+
+          <Field label="Degree Program / Department">
+            <Select
+              value={newStudentData.program}
+              onChange={(e) =>
+                setNewStudentData({
+                  ...newStudentData,
+                  program: e.target.value,
+                  department: e.target.value.replace(/^B\.Sc\. in |Bachelor of /i, ''),
+                })
+              }
+            >
+              <option value="B.Sc. in Computer Science & Engineering">
+                B.Sc. in Computer Science &amp; Engineering
+              </option>
+              <option value="B.Sc. in Electrical & Electronic Engineering">
+                B.Sc. in Electrical &amp; Electronic Engineering
+              </option>
+              <option value="B.Sc. in Civil Engineering">B.Sc. in Civil Engineering</option>
+              <option value="Bachelor of Business Administration (BBA)">
+                Bachelor of Business Administration (BBA)
+              </option>
+              <option value="Bachelor of Laws (LL.B Honors)">
+                Bachelor of Laws (LL.B Honors)
+              </option>
+            </Select>
+          </Field>
+
+          <div className="grid grid-cols-2 gap-3">
+            <Field label="Academic Session">
+              <Input
+                value={newStudentData.session}
+                onChange={(e) => setNewStudentData({ ...newStudentData, session: e.target.value })}
+              />
+            </Field>
+            <Field label="CGPA">
+              <Input
+                mono
+                value={newStudentData.cgpa}
+                onChange={(e) => setNewStudentData({ ...newStudentData, cgpa: e.target.value })}
+              />
+            </Field>
           </div>
-        </div>
-      )}
+
+          <div className="pt-2 flex justify-end gap-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={() => setIsNewStudentModalOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" size="sm" loading={isSubmittingStudent}>
+              Save Student Record
+            </Button>
+          </div>
+        </form>
+      </Dialog>
 
       {/* MODAL 2: REVOCATION REQUEST FOR CONTROLLER CO-SIGN */}
-      {revokeModalCert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4 animate-in zoom-in-95">
-            <div className="flex items-center gap-3 text-red-600">
-              <ShieldAlert className="w-6 h-6" />
-              <h4 className="text-base font-bold text-[#0B1F3A]">Request Certificate Revocation</h4>
-            </div>
-            <p className="text-xs text-slate-600">
-              Per university governance, revoking Certificate{' '}
-              <strong className="font-mono text-red-600">{revokeModalCert.id}</strong> requires official co-signature by the Controller of Examinations.
-            </p>
-            <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
-              <div>
-                <span className="text-slate-400">Student:</span>{' '}
-                <span className="font-bold text-slate-800">{revokeModalCert.studentName}</span>
+      <Dialog
+        open={Boolean(revokeModalCert)}
+        onClose={() => setRevokeModalCert(null)}
+        size="md"
+        eyebrow="Dual-Control Revocation Governance"
+        title="Request Certificate Revocation"
+        description="Under university governance, revoking an anchored credential requires secondary co-signature by the Controller of Examinations."
+        footer={
+          <>
+            <Button variant="ghost" size="sm" onClick={() => setRevokeModalCert(null)}>
+              Cancel
+            </Button>
+            <Button
+              variant="danger"
+              size="sm"
+              loading={isSubmittingRevoke}
+              disabled={!revokeReason.trim()}
+              onClick={handleRevokeRequestSubmit}
+            >
+              Forward to Controller for Co-Sign
+            </Button>
+          </>
+        }
+      >
+        {revokeModalCert && (
+          <div className="space-y-4">
+            <Card padding="sm" className="bg-sunken">
+              <div className="text-xs space-y-1">
+                <div className="flex justify-between">
+                  <span className="text-muted">Certificate ID:</span>
+                  <span className="font-mono font-semibold text-danger">{revokeModalCert.id}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted">Candidate:</span>
+                  <span className="font-semibold text-ink">{revokeModalCert.studentName}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-muted">Program:</span>
+                  <span className="text-ink-2">{revokeModalCert.program}</span>
+                </div>
               </div>
-              <div>
-                <span className="text-slate-400">Program:</span>{' '}
-                <span className="text-slate-800">{revokeModalCert.program}</span>
-              </div>
-            </div>
-            <div>
-              <label className="text-xs font-bold text-slate-700 block mb-1">
-                Official Justification / Reason for Revocation *
-              </label>
-              <textarea
+            </Card>
+
+            <Field label="Official Justification / Grounds for Revocation" required>
+              <Textarea
+                rows={4}
                 value={revokeReason}
                 onChange={(e) => setRevokeReason(e.target.value)}
-                placeholder="State specific reason (e.g., Grade dispute Syndicate resolution, clerical error, identity forgery)..."
-                rows={3}
-                className="w-full p-3 bg-slate-50 border border-slate-200 rounded-xl text-xs focus:outline-none focus:border-red-500"
+                placeholder="State specific Syndicate resolution, clerical error reference, or disciplinary finding..."
               />
-            </div>
-            <div className="flex justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setRevokeModalCert(null)}
-                className="px-4 py-2 bg-slate-100 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                disabled={isSubmittingRevoke || !revokeReason.trim()}
-                onClick={handleRevokeRequestSubmit}
-                className="px-5 py-2 bg-red-600 hover:bg-red-700 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow flex items-center gap-2 cursor-pointer"
-              >
-                {isSubmittingRevoke && <Loader2 className="w-3.5 h-3.5 animate-spin" />}
-                <span>Forward to Controller</span>
-              </button>
-            </div>
+            </Field>
           </div>
-        </div>
-      )}
+        )}
+      </Dialog>
 
       {/* MODAL 3: CERTIFICATE INSPECTION WITH DYNAMIC UNIQUE QR CODE */}
-      {previewCert && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-xs animate-in fade-in duration-150">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 shadow-2xl border border-slate-200 space-y-6 animate-in zoom-in-95">
-            {/* Modal Header */}
-            <div className="flex items-center justify-between border-b border-slate-100 pb-4">
+      <Dialog
+        open={Boolean(previewCert)}
+        onClose={() => setPreviewCert(null)}
+        size="xl"
+        eyebrow={previewCert ? `Official Specimen • ${previewCert.id}` : 'Specimen'}
+        title={previewCert ? `${previewCert.type} — Cryptographic Preview` : 'Certificate Preview'}
+        footer={
+          previewCert && (
+            <div className="flex flex-wrap items-center justify-between gap-3 w-full">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-50 text-[#2563EB] flex items-center justify-center">
-                  <Award className="w-5 h-5" />
-                </div>
-                <div>
-                  <h4 className="text-base font-bold text-[#0B1F3A]">{previewCert.type} Details</h4>
-                  <p className="text-xs text-slate-500 font-mono">{previewCert.id}</p>
-                </div>
+                <StatusBadge status={previewCert.status} />
+                <a
+                  href={`/?id=${encodeURIComponent(previewCert.id)}#verify`}
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1 text-xs font-semibold text-brand hover:underline"
+                >
+                  <ExternalLink className="w-3.5 h-3.5" />
+                  <span>Open Public Verifier</span>
+                </a>
               </div>
-              <button
-                type="button"
-                onClick={() => setPreviewCert(null)}
-                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center cursor-pointer"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            </div>
-
-            {/* Certificate Preview Card with Dynamic QR */}
-            <div className="bg-gradient-to-br from-amber-50/40 via-white to-slate-50 p-6 rounded-2xl border-2 border-slate-200/80 shadow-inner relative overflow-hidden">
-              <div className="text-center space-y-1.5 pb-4 border-b border-slate-200/60">
-                <span className="text-[10px] font-bold tracking-widest text-[#997928] uppercase">
-                  Pundra University of Science &amp; Technology
-                </span>
-                <h3 className="text-lg font-bold text-[#0B1F3A]">{previewCert.studentName}</h3>
-                <p className="text-xs text-slate-600">
-                  Student ID: <span className="font-mono font-semibold">{previewCert.studentId}</span>
-                </p>
-                <p className="text-xs font-serif italic text-slate-700 pt-1">
-                  has successfully fulfilled requirements for {previewCert.program}
-                </p>
-                <p className="text-xs text-slate-600">
-                  Session: <b>{previewCert.session}</b> • CGPA: <b className="text-emerald-700">{previewCert.cgpa}</b>
-                </p>
-              </div>
-
-              {/* Unique Dynamic QR Code Section */}
-              <div className="pt-4 flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <div className="w-20 h-20 bg-white p-1 rounded-xl border border-slate-300 shadow-sm flex items-center justify-center">
-                    {previewCertQrUrl ? (
-                      /* eslint-disable-next-line @next/next/no-img-element */
-                      <img
-                        src={previewCertQrUrl}
-                        alt={`Unique QR Code for ${previewCert.id}`}
-                        className="w-full h-full object-contain"
-                      />
-                    ) : (
-                      <QrCode className="w-10 h-10 text-slate-300 animate-pulse" />
-                    )}
-                  </div>
-                  <div className="text-left space-y-0.5">
-                    <span className="text-[11px] font-bold text-slate-800 block">Unique Verification QR</span>
-                    <span className="text-[10px] text-slate-500 block">Points to live blockchain registry</span>
-                    <a
-                      href={`/?id=${encodeURIComponent(previewCert.id)}#verify`}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="text-[11px] text-[#2563EB] hover:underline font-bold inline-flex items-center gap-1 mt-0.5"
-                    >
-                      <ExternalLink className="w-3 h-3" />
-                      <span>Test Verify Link</span>
-                    </a>
-                  </div>
-                </div>
-
-                <div className="text-right text-xs">
-                  <span
-                    className={`inline-block px-2.5 py-1 rounded-full font-bold text-[10px] ${
-                      previewCert.status === 'valid'
-                        ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                        : 'bg-red-50 text-red-700 border border-red-200'
-                    }`}
-                  >
-                    ● {previewCert.status.toUpperCase()}
-                  </span>
-                  <span className="block text-[10px] text-slate-400 mt-1 font-mono truncate max-w-[140px]">
-                    {previewCert.txHash.slice(0, 16)}...
-                  </span>
-                </div>
+              <div className="flex items-center gap-2">
+                <Button variant="secondary" size="sm" onClick={() => setPreviewCert(null)}>
+                  Close
+                </Button>
+                <ButtonLink
+                  href={`/api/certificates/${previewCert.id}/pdf`}
+                  target="_blank"
+                  rel="noreferrer"
+                  variant="primary"
+                  size="sm"
+                  leftIcon={<Download className="w-4 h-4" />}
+                >
+                  Download Authentic PDF
+                </ButtonLink>
               </div>
             </div>
-
-            {/* Modal Actions */}
-            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
-              <a
-                href={`/api/certificates/${previewCert.id}/pdf`}
-                target="_blank"
-                rel="noreferrer"
-                className="w-full sm:w-auto px-5 py-2.5 bg-[#2563EB] hover:bg-blue-600 text-white font-bold text-xs rounded-xl shadow inline-flex items-center justify-center gap-2 cursor-pointer"
-              >
-                <Download className="w-4 h-4" />
-                <span>Download Authentic PDF</span>
-              </a>
-              <button
-                type="button"
-                onClick={() => setPreviewCert(null)}
-                className="w-full sm:w-auto px-5 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl cursor-pointer"
-              >
-                Close Preview
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+          )
+        }
+      >
+        {previewCert && (
+          <CertificateDocumentPreview
+            certId={previewCert.id}
+            studentName={previewCert.studentName}
+            studentId={previewCert.studentId}
+            degree={previewCert.type}
+            department={previewCert.program}
+            session={previewCert.session}
+            cgpa={previewCert.cgpa}
+            issuedAt={previewCert.issueDate}
+            txHash={previewCert.txHash}
+            revoked={previewCert.status === 'revoked'}
+            qrCodeDataUrl={previewCertQrUrl}
+          />
+        )}
+      </Dialog>
     </div>
   );
 };

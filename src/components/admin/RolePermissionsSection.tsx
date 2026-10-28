@@ -1,12 +1,20 @@
 'use client';
 
 import React from 'react';
-import {
-  ShieldCheck,
-  Lock,
-  Boxes,
-} from 'lucide-react';
+import { ShieldCheck, Lock, Boxes } from 'lucide-react';
 import { PermissionMatrixRow } from '@/types/admin';
+import {
+  PageHeader,
+  Card,
+  Badge,
+  TableContainer,
+  Table,
+  THead,
+  TBody,
+  TR,
+  TH,
+  TD,
+} from '@/components/ui';
 
 interface RolePermissionsSectionProps {
   matrix: PermissionMatrixRow[];
@@ -17,180 +25,179 @@ export const RolePermissionsSection: React.FC<RolePermissionsSectionProps> = ({ 
     {
       name: 'Super Admin',
       scope: 'Technical / Platform',
-      color: 'bg-purple-50 text-purple-700 border-purple-200',
-      description: 'System infrastructure, node connectivity, user provisioning, and operational monitoring.',
-      restrictions: 'Zero authority to issue or revoke certificates, and cannot approve academic issuers.',
+      tone: 'brand' as const,
+      description:
+        'System infrastructure, node connectivity, user provisioning, and operational monitoring.',
+      restrictions:
+        'Zero authority to issue or revoke certificates, and cannot approve academic issuers.',
     },
     {
       name: 'Controller of Examinations',
       scope: 'Academic Governance',
-      color: 'bg-amber-50 text-amber-800 border-amber-200',
-      description: 'Sole authority to approve faculty issuer requests, co-sign smart contract revocations, and supervise university records.',
-      restrictions: 'Does not manage platform server settings or technical database infrastructure.',
+      tone: 'seal' as const,
+      description:
+        'Sole authority to approve faculty issuer requests, co-sign smart contract revocations, and supervise university records.',
+      restrictions:
+        'Does not manage platform server settings or technical database infrastructure.',
     },
     {
       name: 'Faculty / Staff Issuer',
       scope: 'Academic Execution',
-      color: 'bg-blue-50 text-blue-700 border-blue-200',
-      description: 'Drafts, hashes, and commits authentic graduation credentials and transcripts to Ethereum Sepolia.',
-      restrictions: 'Requires Controller approval and smart contract authorization before issuing.',
+      tone: 'info' as const,
+      description:
+        'Drafts, hashes, and commits authentic graduation credentials and transcripts to Ethereum Sepolia.',
+      restrictions:
+        'Requires Controller approval and smart contract authorization before issuing.',
     },
     {
       name: 'Student',
       scope: 'Credential Holder',
-      color: 'bg-slate-100 text-slate-700 border-slate-200',
-      description: 'Views immutable academic records, generates time-limited employer share links, and downloads official PDFs.',
+      tone: 'neutral' as const,
+      description:
+        'Views immutable academic records, generates time-limited employer share links, and downloads official PDFs.',
       restrictions: 'Read-only profile; cannot alter smart contract data.',
     },
     {
       name: 'Public Verifier',
       scope: 'Third-Party Verification',
-      color: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      description: 'Employers, embassies, and academic institutions verifying SHA-256 hashes against Sepolia ledger with zero login.',
-      restrictions: 'Zero access to student personal records beyond minimal verified credential proofs.',
+      tone: 'success' as const,
+      description:
+        'Employers, embassies, and academic institutions verifying SHA-256 hashes against Sepolia ledger with zero login.',
+      restrictions:
+        'Zero access to student personal records beyond minimal verified credential proofs.',
     },
   ];
 
   return (
     <div className="space-y-6">
-      
+      <PageHeader
+        eyebrow="Access Control Governance"
+        title="Role & Permission Matrix"
+        description="Institutional separation of duties enforced across backend API middleware and Ethereum Sepolia smart contracts."
+      />
 
       {/* 5 Role Concept Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-3.5">
         {roles.map((r) => (
-          <div
+          <Card
             key={r.name}
-            className="p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs flex flex-col justify-between space-y-3"
+            padding="md"
+            className="flex flex-col justify-between space-y-3"
           >
             <div>
-              <span className={`inline-block px-2.5 py-0.5 rounded-full text-[10px] font-bold uppercase border ${r.color}`}>
+              <Badge tone={r.tone} size="sm">
                 {r.scope}
-              </span>
-              <h3 className="text-sm font-bold text-[#0B2545] mt-2">{r.name}</h3>
-              <p className="text-[11px] text-slate-600 mt-1 leading-relaxed">{r.description}</p>
+              </Badge>
+              <h3 className="text-sm font-semibold text-ink mt-2.5">{r.name}</h3>
+              <p className="text-xs text-muted mt-1 leading-relaxed">{r.description}</p>
             </div>
 
-            <div className="pt-2 border-t border-slate-100 text-[10px] text-amber-800 bg-amber-50/50 p-2 rounded-lg border border-amber-200/60">
-              <strong>Boundary:</strong> {r.restrictions}
+            <div className="p-2.5 rounded-md bg-warning-soft/60 border border-warning/25 text-[11px] text-warning leading-relaxed">
+              <strong className="font-semibold">Boundary:</strong> {r.restrictions}
             </div>
-          </div>
+          </Card>
         ))}
       </div>
 
       {/* Complete Permission Matrix Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-xs overflow-hidden">
-        <div className="p-4 sm:p-5 border-b border-slate-200 bg-slate-50/70 flex items-center justify-between">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-[#0B2545]">Institutional Permission Matrix</h3>
-            <p className="text-xs text-slate-500 mt-0.5">
+            <h3 className="font-serif text-base font-semibold text-ink">
+              Institutional Permission Matrix
+            </h3>
+            <p className="text-xs text-muted">
               Enforcement layers across backend middleware and Sepolia smart contracts
             </p>
           </div>
-          <span className="text-[11px] font-mono text-slate-500 bg-white border border-slate-200 px-2.5 py-1 rounded-lg">
+          <Badge tone="neutral" size="md" className="font-mono">
             Active Policy v1.0
-          </span>
+          </Badge>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-slate-50/90 border-b border-slate-200 text-[11px] font-bold uppercase tracking-wider text-slate-500">
-                <th className="py-3 px-4 sm:px-6">Feature / Action</th>
-                <th className="py-3 px-3">Category</th>
-                <th className="py-3 px-3">Super Admin</th>
-                <th className="py-3 px-3">Controller</th>
-                <th className="py-3 px-3">Issuer (Staff)</th>
-                <th className="py-3 px-3">Student</th>
-                <th className="py-3 px-3">Verifier</th>
-                <th className="py-3 px-4 text-right">Enforcement</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+        <TableContainer>
+          <Table>
+            <THead>
+              <TR>
+                <TH>Feature / Action</TH>
+                <TH>Category</TH>
+                <TH>Super Admin</TH>
+                <TH>Controller</TH>
+                <TH>Issuer (Staff)</TH>
+                <TH>Student</TH>
+                <TH>Verifier</TH>
+                <TH align="right">Enforcement</TH>
+              </TR>
+            </THead>
+            <TBody>
               {matrix.map((row) => (
-                <tr key={row.permission} className="hover:bg-slate-50/70 transition">
-                  {/* Feature */}
-                  <td className="py-3 px-4 sm:px-6 font-semibold text-[#0B2545]">
-                    {row.permission}
-                  </td>
-
-                  {/* Category */}
-                  <td className="py-3 px-3">
-                    <span className="text-[11px] text-slate-500">{row.category}</span>
-                  </td>
-
-                  {/* Super Admin */}
-                  <td className="py-3 px-3">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                <TR key={row.permission}>
+                  <TD className="font-semibold text-ink">{row.permission}</TD>
+                  <TD className="text-xs text-muted">{row.category}</TD>
+                  <TD>
+                    <Badge
+                      size="sm"
+                      tone={
                         row.superAdmin === 'Allowed'
-                          ? 'bg-emerald-50 text-emerald-700'
+                          ? 'success'
                           : row.superAdmin === 'Read-only'
-                          ? 'bg-blue-50 text-blue-700'
-                          : 'bg-red-50 text-red-700'
-                      }`}
+                          ? 'info'
+                          : 'danger'
+                      }
                     >
                       {row.superAdmin}
-                    </span>
-                  </td>
-
-                  {/* Controller */}
-                  <td className="py-3 px-3">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
+                    </Badge>
+                  </TD>
+                  <TD>
+                    <Badge
+                      size="sm"
+                      tone={
                         row.controller.includes('Allowed') || row.controller.includes('Sole')
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : 'bg-amber-50 text-amber-800'
-                      }`}
+                          ? 'success'
+                          : 'warning'
+                      }
                     >
                       {row.controller}
-                    </span>
-                  </td>
-
-                  {/* Issuer */}
-                  <td className="py-3 px-3">
-                    <span
-                      className={`inline-block px-2 py-0.5 rounded text-[10px] font-bold ${
-                        row.issuer.includes('Allowed')
-                          ? 'bg-emerald-50 text-emerald-700'
-                          : 'bg-slate-100 text-slate-600'
-                      }`}
+                    </Badge>
+                  </TD>
+                  <TD>
+                    <Badge
+                      size="sm"
+                      tone={row.issuer.includes('Allowed') ? 'success' : 'neutral'}
                     >
                       {row.issuer}
-                    </span>
-                  </td>
-
-                  {/* Student */}
-                  <td className="py-3 px-3">
-                    <span className="text-[11px] text-slate-600">{row.student}</span>
-                  </td>
-
-                  {/* Verifier */}
-                  <td className="py-3 px-3">
-                    <span className="text-[11px] text-slate-600">{row.verifier}</span>
-                  </td>
-
-                  {/* Enforcement */}
-                  <td className="py-3 px-4 text-right">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                    </Badge>
+                  </TD>
+                  <TD className="text-xs text-muted">{row.student}</TD>
+                  <TD className="text-xs text-muted">{row.verifier}</TD>
+                  <TD align="right">
+                    <Badge
+                      size="sm"
+                      tone={
                         row.enforcement === 'Smart Contract'
-                          ? 'bg-indigo-50 text-indigo-700 border-indigo-200'
+                          ? 'brand'
                           : row.enforcement === 'Both'
-                          ? 'bg-purple-50 text-purple-700 border-purple-200'
-                          : 'bg-blue-50 text-blue-700 border-blue-200'
-                      }`}
+                          ? 'seal'
+                          : 'info'
+                      }
+                      icon={
+                        row.enforcement === 'Smart Contract' ? (
+                          <Boxes className="w-3 h-3" />
+                        ) : row.enforcement === 'Backend API' ? (
+                          <ShieldCheck className="w-3 h-3" />
+                        ) : (
+                          <Lock className="w-3 h-3" />
+                        )
+                      }
                     >
-                      {row.enforcement === 'Smart Contract' && <Boxes className="w-3 h-3 text-indigo-600" />}
-                      {row.enforcement === 'Backend API' && <ShieldCheck className="w-3 h-3 text-blue-600" />}
-                      {row.enforcement === 'Both' && <Lock className="w-3 h-3 text-purple-600" />}
-                      <span>{row.enforcement}</span>
-                    </span>
-                  </td>
-                </tr>
+                      {row.enforcement}
+                    </Badge>
+                  </TD>
+                </TR>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TBody>
+          </Table>
+        </TableContainer>
       </div>
     </div>
   );

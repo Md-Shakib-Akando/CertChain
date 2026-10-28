@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { Metadata } from 'next';
 import { SetupPasswordForm } from '@/components/auth/SetupPasswordForm';
-import { Loader2 } from 'lucide-react';
+import { Spinner } from '@/components/ui';
 
 export const metadata: Metadata = {
   title: 'Set Up Master Password — PUB CertChain',
@@ -12,8 +12,8 @@ export default function SetupPasswordPage() {
   return (
     <Suspense
       fallback={
-        <div className="min-h-screen bg-[#0A1628] flex items-center justify-center">
-          <Loader2 className="w-8 h-8 text-blue-500 animate-spin" />
+        <div className="min-h-screen bg-canvas flex items-center justify-center">
+          <Spinner className="size-7 text-brand" />
         </div>
       }
     >
