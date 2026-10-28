@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -77,7 +77,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
   const [staffEmail, setStaffEmail] = useState('');
   const [staffId, setStaffId] = useState('');
   const [staffDepartment, setStaffDepartment] = useState('Office of the Controller of Examinations');
-  const [staffDesignation, setStaffDesignation] = useState('Assistant Controller of Examinations');
+  const [staffDesignation, setStaffDesignation] = useState('');
   const [staffPassword, setStaffPassword] = useState('');
   const [staffConfirmPassword, setStaffConfirmPassword] = useState('');
   const [staffWallet, setStaffWallet] = useState('');
@@ -417,10 +417,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
 
               {studentStep === 'form' ? (
                 <form onSubmit={handleStudentSendOtp} className="space-y-4" noValidate>
-                  <Alert tone="info" title="Official Student Record Matching">
-                    Your Name, Student ID, Department, Batch, and Email are checked against the university&apos;s pre-seeded academic registry before sending an email OTP.
-                  </Alert>
-
+                
                   <Field
                     label="Full Name"
                     required
@@ -631,9 +628,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
           {/* UNIVERSITY STAFF REGISTRATION */}
           {selectedRole === 'staff' && (
             <form onSubmit={handleStaffSubmit} className="space-y-4" noValidate>
-              <Alert tone="warning" title="Controller Authorization Required">
-                Registrar and Issuer accounts cannot self-activate. Submitting this application queues your profile and Ethereum wallet for review by the Controller of Examinations.
-              </Alert>
+            
 
               <Field label="Full Name" required>
                 <Input
