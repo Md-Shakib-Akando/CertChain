@@ -106,7 +106,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="bg-[#0D1E36]/95 text-white border-b border-slate-800/70 sticky top-0 z-40 backdrop-blur-md">
+    <header className="bg-[#080D18]/90 text-white border-b border-white/10 sticky top-0 z-40 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-20">
           {/* Logo & Brand Identity */}
@@ -115,14 +115,14 @@ export const Header: React.FC<HeaderProps> = ({
               href="/"
               className="flex items-center gap-3 text-left group focus:outline-none cursor-pointer"
             >
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/25 group-hover:scale-105 transition-transform border border-blue-400/40">
-                <ShieldCheck className="w-6 h-6 text-white" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/20 group-hover:scale-105 transition-transform border border-cyan-400/40">
+                <ShieldCheck className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-lg sm:text-xl tracking-tight text-white group-hover:text-blue-400 transition-colors">
+                <span className="font-extrabold text-lg sm:text-xl tracking-tight text-white group-hover:text-blue-400 transition-colors">
                   PUB CertChain
                 </span>
-                <span className="text-[11px] text-slate-400 tracking-wide font-normal -mt-0.5">
+                <span className="text-[11px] text-slate-400 tracking-wide font-medium -mt-0.5">
                   Academic Credential Verification
                 </span>
               </div>
@@ -130,18 +130,12 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Center Navigation Links */}
-          <nav className="hidden md:flex items-center gap-7">
-            <Link
-              href="/"
-              className="text-sm font-medium text-slate-300 hover:text-white transition-colors"
-            >
-              Home
-            </Link>
+          <nav className="hidden md:flex items-center gap-8">
             <button
-              onClick={handleVerifyClick}
-              className="text-sm font-medium text-blue-400 hover:text-blue-300 transition-colors cursor-pointer"
+              onClick={() => scrollToSection('hero')}
+              className="text-sm font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
             >
-              Verify
+              Platform
             </button>
             <button
               onClick={() => scrollToSection('how-it-works')}
@@ -153,24 +147,29 @@ export const Header: React.FC<HeaderProps> = ({
               onClick={() => scrollToSection('features')}
               className="text-sm font-medium text-slate-300 hover:text-white transition-colors cursor-pointer"
             >
-              Features
+              Security
+            </button>
+            <button
+              onClick={handleVerifyClick}
+              className="text-sm font-semibold text-cyan-400 hover:text-cyan-300 transition-colors cursor-pointer flex items-center gap-1.5"
+            >
+              <span>Verify Certificate</span>
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
             </button>
           </nav>
 
           {/* Right Action Buttons */}
           <div className="flex items-center gap-3">
-            {/* Verify Certificate CTA Button */}
+            {/* Primary CTA: Verify Certificate */}
             <button
               onClick={handleVerifyClick}
-              className="px-4 py-2 rounded-lg bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 border border-blue-500/40 font-medium text-xs sm:text-sm transition-all cursor-pointer"
+              className="px-4 py-2 rounded-xl bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 text-white font-semibold text-xs sm:text-sm transition-all shadow-md shadow-blue-500/20 border border-cyan-400/30 cursor-pointer"
             >
               Verify Certificate
             </button>
 
             {effectiveLoggedIn ? (
               <div className="hidden sm:flex items-center gap-3">
-                
-
                 {/* Profile Icon with Hover Tooltip and Click Dropdown */}
                 <div
                   id="navbar-profile-menu"
@@ -184,7 +183,7 @@ export const Header: React.FC<HeaderProps> = ({
                     onClick={() => {
                       setDropdownOpen((prev) => !prev);
                     }}
-                    className="flex items-center gap-1.5 p-1 rounded-full hover:ring-2 hover:ring-blue-500/50 focus:outline-none transition-all cursor-pointer group"
+                    className="flex items-center gap-1.5 p-1 rounded-full hover:ring-2 hover:ring-cyan-500/50 focus:outline-none transition-all cursor-pointer group"
                     aria-label={`Profile menu for ${effectiveName}`}
                     aria-expanded={dropdownOpen}
                     aria-haspopup="true"
@@ -192,14 +191,14 @@ export const Header: React.FC<HeaderProps> = ({
                     title={effectiveName}
                   >
                     <div className="relative">
-                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-sm flex items-center justify-center border border-blue-400/40 shadow-md group-hover:scale-105 group-hover:border-blue-300 transition-all">
+                      <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-600 text-white font-bold text-sm flex items-center justify-center border border-cyan-400/40 shadow-md group-hover:scale-105 transition-all">
                         {effectiveName.trim().charAt(0).toUpperCase()}
                       </div>
-                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#0D1E36] rounded-full" />
+                      <span className="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-500 border-2 border-[#080D18] rounded-full" />
                     </div>
                     <ChevronDown
                       className={`w-3.5 h-3.5 text-slate-400 group-hover:text-white transition-transform duration-200 ${
-                        dropdownOpen ? 'rotate-180 text-blue-400' : ''
+                        dropdownOpen ? 'rotate-180 text-cyan-400' : ''
                       }`}
                     />
                   </button>
@@ -284,10 +283,10 @@ export const Header: React.FC<HeaderProps> = ({
             ) : (
               <Link
                 href="/login"
-                className="px-3.5 py-2 rounded-lg bg-[#0F1B35] hover:bg-[#162547] text-white border border-slate-700/80 font-medium text-xs sm:text-sm transition-colors hidden sm:flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl bg-white/5 hover:bg-white/10 text-slate-200 hover:text-white border border-white/10 font-semibold text-xs sm:text-sm transition-all hidden sm:flex items-center gap-1.5 shadow-sm"
               >
-                <LogIn className="w-3.5 h-3.5 text-blue-400" />
-                <span>Sign In</span>
+                <LogIn className="w-3.5 h-3.5 text-cyan-400" />
+                <span>Issuer Portal</span>
               </Link>
             )}
 
@@ -305,12 +304,12 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#071326] border-t border-slate-800 px-4 py-5 space-y-3">
+        <div className="md:hidden bg-[#0D1424] border-t border-white/10 px-4 py-5 space-y-3">
           <button
             onClick={() => scrollToSection('hero')}
             className="w-full text-left py-2 text-slate-200 font-medium hover:text-white"
           >
-            Home
+            Platform
           </button>
           <button
             onClick={() => scrollToSection('how-it-works')}
@@ -322,19 +321,13 @@ export const Header: React.FC<HeaderProps> = ({
             onClick={() => scrollToSection('features')}
             className="w-full text-left py-2 text-slate-200 font-medium hover:text-white"
           >
-            Features
+            Security
           </button>
           <button
-            onClick={() => scrollToSection('about')}
-            className="w-full text-left py-2 text-slate-200 font-medium hover:text-white"
+            onClick={handleVerifyClick}
+            className="w-full text-left py-2 text-cyan-400 font-semibold hover:text-cyan-300"
           >
-            About
-          </button>
-          <button
-            onClick={() => scrollToSection('contact')}
-            className="w-full text-left py-2 text-slate-200 font-medium hover:text-white"
-          >
-            Contact
+            Verify Certificate
           </button>
 
           <div className="pt-3 border-t border-slate-800 flex flex-col gap-2">

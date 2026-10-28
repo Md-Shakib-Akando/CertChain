@@ -102,26 +102,26 @@ export default async function SharedCredentialPage({
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0B1F3A]">
+    <div className="min-h-screen flex flex-col bg-[#080D18] text-[#F1F5F9]">
       <Header />
 
       <main className="flex-1 max-w-3xl w-full mx-auto px-4 sm:px-6 py-12 space-y-6">
         {/* Recipient Notice */}
-        <div className="bg-blue-50 border border-blue-200 rounded-2xl p-4 flex items-center justify-between text-xs text-blue-900">
+        <div className="bg-[#121C2E] border border-cyan-400/30 rounded-2xl p-4 flex items-center justify-between text-xs text-cyan-300 shadow-xl">
           <div className="flex items-center gap-2.5">
-            <Building className="w-4 h-4 text-[#2563EB]" />
+            <Building className="w-4 h-4 text-cyan-400" />
             <span>
-              Direct Student Verification for: <b>{shareLink.recipientLabel}</b>
+              Direct Student Verification for: <b className="text-white">{shareLink.recipientLabel}</b>
             </span>
           </div>
-          <span className="text-[11px] text-blue-700">
+          <span className="text-[11px] text-slate-400">
             Valid until: {new Date(shareLink.expiresAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })},{' '}
             {new Date(shareLink.expiresAt).toLocaleDateString()}
           </span>
         </div>
 
         {/* Credential Card */}
-        <div className="bg-white rounded-3xl border border-slate-200/90 shadow-xl overflow-hidden">
+        <div className="bg-[#121C2E] rounded-3xl border border-white/15 shadow-2xl overflow-hidden">
           {/* Header Banner */}
           <div
             className={`p-6 sm:p-7 text-white flex items-center justify-between ${
@@ -146,7 +146,7 @@ export default async function SharedCredentialPage({
               href={`/api/certificates/${cert.id}/pdf`}
               target="_blank"
               rel="noreferrer"
-              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-emerald-800 font-bold text-xs hover:bg-emerald-50 shadow"
+              className="hidden sm:inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-white text-emerald-900 font-bold text-xs hover:bg-emerald-50 shadow-lg cursor-pointer"
             >
               <Download className="w-4 h-4" />
               <span>Download Official PDF</span>
@@ -156,36 +156,36 @@ export default async function SharedCredentialPage({
           {/* Details */}
           <div className="p-6 sm:p-8 space-y-6">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+              <div className="bg-[#0D1424] p-4 rounded-2xl border border-white/10">
                 <span className="text-[11px] text-slate-400 font-bold uppercase">Graduate Candidate</span>
-                <p className="text-base font-bold text-[#0B1F3A] mt-0.5">{cert.studentName}</p>
-                <span className="text-[11px] text-slate-500">Student ID: {cert.studentId}</span>
+                <p className="text-base font-bold text-white mt-0.5">{cert.studentName}</p>
+                <span className="text-[11px] text-slate-400">Student ID: {cert.studentId}</span>
               </div>
 
-              <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+              <div className="bg-[#0D1424] p-4 rounded-2xl border border-white/10">
                 <span className="text-[11px] text-slate-400 font-bold uppercase">Certificate ID</span>
-                <p className="text-base font-mono font-bold text-[#2563EB] mt-0.5">{cert.id}</p>
-                <span className="text-[11px] text-slate-500">Document Type: {cert.type}</span>
+                <p className="text-base font-mono font-bold text-cyan-300 mt-0.5">{cert.id}</p>
+                <span className="text-[11px] text-slate-400">Document Type: {cert.type}</span>
               </div>
 
-              <div className="sm:col-span-2 bg-slate-50 p-4 rounded-2xl border border-slate-200/80">
+              <div className="sm:col-span-2 bg-[#0D1424] p-4 rounded-2xl border border-white/10">
                 <span className="text-[11px] text-slate-400 font-bold uppercase">Academic Conferred Program</span>
-                <p className="text-base font-bold text-[#0B1F3A] mt-0.5">{cert.degreeName || cert.program}</p>
-                <div className="flex flex-wrap gap-4 text-xs text-slate-600 mt-2">
-                  <span>Session: <b>{cert.session}</b></span>
-                  <span>CGPA: <b className="text-emerald-700">{cert.cgpa} / 4.00</b></span>
-                  <span>Issued Date: <b>{cert.issueDate}</b></span>
+                <p className="text-base font-bold text-white mt-0.5">{cert.degreeName || cert.program}</p>
+                <div className="flex flex-wrap gap-4 text-xs text-slate-400 mt-2">
+                  <span>Session: <b className="text-slate-200">{cert.session}</b></span>
+                  <span>CGPA: <b className="text-emerald-400">{cert.cgpa} / 4.00</b></span>
+                  <span>Issued Date: <b className="text-slate-200">{cert.issueDate}</b></span>
                 </div>
               </div>
             </div>
 
             {/* Blockchain Fingerprint */}
-            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 font-mono text-xs space-y-2">
-              <div className="flex items-center justify-between text-slate-500 font-sans text-[11px]">
-                <span className="font-bold">Cryptographic SHA-256 Fingerprint:</span>
-                <span>Block #{cert.blockNumber}</span>
+            <div className="bg-[#0D1424] p-4 rounded-2xl border border-white/10 font-mono text-xs space-y-2">
+              <div className="flex items-center justify-between text-slate-400 font-sans text-[11px]">
+                <span className="font-bold text-slate-300">Cryptographic SHA-256 Fingerprint:</span>
+                <span className="text-cyan-400">Block #{cert.blockNumber}</span>
               </div>
-              <div className="p-2.5 bg-white rounded-xl border border-slate-200 text-slate-700 break-all text-[11px]">
+              <div className="p-2.5 bg-[#080D18] rounded-xl border border-white/10 text-cyan-300 break-all text-[11px] select-all">
                 {cert.sha256Hash}
               </div>
             </div>
@@ -196,7 +196,7 @@ export default async function SharedCredentialPage({
                 href={`/api/certificates/${cert.id}/pdf`}
                 target="_blank"
                 rel="noreferrer"
-                className="w-full py-3 rounded-xl bg-[#2563EB] text-white font-bold text-xs flex items-center justify-center gap-2 shadow"
+                className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-lg shadow-blue-600/25 border border-cyan-400/30 cursor-pointer"
               >
                 <Download className="w-4 h-4" />
                 <span>Download Official Certificate PDF</span>

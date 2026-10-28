@@ -44,10 +44,10 @@ export const StudentPortal: React.FC = () => {
   } = useStudentPortal();
 
   return (
-    <div className="min-h-screen bg-[#F8FAFC] text-[#0B2545] flex flex-col font-sans">
+    <div className="min-h-screen bg-[#080D18] text-[#F1F5F9] flex flex-col font-sans">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed bottom-6 right-6 z-50 bg-[#0B2545] text-white px-4 py-3 rounded-xl shadow-lg border border-slate-700 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-200">
+        <div className="fixed bottom-6 right-6 z-50 bg-[#121C2E] text-white px-4 py-3 rounded-xl shadow-2xl border border-white/15 flex items-center gap-3 animate-in fade-in slide-in-from-bottom-5 duration-200">
           <div className="w-6 h-6 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0">
             <CheckCircle2 className="w-4 h-4" />
           </div>
@@ -65,7 +65,7 @@ export const StudentPortal: React.FC = () => {
       />
 
       {/* Tab Navigation Bar */}
-      <div className="bg-white border-b border-slate-200/90 shadow-2xs sticky top-20 z-30">
+      <div className="bg-[#0D1424]/90 backdrop-blur-md border-b border-white/10 sticky top-20 z-30">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between">
             <nav className="flex space-x-2 sm:space-x-3 overflow-x-auto py-3 scrollbar-none">
@@ -84,8 +84,8 @@ export const StudentPortal: React.FC = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all whitespace-nowrap cursor-pointer ${
                       isActive
-                        ? 'bg-[#2563EB] text-white shadow-sm'
-                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                        ? 'bg-blue-600 text-white shadow-md shadow-blue-600/30 border border-cyan-400/30'
+                        : 'text-slate-400 hover:text-white hover:bg-white/5'
                     }`}
                   >
                     <Icon className="w-4 h-4" />

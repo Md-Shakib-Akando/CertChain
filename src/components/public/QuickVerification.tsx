@@ -337,42 +337,43 @@ export const QuickVerification: React.FC = () => {
   };
 
   return (
-    <section id="verify" className="bg-[#F0F4F9] py-16 sm:py-24 border-b border-slate-200 relative overflow-hidden">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8 items-center">
+    <section id="verify" className="bg-[#080D18] aurora-bg py-20 sm:py-28 border-b border-white/10 relative overflow-hidden">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-10 items-center">
           
           {/* Left Column: Header, Tabs, Form Fields */}
           <div className="lg:col-span-6 space-y-6">
             
             {/* Tag Pill */}
-            <div>
-              <span className="text-xs font-bold tracking-wider uppercase text-[#2563EB] bg-blue-50 px-3.5 py-1.5 rounded-full inline-block border border-blue-100">
-                Fast & Easy
+            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 shadow-inner">
+              <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+              <span className="text-[11px] font-bold tracking-widest uppercase text-cyan-300">
+                Instant Zero-Gas Verification
               </span>
             </div>
 
             {/* Title & Description */}
             <div className="space-y-2">
-              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B2545] tracking-tight">
-                Quick Verification
+              <h2 className="text-3xl sm:text-4xl font-extrabold text-[#F1F5F9] tracking-tight">
+                Public Certificate Verification
               </h2>
-              <p className="text-slate-500 text-sm sm:text-base leading-relaxed max-w-xl">
-                Verify any academic certificate in seconds using one of the methods below. Real-time blockchain ledger validation.
+              <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-xl font-normal">
+                Verify any academic certificate in seconds using one of the three methods below. Direct cryptographic comparison against the immutable blockchain ledger.
               </p>
             </div>
 
             {/* Verification Method Tabs (Pills) */}
-            <div className="flex flex-wrap items-center gap-2 sm:gap-3 pt-2">
+            <div className="flex flex-wrap items-center gap-2.5 pt-1">
               <button
                 type="button"
                 onClick={() => {
                   stopCamera();
                   setActiveTab('id');
                 }}
-                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                   activeTab === 'id'
-                    ? 'bg-blue-50 text-[#2563EB] border-2 border-[#2563EB] shadow-sm'
-                    : 'bg-white border border-slate-300 text-slate-600 hover:text-slate-900 hover:border-slate-400'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-cyan-400/40'
+                    : 'bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
               >
                 Certificate ID
@@ -381,10 +382,10 @@ export const QuickVerification: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setActiveTab('qr')}
-                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                   activeTab === 'qr'
-                    ? 'bg-blue-50 text-[#2563EB] border-2 border-[#2563EB] shadow-sm'
-                    : 'bg-white border border-slate-300 text-slate-600 hover:text-slate-900 hover:border-slate-400'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-cyan-400/40'
+                    : 'bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
               >
                 Scan QR Code
@@ -396,10 +397,10 @@ export const QuickVerification: React.FC = () => {
                   stopCamera();
                   setActiveTab('pdf');
                 }}
-                className={`px-5 py-2 rounded-full text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                className={`px-5 py-2.5 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
                   activeTab === 'pdf'
-                    ? 'bg-blue-50 text-[#2563EB] border-2 border-[#2563EB] shadow-sm'
-                    : 'bg-white border border-slate-300 text-slate-600 hover:text-slate-900 hover:border-slate-400'
+                    ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/25 border border-cyan-400/40'
+                    : 'bg-white/5 border border-white/10 text-slate-300 hover:text-white hover:bg-white/10'
                 }`}
               >
                 Upload PDF
@@ -408,7 +409,7 @@ export const QuickVerification: React.FC = () => {
 
             {/* TAB 1: Real Certificate ID Search Field */}
             {activeTab === 'id' && (
-              <div className="space-y-3 pt-1">
+              <div className="space-y-3 pt-2">
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -424,15 +425,15 @@ export const QuickVerification: React.FC = () => {
                       type="text"
                       value={certIdInput}
                       onChange={(e) => setCertIdInput(e.target.value)}
-                      placeholder="Enter Certificate ID (e.g. PUB-DEG-2026-000105)"
-                      className="w-full pl-4 pr-4 py-3.5 bg-white border border-slate-200 rounded-xl text-slate-800 text-sm sm:text-base placeholder:text-slate-400 focus:outline-none focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 shadow-sm font-medium"
+                      placeholder="e.g. PUB-DEG-2026-000105"
+                      className="w-full pl-4 pr-4 py-3.5 bg-[#0D1424] border border-white/15 rounded-xl text-white text-sm sm:text-base placeholder:text-slate-500 focus:outline-none focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/20 shadow-inner font-mono font-medium"
                     />
                   </div>
 
                   <button
                     type="submit"
                     disabled={isVerifying || !certIdInput.trim()}
-                    className="w-full sm:w-auto px-7 py-3.5 bg-[#2563EB] hover:bg-blue-600 active:scale-95 text-white font-semibold text-sm sm:text-base rounded-xl transition-all shadow-md shadow-blue-600/25 flex items-center justify-center gap-2 shrink-0 cursor-pointer disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="w-full sm:w-auto px-7 py-3.5 bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-500 hover:to-cyan-500 active:scale-95 text-white font-semibold text-sm sm:text-base rounded-xl transition-all shadow-lg shadow-cyan-600/25 flex items-center justify-center gap-2 shrink-0 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed border border-cyan-400/30"
                   >
                     {isVerifying ? (
                       <Loader2 className="w-5 h-5 animate-spin" />
@@ -447,7 +448,7 @@ export const QuickVerification: React.FC = () => {
 
             {/* TAB 2: Real Camera & Image QR Code Scanner View */}
             {activeTab === 'qr' && (
-              <div className="bg-white rounded-2xl border border-slate-200/90 shadow-sm p-5 sm:p-6 space-y-4">
+              <div className="bg-[#0D1424] rounded-2xl border border-white/15 shadow-xl p-5 sm:p-6 space-y-4">
                 <style>{`
                   @keyframes cleanScanLine {
                     0% { top: 12%; opacity: 0.8; }
@@ -459,14 +460,14 @@ export const QuickVerification: React.FC = () => {
                 {/* Header & Status */}
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-lg bg-blue-50 text-[#2563EB] flex items-center justify-center border border-blue-100">
+                    <div className="w-8 h-8 rounded-lg bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-400/20">
                       <QrCode className="w-4 h-4" />
                     </div>
                     <div>
-                      <h3 className="text-sm font-bold text-[#0B2545]">
+                      <h3 className="text-sm font-bold text-[#F1F5F9]">
                         Scan QR Code
                       </h3>
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-[11px] text-slate-400">
                         Scan with device camera or upload a QR image
                       </p>
                     </div>
@@ -474,20 +475,20 @@ export const QuickVerification: React.FC = () => {
 
                   <span className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-semibold border ${
                     isScanningCamera
-                      ? 'bg-blue-50 text-blue-700 border-blue-200'
-                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                      ? 'bg-blue-500/20 text-cyan-300 border-cyan-400/30'
+                      : 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30'
                   }`}>
-                    <span className={`w-1.5 h-1.5 rounded-full ${isScanningCamera ? 'bg-blue-500 animate-ping' : 'bg-emerald-500 animate-pulse'}`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${isScanningCamera ? 'bg-cyan-400 animate-ping' : 'bg-emerald-400 animate-pulse'}`} />
                     {isScanningCamera ? 'Scanning...' : 'Ready'}
                   </span>
                 </div>
 
                 {/* Video / Viewfinder Area */}
-                <div className="relative w-full bg-gradient-to-b from-blue-50/40 via-slate-50/50 to-white rounded-xl border border-blue-100/70 p-4 flex flex-col items-center justify-center text-center overflow-hidden min-h-[190px]">
-                  <div className="absolute inset-0 bg-[radial-gradient(#2563eb_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
+                <div className="relative w-full bg-gradient-to-b from-[#121C2E] to-[#080D18] rounded-xl border border-white/10 p-4 flex flex-col items-center justify-center text-center overflow-hidden min-h-[190px]">
+                  <div className="absolute inset-0 bg-[radial-gradient(#22d3ee_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
 
                   {isScanningCamera ? (
-                    <div className="relative w-full max-w-[280px] h-44 rounded-xl overflow-hidden bg-black flex items-center justify-center shadow-md">
+                    <div className="relative w-full max-w-[280px] h-44 rounded-xl overflow-hidden bg-black flex items-center justify-center shadow-lg border border-cyan-400/30">
                       <video
                         ref={videoRef}
                         className="w-full h-full object-cover"
@@ -496,7 +497,7 @@ export const QuickVerification: React.FC = () => {
                       />
                       {/* Scanning Line Animation */}
                       <div
-                        className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-[#2563EB] to-transparent shadow-[0_0_8px_rgba(37,99,235,0.8)] z-20 pointer-events-none"
+                        className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-[#22D3EE] to-transparent shadow-[0_0_8px_rgba(34,211,238,0.8)] z-20 pointer-events-none"
                         style={{
                           animation: 'cleanScanLine 1.5s ease-in-out infinite',
                         }}
@@ -504,24 +505,24 @@ export const QuickVerification: React.FC = () => {
                     </div>
                   ) : (
                     /* Default QR Viewfinder */
-                    <div className="relative w-28 h-28 bg-white rounded-xl shadow-xs border border-slate-200/80 flex items-center justify-center p-3 z-10">
-                      <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-[#2563EB] rounded-tl" />
-                      <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-[#2563EB] rounded-tr" />
-                      <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-[#2563EB] rounded-bl" />
-                      <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-[#2563EB] rounded-br" />
+                    <div className="relative w-28 h-28 bg-[#121C2E] rounded-xl shadow-lg border border-white/15 flex items-center justify-center p-3 z-10">
+                      <div className="absolute -top-1 -left-1 w-4 h-4 border-t-2 border-l-2 border-cyan-400 rounded-tl" />
+                      <div className="absolute -top-1 -right-1 w-4 h-4 border-t-2 border-r-2 border-cyan-400 rounded-tr" />
+                      <div className="absolute -bottom-1 -left-1 w-4 h-4 border-b-2 border-l-2 border-cyan-400 rounded-bl" />
+                      <div className="absolute -bottom-1 -right-1 w-4 h-4 border-b-2 border-r-2 border-cyan-400 rounded-br" />
 
                       <div
-                        className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-[#2563EB] to-transparent shadow-[0_0_8px_rgba(37,99,235,0.8)] z-20 pointer-events-none"
+                        className="absolute inset-x-2 h-0.5 bg-gradient-to-r from-transparent via-[#22D3EE] to-transparent shadow-[0_0_8px_rgba(34,211,238,0.8)] z-20 pointer-events-none"
                         style={{
                           animation: 'cleanScanLine 2.5s ease-in-out infinite',
                         }}
                       />
 
-                      <QrCode className="w-16 h-16 text-slate-700/85" />
+                      <QrCode className="w-16 h-16 text-slate-300" />
                     </div>
                   )}
 
-                  <p className="mt-3 text-[11px] text-slate-600 font-medium z-10">
+                  <p className="mt-3 text-[11px] text-slate-300 font-medium z-10">
                     {isScanningCamera
                       ? 'Point your camera directly at the certificate QR code'
                       : 'Align the certificate QR code with the camera frame'}
@@ -544,7 +545,7 @@ export const QuickVerification: React.FC = () => {
                       type="button"
                       disabled={isVerifying}
                       onClick={startCamera}
-                      className="py-2.5 px-3.5 rounded-xl bg-[#2563EB] hover:bg-blue-600 active:bg-blue-700 text-white font-semibold text-xs shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
+                      className="py-2.5 px-3.5 rounded-xl bg-blue-600 hover:bg-blue-500 active:bg-blue-700 text-white font-semibold text-xs shadow-lg shadow-blue-600/25 border border-cyan-400/30 transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                     >
                       {isVerifying ? (
                         <>
@@ -560,8 +561,8 @@ export const QuickVerification: React.FC = () => {
                     </button>
                   )}
 
-                  <label className="py-2.5 px-3.5 rounded-xl bg-white hover:bg-slate-50 border border-slate-300 text-slate-700 font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-xs">
-                    <Upload className="w-4 h-4 text-slate-500" />
+                  <label className="py-2.5 px-3.5 rounded-xl bg-white/5 hover:bg-white/10 border border-white/15 text-slate-200 font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer shadow-sm">
+                    <Upload className="w-4 h-4 text-slate-400" />
                     <span>Upload QR Image</span>
                     <input
                       type="file"
@@ -576,19 +577,19 @@ export const QuickVerification: React.FC = () => {
 
             {/* TAB 3: Real PDF Document Dropzone */}
             {activeTab === 'pdf' && (
-              <div className="bg-white p-6 rounded-2xl border-2 border-dashed border-slate-300 hover:border-blue-500 transition-colors text-center space-y-3">
-                <div className="w-12 h-12 mx-auto rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+              <div className="bg-[#0D1424] p-6 rounded-2xl border-2 border-dashed border-white/20 hover:border-cyan-400 transition-colors text-center space-y-3 shadow-xl">
+                <div className="w-12 h-12 mx-auto rounded-full bg-cyan-500/10 text-cyan-400 flex items-center justify-center border border-cyan-400/20">
                   <Upload className="w-6 h-6" />
                 </div>
                 <div>
-                  <h4 className="text-sm font-bold text-slate-800">
-                    Upload Degree Certificate PDF
+                  <h4 className="text-sm font-bold text-[#F1F5F9]">
+                    Upload Academic Certificate PDF
                   </h4>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Client-side SHA-256 fingerprint verified against ledger.
+                  <p className="text-xs text-slate-400 mt-0.5">
+                    Client-side SHA-256 fingerprint verified directly against the blockchain ledger.
                   </p>
                 </div>
-                <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#2563EB] hover:bg-blue-600 text-white text-xs font-semibold cursor-pointer shadow-md transition-all">
+                <label className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-500 text-white text-xs font-semibold cursor-pointer shadow-lg shadow-blue-600/25 border border-cyan-400/30 transition-all">
                   {isVerifying ? (
                     <>
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -610,7 +611,7 @@ export const QuickVerification: React.FC = () => {
 
             {/* Helper Subtext */}
             <p className="text-xs text-slate-400">
-              You can also scan the QR code on the certificate or upload the PDF file.
+              You can also scan the QR code on the certificate or upload the official PDF file.
             </p>
 
           </div>
@@ -635,22 +636,22 @@ export const QuickVerification: React.FC = () => {
         <div
           role="dialog"
           aria-modal="true"
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/65 backdrop-blur-md animate-in fade-in duration-200"
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200"
           onClick={() => setModalResult(null)}
         >
           <div
-            className="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl border border-slate-200/90 overflow-hidden transform animate-in zoom-in-95 duration-200"
+            className="relative w-full max-w-lg bg-[#0D1424] text-white rounded-3xl shadow-2xl border border-white/15 overflow-hidden transform animate-in zoom-in-95 duration-200"
             onClick={(e) => e.stopPropagation()}
           >
             {/* Modal Header Banner */}
             <div
               className={`p-6 sm:p-7 text-white relative overflow-hidden ${
                 modalResult.status === 'VALID'
-                  ? 'bg-gradient-to-br from-[#10233F] via-[#1B365D] to-[#2563EB]'
+                  ? 'bg-gradient-to-br from-[#064E3B] via-[#047857] to-[#10B981]'
                   : modalResult.status === 'REVOKED'
-                  ? 'bg-gradient-to-br from-[#3B0D0D] via-[#7F1D1D] to-[#DC2626]'
+                  ? 'bg-gradient-to-br from-[#78350F] via-[#B45309] to-[#D97706]'
                   : modalResult.status === 'INVALID_MODIFIED'
-                  ? 'bg-gradient-to-br from-[#450A0A] via-[#991B1B] to-[#EF4444]'
+                  ? 'bg-gradient-to-br from-[#7F1D1D] via-[#991B1B] to-[#EF4444]'
                   : 'bg-gradient-to-br from-[#1F2937] via-[#374151] to-[#4B5563]'
               }`}
             >
@@ -661,7 +662,7 @@ export const QuickVerification: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setModalResult(null)}
-                className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white/90 hover:text-white transition-colors cursor-pointer"
+                className="absolute top-4 right-4 p-2 rounded-full bg-black/20 hover:bg-black/30 text-white/90 hover:text-white transition-colors cursor-pointer"
                 aria-label="Close modal"
               >
                 <X className="w-5 h-5" />
@@ -671,174 +672,182 @@ export const QuickVerification: React.FC = () => {
                 <div
                   className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-lg ${
                     modalResult.status === 'VALID'
-                      ? 'bg-emerald-500 text-white'
-                      : modalResult.status === 'REVOKED' || modalResult.status === 'INVALID_MODIFIED'
-                      ? 'bg-red-500 text-white'
-                      : 'bg-amber-500 text-white'
+                      ? 'bg-white/20 backdrop-blur-md text-white'
+                      : modalResult.status === 'REVOKED'
+                      ? 'bg-white/20 backdrop-blur-md text-white'
+                      : 'bg-white/20 backdrop-blur-md text-white'
                   }`}
                 >
                   {modalResult.status === 'VALID' ? (
-                    <ShieldCheck className="w-7 h-7" />
+                    <ShieldCheck className="w-7 h-7 text-white" />
                   ) : modalResult.status === 'REVOKED' ? (
-                    <ShieldAlert className="w-7 h-7" />
-                  ) : modalResult.status === 'INVALID_MODIFIED' ? (
-                    <AlertTriangle className="w-7 h-7" />
+                    <ShieldAlert className="w-7 h-7 text-white" />
                   ) : (
-                    <AlertTriangle className="w-7 h-7" />
+                    <AlertTriangle className="w-7 h-7 text-white" />
                   )}
                 </div>
                 <div>
                   <span
                     className={`inline-block px-2.5 py-0.5 rounded-full text-[11px] font-bold tracking-wider uppercase ${
                       modalResult.status === 'VALID'
-                        ? 'bg-emerald-400/20 text-emerald-300 border border-emerald-400/30'
+                        ? 'bg-emerald-300/20 text-emerald-100 border border-emerald-300/30'
                         : modalResult.status === 'REVOKED'
-                        ? 'bg-red-400/20 text-red-200 border border-red-400/30'
-                        : modalResult.status === 'INVALID_MODIFIED'
-                        ? 'bg-red-400/20 text-red-200 border border-red-400/30'
-                        : 'bg-amber-400/20 text-amber-200 border border-amber-400/30'
+                        ? 'bg-amber-300/20 text-amber-100 border border-amber-300/30'
+                        : 'bg-red-300/20 text-red-100 border border-red-300/30'
                     }`}
                   >
                     {modalResult.status === 'VALID'
                       ? '● Verified Authentic'
                       : modalResult.status === 'REVOKED'
-                      ? '● Revoked Record'
+                      ? '● Revoked Certificate'
                       : modalResult.status === 'INVALID_MODIFIED'
-                      ? '● Tampered File'
+                      ? '● Tampered Document'
                       : '● Not Found'}
                   </span>
                   <h3 className="text-xl sm:text-2xl font-extrabold text-white mt-1">
                     {modalResult.status === 'VALID'
-                      ? 'Certificate Authenticity Verified'
+                      ? 'Certificate Verified'
                       : modalResult.status === 'REVOKED'
-                      ? 'Certificate Is Revoked'
+                      ? 'Certificate Revoked'
                       : modalResult.status === 'INVALID_MODIFIED'
-                      ? 'Tamper Alert: Modified File'
+                      ? 'Verification Failed: Tamper Detected'
                       : 'Record Not Found'}
                   </h3>
                 </div>
               </div>
 
-              <p className="text-xs text-slate-200/90 leading-relaxed max-w-md">
+              <p className="text-xs text-white/90 leading-relaxed max-w-md">
                 {modalResult.status === 'VALID'
-                  ? 'Cryptographic SHA-256 fingerprint authenticated against the Pundra University immutable blockchain ledger.'
+                  ? 'Cryptographic SHA-256 fingerprint authenticated against the immutable Ethereum Sepolia ledger. The certificate data has not been modified or tampered with since issuance.'
                   : modalResult.status === 'REVOKED'
-                  ? 'Warning: This credential was revoked by the University Controller of Examinations and is no longer valid.'
+                  ? 'Warning: This credential was revoked by the University Controller of Examinations and is no longer valid for official academic or employment verification.'
                   : modalResult.status === 'INVALID_MODIFIED'
-                  ? (modalResult.message || 'Warning: The cryptographic hash does not match the ledger record. This document has been altered or forged.')
+                  ? (modalResult.message || 'Warning: The cryptographic SHA-256 hash does not match the ledger record. This document has been altered or forged.')
                   : (modalResult.message || 'No certificate record with this identifier was found on the blockchain ledger.')}
               </p>
             </div>
 
             {/* Modal Body: Certificate Details */}
-            <div className="p-6 sm:p-7 space-y-4">
+            <div className="p-6 sm:p-7 space-y-4 bg-[#0D1424]">
               {modalResult.status === 'NOT_FOUND' ? (
-                <div className="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-2 text-slate-700">
-                  <p className="font-semibold text-slate-800">Searched Identifier:</p>
-                  <p className="font-mono bg-white p-2 rounded border border-slate-200 text-slate-900 break-all">
+                <div className="bg-[#121C2E] p-4 rounded-xl border border-white/10 text-xs space-y-2 text-slate-300">
+                  <p className="font-semibold text-white">Searched Identifier:</p>
+                  <p className="font-mono bg-[#080D18] p-2 rounded border border-white/10 text-cyan-300 break-all">
                     {modalResult.id}
                   </p>
-                  <p className="text-slate-500 pt-1">
+                  <p className="text-slate-400 pt-1">
                     Please ensure the Certificate ID is typed correctly, or scan the official QR code found on the certificate.
                   </p>
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
                   {/* Recipient */}
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                  <div className="bg-[#121C2E] p-3 rounded-xl border border-white/10">
                     <span className="text-[11px] text-slate-400 uppercase font-semibold block">
                       Graduate Name
                     </span>
-                    <span className="text-sm font-bold text-[#10233F] mt-0.5 block">
+                    <span className="text-sm font-bold text-white mt-0.5 block">
                       {modalResult.name}
                     </span>
                   </div>
 
                   {/* Certificate ID */}
-                  <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80">
+                  <div className="bg-[#121C2E] p-3 rounded-xl border border-white/10">
                     <span className="text-[11px] text-slate-400 uppercase font-semibold block">
                       Certificate ID
                     </span>
-                    <span className="text-xs sm:text-sm font-mono font-bold text-[#2563EB] mt-0.5 block">
+                    <span className="text-xs sm:text-sm font-mono font-bold text-cyan-300 mt-0.5 block">
                       {modalResult.id}
                     </span>
                   </div>
 
-                  {/* Academic Degree */}
-                  <div className="sm:col-span-2 bg-slate-50 p-3.5 rounded-xl border border-slate-200/80">
+                  {/* Academic Degree & Institution */}
+                  <div className="sm:col-span-2 bg-[#121C2E] p-3.5 rounded-xl border border-white/10">
                     <span className="text-[11px] text-slate-400 uppercase font-semibold block">
                       Academic Degree Awarded
                     </span>
-                    <span className="text-sm font-bold text-[#10233F] mt-0.5 block">
+                    <span className="text-sm font-bold text-white mt-0.5 block">
                       {modalResult.degree}
                     </span>
-                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500 mt-1.5 font-medium">
-                      <span>Institution: PUST</span>
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-400 mt-1.5 font-medium">
+                      <span>Institution: Pundra University of Science &amp; Technology (PUST)</span>
                       {modalResult.session && <span>Session: {modalResult.session}</span>}
                       {modalResult.cgpa && (
-                        <span className="font-semibold text-emerald-700">CGPA: {modalResult.cgpa}</span>
+                        <span className="font-semibold text-emerald-400">CGPA: {modalResult.cgpa}</span>
                       )}
                       {modalResult.issueDate && <span>Issued: {modalResult.issueDate}</span>}
                     </div>
 
                     {modalResult.revocationReason && (
-                      <div className="mt-2.5 pt-2 border-t border-red-100 text-red-700 text-xs font-semibold">
+                      <div className="mt-2.5 pt-2 border-t border-amber-500/20 text-amber-300 text-xs font-semibold">
                         Reason for Revocation: {modalResult.revocationReason}
                       </div>
                     )}
                   </div>
 
-                  {/* Blockchain Proof (if available) */}
+                  {/* Blockchain Proof & Explorer Link */}
                   {modalResult.txHash && (
-                    <div className="sm:col-span-2 p-3.5 rounded-xl bg-blue-50/70 border border-blue-200/80 text-[11px] space-y-1.5">
-                      <div className="flex items-center justify-between text-blue-900 font-bold">
+                    <div className="sm:col-span-2 p-3.5 rounded-xl bg-blue-500/10 border border-cyan-400/30 text-[11px] space-y-1.5">
+                      <div className="flex items-center justify-between text-cyan-300 font-bold">
                         <span>On-Chain Ledger Anchor</span>
-                        <span className="font-mono text-[10px] text-blue-700">{modalResult.blockNumber}</span>
+                        <span className="font-mono text-[10px] text-cyan-400">{modalResult.blockNumber}</span>
                       </div>
-                      <div className="flex items-center justify-between gap-2 font-mono text-slate-600 bg-white/80 p-2 rounded-lg border border-blue-100">
+                      <div className="flex items-center justify-between gap-2 font-mono text-slate-300 bg-[#080D18] p-2 rounded-lg border border-white/10">
                         <span className="truncate">{modalResult.txHash}</span>
-                        <button
-                          type="button"
-                          onClick={() => {
-                            navigator.clipboard?.writeText(modalResult.txHash);
-                            setCopiedHash(true);
-                            setTimeout(() => setCopiedHash(false), 2000);
-                          }}
-                          className="text-xs text-[#2563EB] hover:text-blue-800 font-sans font-semibold shrink-0 cursor-pointer"
-                        >
-                          {copiedHash ? 'Copied!' : 'Copy Hash'}
-                        </button>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              navigator.clipboard?.writeText(modalResult.txHash);
+                              setCopiedHash(true);
+                              setTimeout(() => setCopiedHash(false), 2000);
+                            }}
+                            className="text-xs text-cyan-400 hover:text-cyan-300 font-sans font-semibold cursor-pointer"
+                          >
+                            {copiedHash ? 'Copied!' : 'Copy'}
+                          </button>
+                          {modalResult.txHash.startsWith('0x') && (
+                            <a
+                              href={`https://sepolia.etherscan.io/tx/${modalResult.txHash}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-xs text-blue-400 hover:text-blue-300 font-sans font-semibold underline cursor-pointer"
+                            >
+                              Explorer &rarr;
+                            </a>
+                          )}
+                        </div>
                       </div>
                     </div>
                   )}
 
                   {/* Tamper Detection Cryptographic Comparison */}
                   {modalResult.status === 'INVALID_MODIFIED' && (
-                    <div className="sm:col-span-2 p-3.5 rounded-xl bg-red-50/90 border border-red-200 text-xs space-y-2.5">
-                      <div className="flex items-center gap-1.5 text-red-900 font-bold">
-                        <AlertTriangle className="w-4 h-4 text-red-600 shrink-0" />
+                    <div className="sm:col-span-2 p-3.5 rounded-xl bg-red-950/40 border border-red-500/30 text-xs space-y-2.5">
+                      <div className="flex items-center gap-1.5 text-red-300 font-bold">
+                        <AlertTriangle className="w-4 h-4 text-red-400 shrink-0" />
                         <span>Cryptographic Hash Mismatch (Tamper Detected)</span>
                       </div>
                       <div className="space-y-2 font-mono text-[11px]">
                         <div>
-                          <span className="text-[10px] uppercase font-sans font-semibold text-red-700 block mb-0.5">
+                          <span className="text-[10px] uppercase font-sans font-semibold text-red-400 block mb-0.5">
                             Computed File Hash (Uploaded File):
                           </span>
-                          <div className="bg-white p-2 rounded-lg border border-red-200 text-red-700 break-all select-all shadow-xs">
+                          <div className="bg-[#080D18] p-2 rounded-lg border border-red-500/30 text-red-400 break-all select-all">
                             {modalResult.computedHash || 'Mismatch Detected'}
                           </div>
                         </div>
                         <div>
-                          <span className="text-[10px] uppercase font-sans font-semibold text-emerald-800 block mb-0.5">
+                          <span className="text-[10px] uppercase font-sans font-semibold text-emerald-400 block mb-0.5">
                             Anchored Ledger Hash (Official Record):
                           </span>
-                          <div className="bg-white p-2 rounded-lg border border-emerald-200 text-emerald-800 break-all select-all shadow-xs">
+                          <div className="bg-[#080D18] p-2 rounded-lg border border-emerald-500/30 text-emerald-400 break-all select-all">
                             {modalResult.expectedHash || 'Anchored On-Chain Fingerprint'}
                           </div>
                         </div>
                       </div>
-                      <p className="text-[11px] text-red-700 font-sans leading-tight pt-0.5">
-                        Security Notice: Even a 1-character or 1-byte alteration in student name, CGPA, or degree text fundamentally changes the SHA-256 fingerprint, triggering instant fraud prevention.
+                      <p className="text-[11px] text-red-300/80 font-sans leading-tight pt-0.5">
+                        Security Notice: Even a 1-character alteration in student name, CGPA, or degree text fundamentally changes the SHA-256 fingerprint, triggering instant fraud prevention.
                       </p>
                     </div>
                   )}
@@ -850,9 +859,9 @@ export const QuickVerification: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setModalResult(null)}
-                  className="w-full py-3 rounded-xl bg-[#2563EB] hover:bg-blue-600 text-white font-semibold text-sm shadow-md shadow-blue-500/20 transition-all cursor-pointer text-center"
+                  className="w-full py-3 rounded-xl bg-blue-600 hover:bg-blue-500 text-white font-semibold text-sm shadow-lg shadow-blue-600/25 border border-cyan-400/30 transition-all cursor-pointer text-center"
                 >
-                  Done & Close
+                  Done &amp; Close
                 </button>
               </div>
             </div>

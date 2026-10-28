@@ -13,7 +13,7 @@ import { CtaBanner } from '@/components/public/CtaBanner';
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0B2545]">
+    <div className="min-h-screen flex flex-col bg-[#080D18] text-[#F1F5F9] selection:bg-cyan-500/20 selection:text-cyan-200">
       {/* Main Header */}
       <Header />
 

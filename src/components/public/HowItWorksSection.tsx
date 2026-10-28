@@ -1,233 +1,312 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import {
-  
+  FileText,
+  Fingerprint,
+  Link as ChainLink,
   ShieldCheck,
+  Share2,
+  Building,
+  GraduationCap,
+  Briefcase,
   ArrowRight,
   CheckCircle2,
-  
 } from 'lucide-react';
 
 export const HowItWorksSection: React.FC = () => {
-  const steps = [
+  const [activeRoleTab, setActiveRoleTab] = useState<'issuers' | 'students' | 'verifiers'>('issuers');
+
+  const lifecycleStages = [
     {
       num: '01',
-      badge: 'Issuance',
-      badgeColor: 'bg-blue-50 text-blue-700 border-blue-200/80',
-      title: 'Issue Certificate',
+      title: 'Issue',
+      subtitle: 'Official Synthesis',
       description:
-        'University staff generates and digitally issues an official certificate (PDF) with student credentials and academic metadata.',
-      highlight: 'Tamper-Proof PDF Format',
-      icon: (
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z" />
-          <polyline points="14 2 14 8 20 8" />
-          <line x1="16" y1="13" x2="8" y2="13" />
-          <line x1="16" y1="17" x2="8" y2="17" />
-          <line x1="10" y1="9" x2="8" y2="9" />
-        </svg>
-      ),
+        'Authorized Registrar generates authentic degree credentials with student identity and academic records pre-matched against institutional data.',
+      icon: <FileText className="w-5 h-5 text-blue-400" />,
+      tag: 'Vector PDF',
     },
     {
       num: '02',
-      badge: 'Cryptography',
-      badgeColor: 'bg-indigo-50 text-indigo-700 border-indigo-200/80',
-      title: 'Generate Hash',
+      title: 'Generate Fingerprint',
+      subtitle: 'Cryptographic Hash',
       description:
-        'A cryptographic SHA-256 digital fingerprint is computed from the certificate. Changing even a single pixel alters the hash completely.',
-      highlight: 'SHA-256 Digital Fingerprint',
-      icon: (
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.4"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <line x1="4" y1="9" x2="20" y2="9" />
-          <line x1="4" y1="15" x2="20" y2="15" />
-          <line x1="10" y1="3" x2="8" y2="21" />
-          <line x1="16" y1="3" x2="14" y2="21" />
-        </svg>
-      ),
+        'A deterministic SHA-256 cryptographic digest is computed directly from the PDF bytes. Changing even one character produces a totally different hash.',
+      icon: <Fingerprint className="w-5 h-5 text-cyan-400" />,
+      tag: 'SHA-256 Digest',
     },
     {
       num: '03',
-      badge: 'Blockchain',
-      badgeColor: 'bg-purple-50 text-purple-700 border-purple-200/80',
-      title: 'Record on Blockchain',
+      title: 'Anchor on Chain',
+      subtitle: 'Smart Contract',
       description:
-        'The hash, Certificate ID, university identity, and issue date are permanently written to an immutable decentralized smart contract.',
-      highlight: 'Immutable Smart Contract',
-      icon: (
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z" />
-          <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
-          <line x1="12" y1="22.08" x2="12" y2="12" />
-        </svg>
-      ),
+        'The hash, unique Certificate ID, issuer address, and timestamp are permanently inscribed onto the decentralized blockchain ledger.',
+      icon: <ChainLink className="w-5 h-5 text-teal-400" />,
+      tag: 'Zero Personal Data',
     },
     {
       num: '04',
-      badge: 'Verification',
-      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200/80',
-      title: 'Verify Certificate',
+      title: 'Verify',
+      subtitle: 'Zero-Gas Lookup',
       description:
-        'Anyone can instantly verify authenticity within seconds by entering the ID, scanning the QR code, or uploading the PDF document.',
-      highlight: 'Instant Global Validation',
-      icon: (
-        <svg
-          width="24"
-          height="24"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2.2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          <polyline points="9 12 11 14 15 10" />
-        </svg>
-      ),
+        'Anyone can instantly verify credentials worldwide using the Certificate ID, scanning the printed QR code, or uploading the PDF for browser-based checking.',
+      icon: <ShieldCheck className="w-5 h-5 text-emerald-400" />,
+      tag: 'Sub-Second',
+    },
+    {
+      num: '05',
+      title: 'Share',
+      subtitle: 'Expiring Permissions',
+      description:
+        'Graduates generate time-limited verification links (/s/[token]) for job applications, allowing employers to inspect authenticated records directly.',
+      icon: <Share2 className="w-5 h-5 text-indigo-400" />,
+      tag: 'Time-Limited Links',
     },
   ];
+
+  const roleWorkflows = {
+    issuers: {
+      roleTitle: 'University Issuers & Controller of Examinations',
+      roleIcon: <Building className="w-5 h-5 text-cyan-400" />,
+      description:
+        'Institutional authorities manage credential governance with cryptographic accountability.',
+      steps: [
+        {
+          step: '1',
+          name: 'Registrar Authorization',
+          detail: 'Controller of Examinations approves authorized issuer wallets on the smart contract.',
+        },
+        {
+          step: '2',
+          name: 'Single & Bulk Batch Issuance',
+          detail: 'Issue individual degrees or batch-process graduating cohorts from CSV files in a single transaction.',
+        },
+        {
+          step: '3',
+          name: 'Automated Student Dispatch',
+          detail: 'Synthesizes tamper-proof PDFs with QR stamps and triggers automated congratulatory emails.',
+        },
+        {
+          step: '4',
+          name: 'Deliberate Revocation Governance',
+          detail: 'Initiate or co-sign revocation requests with documented justification for errors or disciplinary actions.',
+        },
+      ],
+    },
+    students: {
+      roleTitle: 'Graduates & Students',
+      roleIcon: <GraduationCap className="w-5 h-5 text-blue-400" />,
+      description:
+        'Graduates maintain complete, lifetime ownership of their academic credentials.',
+      steps: [
+        {
+          step: '1',
+          name: 'Secure Portal Access',
+          detail: 'Sign in to access your complete portfolio of degree certificates, provisional certificates, and transcripts.',
+        },
+        {
+          step: '2',
+          name: 'Download Official PDFs',
+          detail: 'Export high-resolution, vector-rendered certificates with embedded QR codes and blockchain anchors.',
+        },
+        {
+          step: '3',
+          name: 'Generate Employer Share Links',
+          detail: 'Create time-limited verification URLs (24h, 48h, 7 days) to attach directly to CVs and job applications.',
+        },
+        {
+          step: '4',
+          name: 'Personal Verification Log',
+          detail: 'Track when employers and scholarship boards view or verify your credentials.',
+        },
+      ],
+    },
+    verifiers: {
+      roleTitle: 'Employers, Foreign Universities & Embassies',
+      roleIcon: <Briefcase className="w-5 h-5 text-emerald-400" />,
+      description:
+        'Verify applicant credentials instantaneously without phone calls, delays, or paying blockchain gas.',
+      steps: [
+        {
+          step: '1',
+          name: 'No Account Required',
+          detail: 'Visit the public verification page on any browser or mobile device — 100% free and open.',
+        },
+        {
+          step: '2',
+          name: 'Multi-Modal Verification',
+          detail: 'Verify by typing Certificate ID, scanning the certificate QR code, or uploading the student PDF.',
+        },
+        {
+          step: '3',
+          name: 'Instant Ledger Comparison',
+          detail: 'System recomputes the SHA-256 digest client-side and validates against the blockchain record.',
+        },
+        {
+          step: '4',
+          name: 'Unmistakable Results',
+          detail: 'Get instant, definitive status: VALID (Authentic), REVOKED (with reason), or INVALID (Tampered / Not Found).',
+        },
+      ],
+    },
+  };
 
   return (
     <section
       id="how-it-works"
-      className="relative bg-gradient-to-b from-[#F6F9FD] via-[#EDF3FA] to-[#F6F9FD] py-20 sm:py-24 border-b border-slate-200/80 overflow-hidden"
+      className="bg-[#0D1424] py-20 sm:py-28 border-b border-white/10 relative overflow-hidden"
     >
-      {/* Background Soft Accent Glows */}
-      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[800px] h-[350px] bg-blue-400/5 rounded-full blur-3xl pointer-events-none" />
+      {/* Background Soft Lighting */}
+      <div className="absolute top-1/4 right-1/4 w-[600px] h-[350px] bg-cyan-500/10 rounded-full blur-[140px] pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* Section Header: Executive & Clean */}
-        <div className="flex flex-col md:flex-row md:items-end md:justify-between mb-14 sm:mb-16 gap-4">
-          <div className="space-y-2">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-blue-50 border border-blue-200/70 text-[#2563EB] shadow-xs">
-              <span className="w-2 h-2 rounded-full bg-[#2563EB] animate-pulse" />
-              <span className="text-[11px] font-bold tracking-widest uppercase">
-                Simple & Transparent Process
-              </span>
-            </div>
-            <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-[#0B2545] tracking-tight">
-              How It Works
-            </h2>
-            <p className="text-slate-600 text-sm sm:text-base leading-relaxed max-w-xl">
-              From cryptographic issuance to instant global verification — all secured permanently on the blockchain.
-            </p>
+        {/* Section Header */}
+        <div className="text-center max-w-3xl mx-auto space-y-3 mb-16">
+          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-400/30 shadow-inner">
+            <span className="w-1.5 h-1.5 rounded-full bg-cyan-400" />
+            <span className="text-[11px] font-bold tracking-widest uppercase text-cyan-300">
+              End-to-End Workflow
+            </span>
           </div>
-
-          {/* Right Header Pill: Security Guarantee */}
-          <div className="hidden md:flex items-center gap-3 bg-white/80 backdrop-blur-sm border border-slate-200/80 px-4 py-2.5 rounded-xl shadow-xs text-xs font-semibold text-slate-700">
-            <div className="w-7 h-7 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center border border-emerald-200/60">
-              <ShieldCheck className="w-4 h-4" />
-            </div>
-            <span>100% Tamper-Evident & Immutable</span>
-          </div>
+          <h2 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold text-[#F1F5F9] tracking-tight">
+            The Credential Lifecycle
+          </h2>
+          <p className="text-slate-400 text-sm sm:text-base leading-relaxed max-w-2xl mx-auto font-normal">
+            From university issuance to global employer verification. Five simple stages powered by mathematical cryptography.
+          </p>
         </div>
 
-        {/* 4 Professional Pipeline Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-7 relative">
-          {steps.map((step, idx) => (
+        {/* 5 Lifecycle Steps Horizontal Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4 sm:gap-5 mb-16">
+          {lifecycleStages.map((stage, idx) => (
             <div
-              key={step.num}
-              className="relative bg-white/95 backdrop-blur-sm rounded-2xl p-6 sm:p-7 border border-slate-200/90 shadow-[0_4px_20px_rgba(15,23,42,0.04)] hover:shadow-[0_16px_36px_rgba(37,99,235,0.12)] hover:-translate-y-1.5 hover:border-blue-300 transition-all duration-300 flex flex-col justify-between group overflow-visible"
+              key={stage.num}
+              className="dark-liquid-glass rounded-2xl p-5 border border-white/10 relative flex flex-col justify-between text-left group hover:border-cyan-400/40 transition-all duration-200"
             >
-              {/* Top Accent Gradient Bar on Hover */}
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 via-sky-500 to-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity rounded-t-2xl" />
-
               <div>
-                {/* Top Row: Icon Container & Step Number */}
-                <div className="flex items-center justify-between mb-5">
-                  <div className="w-13 h-13 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100/70 border border-blue-200/70 text-[#2563EB] flex items-center justify-center shadow-xs group-hover:scale-110 group-hover:bg-[#2563EB] group-hover:text-white group-hover:border-blue-600 transition-all duration-300">
-                    {step.icon}
+                {/* Header: Icon & Step Number */}
+                <div className="flex items-center justify-between mb-4">
+                  <div className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center group-hover:scale-105 transition-transform">
+                    {stage.icon}
                   </div>
-
-                  <div className="flex items-center gap-1">
-                    <span className="text-[11px] font-bold text-slate-400 group-hover:text-blue-500 transition-colors uppercase tracking-wider">
-                      Step
-                    </span>
-                    <span className="text-2xl font-black text-slate-300 group-hover:text-[#2563EB]/50 transition-colors font-mono">
-                      {step.num}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Badge Tag */}
-                <div className="inline-block mb-3">
-                  <span
-                    className={`text-[10px] font-bold tracking-widest uppercase px-2.5 py-1 rounded-md border ${step.badgeColor}`}
-                  >
-                    {step.badge}
+                  <span className="text-xs font-mono font-bold text-cyan-400/60 group-hover:text-cyan-400 transition-colors">
+                    {stage.num}
                   </span>
                 </div>
 
-                {/* Title */}
-                <h3 className="text-base sm:text-lg font-bold text-slate-900 group-hover:text-[#2563EB] transition-colors tracking-tight">
-                  {step.title}
-                </h3>
+                <div className="mb-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
+                    {stage.subtitle}
+                  </span>
+                  <h3 className="text-base font-bold text-white group-hover:text-cyan-200 transition-colors">
+                    {stage.title}
+                  </h3>
+                </div>
 
-                {/* Description */}
-                <p className="text-xs sm:text-sm text-slate-600 leading-relaxed mt-2 font-normal">
-                  {step.description}
+                <p className="text-xs text-slate-400 leading-relaxed font-normal">
+                  {stage.description}
                 </p>
               </div>
 
-              {/* Bottom Micro Highlight */}
-              <div className="mt-6 pt-4 border-t border-slate-100 flex items-center gap-2 text-[11px] font-medium text-slate-500 group-hover:text-blue-600 transition-colors">
-                <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                <span>{step.highlight}</span>
+              <div className="mt-4 pt-3 border-t border-white/5 flex items-center justify-between text-[10px] font-medium text-slate-400">
+                <span className="text-cyan-300">{stage.tag}</span>
+                {idx < lifecycleStages.length - 1 && (
+                  <ArrowRight className="w-3 h-3 text-slate-400 hidden lg:block opacity-60" />
+                )}
               </div>
-
-              {/* Connecting Circle Arrow between cards on desktop */}
-              {idx < steps.length - 1 && (
-                <div className="hidden lg:flex items-center justify-center absolute -right-3.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 rounded-full bg-white border border-slate-200 shadow-md text-slate-400 group-hover:text-blue-600 group-hover:border-blue-400 transition-colors pointer-events-none">
-                  <ArrowRight className="w-3.5 h-3.5" />
-                </div>
-              )}
             </div>
           ))}
         </div>
 
-        {/* Bottom Assurance Bar */}
-        <div className="mt-12 sm:mt-14 pt-8 border-t border-slate-200/80 flex flex-wrap items-center justify-center gap-6 sm:gap-10 text-xs sm:text-sm text-slate-600 font-medium">
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-blue-600" />
-            <span>Zero manual verification required</span>
+        {/* Role-Specific Workflows Tabs Container */}
+        <div className="dark-liquid-glass rounded-3xl p-6 sm:p-10 border border-white/10 shadow-2xl">
+          
+          {/* Header & Tabs */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 border-b border-white/10 pb-6 mb-8">
+            <div>
+              <span className="text-xs font-bold uppercase tracking-wider text-cyan-400 block mb-1">
+                Audience Workflows
+              </span>
+              <h3 className="text-xl sm:text-2xl font-extrabold text-white">
+                How CertChain Works For You
+              </h3>
+            </div>
+
+            {/* Tab Buttons */}
+            <div className="flex flex-wrap items-center gap-2 bg-[#080D18] p-1.5 rounded-2xl border border-white/10">
+              <button
+                onClick={() => setActiveRoleTab('issuers')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  activeRoleTab === 'issuers'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Building className="w-4 h-4" />
+                <span>University Staff</span>
+              </button>
+
+              <button
+                onClick={() => setActiveRoleTab('students')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  activeRoleTab === 'students'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <GraduationCap className="w-4 h-4" />
+                <span>Graduates & Students</span>
+              </button>
+
+              <button
+                onClick={() => setActiveRoleTab('verifiers')}
+                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
+                  activeRoleTab === 'verifiers'
+                    ? 'bg-blue-600 text-white shadow-md'
+                    : 'text-slate-400 hover:text-white'
+                }`}
+              >
+                <Briefcase className="w-4 h-4" />
+                <span>Employers & Verifiers</span>
+              </button>
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-blue-600" />
-            <span>Works in any web browser without plugins</span>
+
+          {/* Active Role Content */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center">
+                {roleWorkflows[activeRoleTab].roleIcon}
+              </div>
+              <div>
+                <h4 className="text-base sm:text-lg font-bold text-white">
+                  {roleWorkflows[activeRoleTab].roleTitle}
+                </h4>
+                <p className="text-xs sm:text-sm text-slate-400">
+                  {roleWorkflows[activeRoleTab].description}
+                </p>
+              </div>
+            </div>
+
+            {/* 4 Steps Bento Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {roleWorkflows[activeRoleTab].steps.map((st) => (
+                <div
+                  key={st.step}
+                  className="bg-white/5 rounded-2xl p-5 border border-white/5 hover:border-white/15 transition-all text-left"
+                >
+                  <div className="w-7 h-7 rounded-lg bg-blue-500/20 text-cyan-300 font-mono font-bold text-xs flex items-center justify-center mb-3">
+                    {st.step}
+                  </div>
+                  <h5 className="text-sm font-bold text-slate-200 mb-1.5">{st.name}</h5>
+                  <p className="text-xs text-slate-400 leading-relaxed font-normal">{st.detail}</p>
+                </div>
+              ))}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-blue-600" />
-            <span>Cryptographic mathematical certainty</span>
-          </div>
+
         </div>
 
       </div>

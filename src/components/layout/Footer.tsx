@@ -1,9 +1,9 @@
 'use client';
 
 import React from 'react';
-
 import Link from 'next/link';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, ExternalLink, CheckCircle2 } from 'lucide-react';
+
 export const Footer: React.FC = () => {
   const scrollTo = (id: string) => {
     const el = document.getElementById(id);
@@ -11,187 +11,138 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="bg-[#050D1A] text-slate-400 border-t border-slate-800/80 pt-16 pb-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <footer className="bg-[#080D18] text-slate-400 border-t border-white/10 pt-16 pb-12 relative overflow-hidden">
+      {/* Background Soft Accent */}
+      <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-3/4 h-48 bg-blue-600/5 blur-[120px] pointer-events-none" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
-        {/* 4 Columns Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-slate-800/80">
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-12 gap-10 pb-12 border-b border-white/10">
           
-          {/* Column 1: Brand Info */}
+          {/* Column 1: Brand Info & Attribution */}
           <div className="lg:col-span-5 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center shadow-lg shadow-blue-500/25 border border-blue-400/40">
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 via-indigo-600 to-cyan-400 flex items-center justify-center shadow-lg shadow-cyan-500/20 border border-cyan-400/40">
                 <ShieldCheck className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="font-bold text-lg tracking-tight text-white">
+                <span className="font-extrabold text-lg tracking-tight text-white">
                   PUB CertChain
                 </span>
-                <span className="text-[10px] text-slate-400 tracking-wide font-normal -mt-0.5">
-                  Academic Credential Verification
+                <span className="text-[11px] text-slate-400 tracking-wide font-medium -mt-0.5">
+                  Academic Credential Verification System
                 </span>
               </div>
             </div>
-            <p className="text-xs text-slate-400 leading-relaxed max-w-sm">
-              Blockchain-based academic credential verification infrastructure ensuring tamper-proof, transparent and permanent degree records.
+            <p className="text-xs text-slate-400 leading-relaxed max-w-sm font-normal">
+              An institutional blockchain credential registry anchoring SHA-256 digital certificate fingerprints onto decentralized smart contracts for permanent, tamper-evident verification.
             </p>
+            <div className="pt-1 flex items-center gap-2 text-[11px] text-cyan-300 font-mono">
+              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-400 shrink-0" />
+              <span>PUB CSE Fest-26 Hackathon · Problem A1</span>
+            </div>
           </div>
 
-          {/* Column 2: Quick Links */}
-          <div className="lg:col-span-2 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              Quick Links
+          {/* Column 2: Platform Navigation */}
+          <div className="lg:col-span-3 space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              Platform Navigation
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <button
                   onClick={() => scrollTo('hero')}
-                  className="hover:text-white transition-colors"
+                  className="hover:text-cyan-300 transition-colors cursor-pointer"
                 >
-                  Home
+                  Platform Overview
                 </button>
               </li>
               <li>
                 <button
                   onClick={() => scrollTo('how-it-works')}
-                  className="hover:text-white transition-colors"
+                  className="hover:text-cyan-300 transition-colors cursor-pointer"
                 >
-                  How It Works
+                  Credential Lifecycle & Workflows
                 </button>
               </li>
               <li>
                 <button
                   onClick={() => scrollTo('features')}
-                  className="hover:text-white transition-colors"
+                  className="hover:text-cyan-300 transition-colors cursor-pointer"
                 >
-                  Features
+                  Security & Architecture
                 </button>
               </li>
               <li>
                 <button
-                  onClick={() => scrollTo('about')}
-                  className="hover:text-white transition-colors"
+                  onClick={() => scrollTo('verify')}
+                  className="hover:text-cyan-300 transition-colors cursor-pointer"
                 >
-                  About
-                </button>
-              </li>
-              <li>
-                <button
-                  onClick={() => scrollTo('contact')}
-                  className="hover:text-white transition-colors"
-                >
-                  Contact
+                  Public Verification Portal
                 </button>
               </li>
             </ul>
           </div>
 
-          {/* Column 3: For Users */}
-          <div className="lg:col-span-2 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              For Users
+          {/* Column 3: Institutional Portals */}
+          <div className="lg:col-span-4 space-y-3">
+            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-200">
+              Authorized Portals
             </h4>
             <ul className="space-y-2 text-xs">
               <li>
                 <Link
                   href="/login"
-                  className="hover:text-white transition-colors block"
+                  className="hover:text-cyan-300 transition-colors flex items-center gap-1.5"
                 >
-                  Students Portal (Sign In)
+                  <span>Student Portal (View & Share Credentials)</span>
                 </Link>
               </li>
               <li>
                 <Link
-                  href="/register"
-                  className="hover:text-white transition-colors block"
+                  href="/login"
+                  className="hover:text-cyan-300 transition-colors flex items-center gap-1.5"
                 >
-                  Staff Access & Registration
+                  <span>Registrar & Issuer Workspace</span>
                 </Link>
               </li>
               <li>
-                <button
-                  onClick={() => scrollTo('verify')}
-                  className="hover:text-white transition-colors"
+                <Link
+                  href="/login"
+                  className="hover:text-cyan-300 transition-colors flex items-center gap-1.5"
                 >
-                  Verification Page
-                </button>
-              </li>
-            </ul>
-          </div>
-
-          {/* Column 4: Support */}
-          <div className="lg:col-span-3 space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-white">
-              Support
-            </h4>
-            <ul className="space-y-2 text-xs">
-              <li>
-                <span className="hover:text-white transition-colors cursor-pointer">
-                  Help Center
-                </span>
+                  <span>Controller of Examinations Desk</span>
+                </Link>
               </li>
               <li>
-                <span className="hover:text-white transition-colors cursor-pointer">
-                  Privacy Policy
-                </span>
-              </li>
-              <li>
-                <span className="hover:text-white transition-colors cursor-pointer">
-                  Terms of Service
-                </span>
+                <a
+                  href="https://github.com/Md-Shakib-Akando/CertChain"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="inline-flex items-center gap-1.5 text-cyan-400 hover:text-cyan-300 pt-1 font-semibold"
+                >
+                  <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24" aria-hidden="true">
+                    <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z" />
+                  </svg>
+                  <span>GitHub Repository</span>
+                  <ExternalLink className="w-3 h-3" />
+                </a>
               </li>
             </ul>
           </div>
 
         </div>
 
-        {/* Bottom Bar: Copyright & Social Media Icons */}
-        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-          <p className="text-slate-400">
-            &copy; 2026 PUB CertChain. All rights reserved.
+        {/* Bottom Bar */}
+        <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-slate-400">
+          <p>
+            &copy; 2026 PUB CertChain. Pundra University of Science & Technology (PUST / PUB). All rights reserved.
           </p>
-
-          <div className="flex items-center gap-5 text-slate-400">
-            {/* LinkedIn */}
-            <a
-              href="#linkedin"
-              aria-label="LinkedIn"
-              className="hover:text-white transition-colors"
-            >
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.88 8.56a1.68 1.68 0 0 0 1.68-1.68c0-.93-.75-1.69-1.68-1.69a1.69 1.69 0 0 0-1.69 1.69c0 .93.76 1.68 1.69 1.68m1.39 9.94v-8.37H5.5v8.37h2.77z"/>
-              </svg>
-            </a>
-            {/* Facebook */}
-            <a
-              href="#facebook"
-              aria-label="Facebook"
-              className="hover:text-white transition-colors"
-            >
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M12 2.04c-5.5 0-10 4.49-10 10.02 0 5 3.66 9.15 8.44 9.9v-7H7.9v-2.9h2.54V9.85c0-2.51 1.49-3.89 3.78-3.89 1.09 0 2.23.19 2.23.19v2.47h-1.26c-1.24 0-1.63.77-1.63 1.56v1.88h2.78l-.45 2.9h-2.33v7a10 10 0 0 0 8.44-9.9c0-5.53-4.5-10.02-10-10.02z"/>
-              </svg>
-            </a>
-            {/* Twitter / X */}
-            <a
-              href="#twitter"
-              aria-label="Twitter / X"
-              className="hover:text-white transition-colors"
-            >
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
-              </svg>
-            </a>
-            {/* YouTube */}
-            <a
-              href="#youtube"
-              aria-label="YouTube"
-              className="hover:text-white transition-colors"
-            >
-              <svg className="w-4 h-4 fill-current" viewBox="0 0 24 24">
-                <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
-              </svg>
-            </a>
+          <div className="flex items-center gap-4 text-xs">
+            <span className="font-mono text-[11px] text-slate-400">
+              Solidity 0.8.20 · Next.js 16 · Hardhat · OpenZeppelin
+            </span>
           </div>
         </div>
 

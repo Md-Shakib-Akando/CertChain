@@ -82,23 +82,23 @@ export const IssuerTopHeader: React.FC<IssuerTopHeaderProps> = ({
   const currentTabInfo = tabTitles[activeTab] || tabTitles.overview;
 
   return (
-    <header className="bg-white border-b border-slate-200/90 h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between shrink-0 z-20 shadow-xs">
+    <header className="bg-[#0D1424]/90 backdrop-blur-xl border-b border-white/10 h-16 px-4 sm:px-6 lg:px-8 flex items-center justify-between shrink-0 z-20">
       {/* Left: Mobile Toggle & Page Header */}
       <div className="flex items-center gap-3 sm:gap-4 min-w-0">
         <button
           type="button"
           onClick={onToggleMobileMenu}
-          className="lg:hidden p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer"
+          className="lg:hidden p-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 border border-white/10 transition cursor-pointer"
           title="Open Navigation"
         >
           <Menu className="w-5 h-5" />
         </button>
 
         <div className="min-w-0">
-          <h2 className="text-base sm:text-lg font-extrabold text-[#0B1F3A] tracking-tight truncate">
+          <h2 className="text-base sm:text-lg font-extrabold text-[#F1F5F9] tracking-tight truncate">
             {currentTabInfo.title}
           </h2>
-          <p className="text-[11px] text-slate-500 truncate hidden sm:block">
+          <p className="text-[11px] text-[#94A3B8] truncate hidden sm:block">
             {currentTabInfo.subtitle}
           </p>
         </div>
@@ -111,7 +111,7 @@ export const IssuerTopHeader: React.FC<IssuerTopHeaderProps> = ({
           <button
             type="button"
             onClick={() => onSelectTab('issue')}
-            className="px-3 py-1.5 rounded-xl bg-blue-50 text-[#2563EB] hover:bg-blue-100 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-blue-600/20 text-cyan-300 border border-cyan-400/30 hover:bg-blue-600/30 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
           >
             <FilePlus className="w-3.5 h-3.5" />
             <span>Issue Cert</span>
@@ -119,7 +119,7 @@ export const IssuerTopHeader: React.FC<IssuerTopHeaderProps> = ({
           <button
             type="button"
             onClick={() => onSelectTab('batch')}
-            className="px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            className="px-3 py-1.5 rounded-xl bg-emerald-500/15 text-emerald-300 border border-emerald-400/30 hover:bg-emerald-500/25 text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
           >
             <FileSpreadsheet className="w-3.5 h-3.5" />
             <span>Batch CSV</span>
@@ -127,8 +127,8 @@ export const IssuerTopHeader: React.FC<IssuerTopHeaderProps> = ({
         </div>
 
         {/* Live Blockchain Network Badge */}
-        <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
-          <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+        <div className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-white/5 text-emerald-400 border border-emerald-500/30">
+          <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
           <span>Hardhat / Sepolia</span>
         </div>
 
@@ -137,10 +137,10 @@ export const IssuerTopHeader: React.FC<IssuerTopHeaderProps> = ({
           type="button"
           onClick={onRefresh}
           disabled={isLoading}
-          className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition disabled:opacity-50 cursor-pointer"
+          className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-white/10 transition disabled:opacity-50 cursor-pointer"
           title="Refresh Data"
         >
-          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-[#2563EB]' : ''}`} />
+          <RefreshCw className={`w-4 h-4 ${isLoading ? 'animate-spin text-cyan-400' : ''}`} />
         </button>
 
         {/* Notification Bell */}
@@ -148,31 +148,31 @@ export const IssuerTopHeader: React.FC<IssuerTopHeaderProps> = ({
           <button
             type="button"
             onClick={() => onSelectTab('audit')}
-            className="p-2 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition cursor-pointer relative"
+            className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-white/5 border border-white/10 transition cursor-pointer relative"
             title="Audit Notifications"
           >
             <Bell className="w-4 h-4" />
-            <span className="w-2 h-2 rounded-full bg-blue-600 absolute top-1.5 right-1.5" />
+            <span className="w-2 h-2 rounded-full bg-cyan-400 absolute top-1.5 right-1.5" />
           </button>
         </div>
 
-        <div className="h-6 w-[1px] bg-slate-200 mx-1 hidden sm:block" />
+        <div className="h-6 w-[1px] bg-white/10 mx-1 hidden sm:block" />
 
         {/* Profile Dropdown */}
         <div className="relative" ref={dropdownRef}>
           <button
             type="button"
             onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-            className="flex items-center gap-2.5 p-1 sm:px-2.5 sm:py-1.5 rounded-xl hover:bg-slate-100 transition cursor-pointer"
+            className="flex items-center gap-2.5 p-1 sm:px-2.5 sm:py-1.5 rounded-xl border border-white/10 bg-white/5 hover:bg-white/10 transition cursor-pointer"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-blue-600 to-indigo-700 text-white font-bold text-xs flex items-center justify-center shrink-0 shadow-xs">
+            <div className="w-8 h-8 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 font-bold text-xs flex items-center justify-center shrink-0">
               RO
             </div>
             <div className="hidden md:block text-left min-w-0">
-              <span className="text-xs font-bold text-[#0B1F3A] block truncate leading-tight">
+              <span className="text-xs font-bold text-[#F1F5F9] block truncate leading-tight">
                 {issuerName}
               </span>
-              <span className="text-[10px] text-slate-500 font-medium block truncate">
+              <span className="text-[10px] text-slate-400 font-medium block truncate">
                 Authorized Issuer
               </span>
             </div>
@@ -180,14 +180,14 @@ export const IssuerTopHeader: React.FC<IssuerTopHeaderProps> = ({
           </button>
 
           {profileDropdownOpen && (
-            <div className="absolute right-0 mt-2 w-64 bg-white rounded-2xl shadow-xl border border-slate-200 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
-              <div className="px-4 py-3 border-b border-slate-100">
+            <div className="absolute right-0 mt-2 w-64 bg-[#121C2E] rounded-2xl shadow-2xl border border-white/15 py-2 z-50 animate-in fade-in zoom-in-95 duration-150">
+              <div className="px-4 py-3 border-b border-white/10">
                 <span className="text-[10px] uppercase tracking-wider font-bold text-slate-400 block mb-1">
                   Signed in as
                 </span>
-                <p className="text-xs font-bold text-[#0B1F3A] truncate">{issuerName}</p>
-                <p className="text-[11px] text-slate-500 truncate">{issuerEmail}</p>
-                <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-blue-50 text-[#2563EB] text-[10px] font-bold">
+                <p className="text-xs font-bold text-[#F1F5F9] truncate">{issuerName}</p>
+                <p className="text-[11px] text-slate-400 truncate font-mono">{issuerEmail}</p>
+                <div className="mt-2 inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 text-[10px] font-bold">
                   <ShieldCheck className="w-3 h-3" />
                   <span>On-Chain Authorized Issuer</span>
                 </div>
@@ -200,7 +200,7 @@ export const IssuerTopHeader: React.FC<IssuerTopHeaderProps> = ({
                     setProfileDropdownOpen(false);
                     onSelectTab('overview');
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 transition flex items-center gap-2 cursor-pointer"
+                  className="w-full text-left px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2 cursor-pointer"
                 >
                   <User className="w-4 h-4 text-slate-400" />
                   <span>Issuer Profile &amp; Role</span>
@@ -211,23 +211,23 @@ export const IssuerTopHeader: React.FC<IssuerTopHeaderProps> = ({
                     setProfileDropdownOpen(false);
                     onSelectTab('audit');
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl text-slate-700 hover:bg-slate-100 transition flex items-center gap-2 cursor-pointer"
+                  className="w-full text-left px-3 py-2 rounded-xl text-slate-300 hover:text-white hover:bg-white/5 transition flex items-center gap-2 cursor-pointer"
                 >
                   <Bell className="w-4 h-4 text-slate-400" />
                   <span>Audit Trail</span>
                 </button>
               </div>
 
-              <div className="p-1 border-t border-slate-100">
+              <div className="p-1 border-t border-white/10">
                 <button
                   type="button"
                   onClick={() => {
                     setProfileDropdownOpen(false);
                     onLogout();
                   }}
-                  className="w-full text-left px-3 py-2 rounded-xl text-rose-600 hover:bg-rose-50 transition flex items-center gap-2 font-medium cursor-pointer"
+                  className="w-full text-left px-3 py-2 rounded-xl text-rose-400 hover:bg-rose-500/10 transition flex items-center gap-2 font-medium cursor-pointer"
                 >
-                  <LogOut className="w-4 h-4 text-rose-500" />
+                  <LogOut className="w-4 h-4 text-rose-400" />
                   <span>Sign Out</span>
                 </button>
               </div>

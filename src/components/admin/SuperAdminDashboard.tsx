@@ -64,7 +64,7 @@ export const SuperAdminDashboard: React.FC = () => {
   } = useSuperAdminDashboard();
 
   return (
-    <div className="h-screen overflow-hidden bg-[#F8FAFC] text-[#0B2545] flex font-sans antialiased">
+    <div className="h-screen overflow-hidden bg-[#080D18] text-[#F1F5F9] flex font-sans antialiased">
       {/* Toast Feedback */}
       {toast && (
         <div

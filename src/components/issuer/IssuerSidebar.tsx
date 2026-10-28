@@ -231,7 +231,7 @@ export const IssuerSidebar: React.FC<IssuerSidebarProps> = ({
   return (
     <>
       {/* Desktop Persistent Sidebar */}
-      <aside className="hidden lg:flex w-64 bg-[#0B1F3A] text-slate-200 flex-col border-r border-slate-800 h-screen shrink-0 z-30">
+      <aside className="hidden lg:flex w-64 bg-[#0D1424] text-slate-200 flex-col border-r border-white/10 h-screen shrink-0 z-30">
         {renderSidebarContent()}
       </aside>
 
@@ -239,10 +239,10 @@ export const IssuerSidebar: React.FC<IssuerSidebarProps> = ({
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden flex">
           <div
-            className="fixed inset-0 bg-slate-950/70 backdrop-blur-xs transition-opacity"
+            className="fixed inset-0 bg-[#080D18]/80 backdrop-blur-md transition-opacity"
             onClick={onCloseMobile}
           />
-          <aside className="relative flex-1 flex flex-col max-w-xs w-full bg-[#0B1F3A] text-slate-200 h-full shadow-2xl z-50">
+          <aside className="relative flex-1 flex flex-col max-w-xs w-full bg-[#0D1424] text-slate-200 h-full shadow-2xl z-50 border-r border-white/10">
             {renderSidebarContent()}
           </aside>
         </div>
