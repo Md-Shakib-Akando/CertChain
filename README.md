@@ -13,7 +13,7 @@
 > **An enterprise-grade, decentralized credential management and instant public verification platform developed for Pundra University of Science & Technology (PUST / PUB).**
 
 ---
-[Video link :](https://nextjs.org/)
+**Video link:** https://nextjs.org/
 ## 📌 Executive Summary
 
 Academic credential fraud, forged degree certificates, and slow, manual background verification processes cost universities and employers millions annually. **PUB CertChain** solves this crisis by combining **Ethereum smart contracts**, **SHA-256 cryptographic hashing**, **dynamic QR code generation**, and a **multi-tier Role-Based Access Control (RBAC)** architecture.
