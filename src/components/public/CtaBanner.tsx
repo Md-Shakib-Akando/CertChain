@@ -1,9 +1,17 @@
-'use client';
-
 import React from 'react';
 import Link from 'next/link';
-import { ShieldCheck } from 'lucide-react';
+import { ShieldCheck, LayoutDashboard, ArrowRight } from 'lucide-react';
+import { useAuthSession } from '@/lib/authSession';
+
 export const CtaBanner: React.FC = () => {
+  const { isLoggedIn, user } = useAuthSession();
+  const dashboardUrl =
+    user?.role === 'student'
+      ? '/dashboard/student'
+      : user?.role === 'admin' || user?.role === 'super_admin'
+      ? '/admin/dashboard'
+      : '/dashboard/controller';
+
   const handleVerifyClick = () => {
     const el = document.getElementById('verify');
     el?.scrollIntoView({ behavior: 'smooth' });
@@ -27,10 +35,12 @@ export const CtaBanner: React.FC = () => {
             </div>
             <div>
               <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-                Ready to Get Started?
+                {isLoggedIn ? `Welcome Back, ${user?.name || 'Student'}` : 'Ready to Get Started?'}
               </h2>
               <p className="text-xs sm:text-sm text-blue-100 mt-1 max-w-md">
-                Join thousands of students, universities and employers who trust PUB CertChain.
+                {isLoggedIn
+                  ? 'Access your tamper-proof blockchain certificates, manage share links, and verify credentials.'
+                  : 'Join thousands of students, universities and employers who trust PUB CertChain.'}
               </p>
             </div>
           </div>
@@ -43,12 +53,23 @@ export const CtaBanner: React.FC = () => {
             >
               Verify Certificate
             </button>
-            <Link
-              href="/login"
-              className="px-7 py-3.5 rounded-xl bg-[#091F47] hover:bg-[#071735] text-white border border-white/20 font-semibold text-xs sm:text-sm transition-all text-center flex items-center justify-center gap-1.5"
-            >
-              Sign In / Register
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href={dashboardUrl}
+                className="px-7 py-3.5 rounded-xl bg-[#091F47] hover:bg-[#071735] text-white border border-white/30 font-bold text-xs sm:text-sm transition-all text-center flex items-center justify-center gap-2 shadow-lg"
+              >
+                <LayoutDashboard className="w-4 h-4 text-blue-400" />
+                <span>Go to Dashboard</span>
+                <ArrowRight className="w-4 h-4" />
+              </Link>
+            ) : (
+              <Link
+                href="/login"
+                className="px-7 py-3.5 rounded-xl bg-[#091F47] hover:bg-[#071735] text-white border border-white/20 font-semibold text-xs sm:text-sm transition-all text-center flex items-center justify-center gap-1.5"
+              >
+                Sign In / Register
+              </Link>
+            )}
           </div>
 
         </div>
