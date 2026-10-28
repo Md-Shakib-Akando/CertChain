@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -7,14 +7,17 @@ import {
   User,
   Mail,
   BadgeCheck,
-  ShieldCheck,
-  Clock,
-  LogIn,
+  Eye,
+  EyeOff,
+  AlertCircle,
+  Loader2,
+  
   CheckCircle2,
   Layers,
   KeyRound,
   ArrowLeft,
   RefreshCw,
+  X,
 } from 'lucide-react';
 import { MetaMaskIssuerConnect } from './MetaMaskIssuerConnect';
 import {
@@ -61,14 +64,19 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Toast state
-  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+  // Floating Toast state (Matching LoginForm)
+  const [toast, setToast] = useState<{
+    title?: string;
+    message: string;
+    type: 'error' | 'success';
+  } | null>(null);
 
-  const showToast = (message: string, type: 'error' | 'success' = 'error') => {
-    setToast({ message, type });
+  const showToast = (message: string, type: 'error' | 'success' = 'error', title?: string) => {
+    setToast({ message, type, title });
+    const duration = type === 'success' ? 1000 : 3000;
     setTimeout(() => {
       setToast((prev) => (prev?.message === message ? null : prev));
-    }, 4500);
+    }, duration);
   };
 
   // Staff fields
@@ -76,7 +84,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
   const [staffEmail, setStaffEmail] = useState('');
   const [staffId, setStaffId] = useState('');
   const [staffDepartment, setStaffDepartment] = useState('Office of the Controller of Examinations');
-  const [staffDesignation, setStaffDesignation] = useState('Assistant Controller of Examinations');
+  const [staffDesignation, setStaffDesignation] = useState('');
   const [staffPassword, setStaffPassword] = useState('');
   const [staffConfirmPassword, setStaffConfirmPassword] = useState('');
   const [staffWallet, setStaffWallet] = useState('');
@@ -86,20 +94,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
   // Status & feedback
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successResult, setSuccessResult] = useState<{
-    type: 'student' | 'staff';
-    referenceNumber?: string;
-    name: string;
-    email: string;
-    studentId?: string;
-    department?: string;
-    batch?: string;
-    employeeId?: string;
-    designation?: string;
-    walletAddress?: string;
-    isWalletVerified?: boolean;
-    signature?: string;
-  } | null>(null);
+
 
   useEffect(() => {
     if (resendCooldown > 0) {
@@ -192,7 +187,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
 
       setStudentStep('otp');
       setResendCooldown(60);
-      showToast(`Verification code sent to ${studentEmail.trim()}`, 'success');
+      showToast(`Verification code sent to ${studentEmail.trim()}`, 'success', 'Verification Code Sent');
     } catch {
       setIsSendingOtp(false);
       showToast('Network error: Could not connect to verification server.', 'error');
@@ -237,14 +232,14 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
         return;
       }
 
-      setSuccessResult({
-        type: 'student',
-        name: data.data?.name || studentName.trim(),
-        email: data.data?.email || studentEmail.trim(),
-        studentId: data.data?.studentId || studentId.trim(),
-        department: data.data?.department || studentDepartment.trim(),
-        batch: data.data?.batch || studentBatch.trim(),
-      });
+      // Successful registration: Show toast and redirect to login in 1s without card success view
+      showToast('Account registered successfully! Redirecting to login...', 'success', 'Registration Successful');
+      setTimeout(() => {
+        setToast(null);
+        if (onGoToLogin) {
+          onGoToLogin();
+        }
+      }, 1000);
     } catch {
       setIsVerifyingOtp(false);
       showToast('Network error: Could not complete registration.', 'error');
@@ -326,148 +321,132 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
       }
 
       setIsLoading(false);
-      const returnedData = result.data || {};
-      setSuccessResult({
-        type: 'staff',
-        referenceNumber:
-          returnedData.requestId || `REQ-PUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-        name: returnedData.name || staffName.trim(),
-        email: returnedData.email || staffEmail.trim(),
-        employeeId: returnedData.employeeId || staffId.trim(),
-        department: returnedData.department || staffDepartment,
-        designation: returnedData.designation || staffDesignation,
-        walletAddress: returnedData.walletAddress || staffWallet.trim(),
-        isWalletVerified: returnedData.isWalletVerified ?? isStaffWalletVerified,
-        signature: staffSignature,
-      });
+      // Successful staff request: Show toast and redirect to login in 1s without card success view
+      showToast('Issuer access request submitted! Redirecting to login...', 'success', 'Request Submitted');
+      setTimeout(() => {
+        setToast(null);
+        if (onGoToLogin) {
+          onGoToLogin();
+        }
+      }, 1000);
     } catch {
       setIsLoading(false);
       setErrorMessage('Network error: Could not connect to the registration server.');
     }
   };
 
-  // Render Success Result State
-  if (successResult) {
-    if (successResult.type === 'student') {
-      return (
-        <Card>
-          <CardBody className="p-6 sm:p-8 space-y-6 text-center">
-            <div className="size-12 rounded-full bg-success-soft border border-success-line text-success flex items-center justify-center mx-auto">
-              <ShieldCheck className="size-6" />
-            </div>
-            <div>
-              <StatusBadge status="active" label="Verified Student Account" size="sm" />
-              <h2 className="font-serif text-2xl font-semibold text-ink mt-2">
-                Student Registration Complete
-              </h2>
-              <p className="text-xs sm:text-sm text-muted max-w-md mx-auto mt-1">
-                Your identity was matched against official admission records. You can now sign in to access your degree certificates and generate employer share links.
-              </p>
-            </div>
-
-            <div className="rounded-lg bg-sunken border border-line p-4 text-left">
-              <DescriptionList
-                columns={2}
-                items={[
-                  { term: 'Full Name', value: <span className="font-semibold">{successResult.name}</span> },
-                  { term: 'Student ID', value: <span className="font-mono">{successResult.studentId}</span> },
-                  { term: 'Department', value: successResult.department },
-                  { term: 'Batch', value: successResult.batch },
-                  { term: 'Registered Email', value: successResult.email, full: true },
-                ]}
-              />
-            </div>
-
-            <Button
-              variant="primary"
-              size="lg"
-              fullWidth
-              onClick={onGoToLogin}
-              leftIcon={<LogIn />}
-            >
-              Proceed to Sign In
-            </Button>
-          </CardBody>
-        </Card>
-      );
-    }
-
-    return (
-      <Card>
-        <CardBody className="p-6 sm:p-8 space-y-6">
-          <div className="text-center space-y-2">
-            <div className="size-12 rounded-full bg-warning-soft border border-warning-line text-warning flex items-center justify-center mx-auto">
-              <Clock className="size-6" />
-            </div>
-            <StatusBadge status="pending" label="Pending Controller Authorization" size="sm" />
-            <h2 className="font-serif text-2xl font-semibold text-ink">
-              Issuer Access Request Submitted
-            </h2>
-            <p className="text-xs sm:text-sm text-muted max-w-md mx-auto">
-              Your application and Ethereum signing address have been recorded. The Controller of Examinations must authorize your wallet on the smart contract before you can issue certificates.
-            </p>
-          </div>
-
-          <div className="rounded-lg bg-sunken border border-line p-4 space-y-3">
-            <div className="flex items-center justify-between pb-2.5 border-b border-line text-xs">
-              <span className="text-muted font-medium">Application Reference</span>
-              <span className="font-mono font-semibold text-ink">
-                {successResult.referenceNumber}
-              </span>
-            </div>
-
-            <DescriptionList
-              columns={2}
-              items={[
-                { term: 'Applicant Name', value: <span className="font-semibold">{successResult.name}</span> },
-                { term: 'Employee ID', value: <span className="font-mono">{successResult.employeeId}</span> },
-                { term: 'Official Email', value: successResult.email },
-                { term: 'Department', value: successResult.department },
-              ]}
-            />
-
-            {successResult.walletAddress && (
-              <div className="pt-2.5 border-t border-line flex items-center justify-between gap-2 text-xs">
-                <span className="text-muted">Signing Wallet</span>
-                <div className="flex items-center gap-2">
-                  <HashText value={successResult.walletAddress} head={10} tail={8} />
-                  {successResult.isWalletVerified && (
-                    <StatusBadge status="approved" label="Verified" size="sm" />
-                  )}
-                </div>
-              </div>
-            )}
-          </div>
-
-          <Button
-            variant="primary"
-            size="lg"
-            fullWidth
-            onClick={onGoToLogin}
-            leftIcon={<LogIn />}
-          >
-            Return to Sign In
-          </Button>
-        </CardBody>
-      </Card>
-    );
-  }
-
   return (
     <>
-      <StateToast toast={toast} onDismiss={() => setToast(null)} />
-
-      <Card>
-        <CardBody className="p-6 sm:p-8 space-y-5">
-          <div>
-            <p className="eyebrow">Account Onboarding</p>
-            <h2 className="font-serif text-2xl font-semibold text-ink mt-1">
-              Register on CertChain
-            </h2>
-            <p className="text-xs sm:text-[13.5px] text-muted mt-1">
-              Select Student Registration (instant OTP record match) or University Staff Access.
-            </p>
+      {/* Top-Right Modern Toast Notification (Matching LoginForm) */}
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-5 right-5 sm:top-6 sm:right-6 z-50 max-w-sm sm:max-w-md w-[calc(100%-2.5rem)] sm:w-auto animate-in fade-in slide-in-from-top-3 duration-200 pointer-events-auto"
+        >
+          <div
+            className={`px-4 py-3.5 rounded-2xl shadow-2xl border flex items-start gap-3 backdrop-blur-md text-white ${
+              toast.type === 'error'
+                ? 'bg-[#1E112A] border-rose-500/40'
+                : 'bg-[#0B2545] border-emerald-500/40'
+            }`}
+          >
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                toast.type === 'error'
+                  ? 'bg-rose-500/20 text-rose-400'
+                  : 'bg-emerald-500/20 text-emerald-400'
+              }`}
+            >
+              {toast.type === 'error' ? (
+                <AlertCircle className="w-5 h-5 text-rose-400" />
+              ) : (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0 pr-1">
+              {toast.title && (
+                <p className="text-sm font-bold text-white tracking-tight">{toast.title}</p>
+              )}
+              <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{toast.message}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setToast(null)}
+              aria-label="Close notification"
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
           </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-6 sm:p-10 transition-all">
+      {/* Title */}
+      <div className="space-y-1.5 mb-6">
+        <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#172033]">
+          Create an Account
+        </h2>
+        <p className="text-xs sm:text-sm text-[#64748B]">
+          Choose registration type: Student or University Staff.
+        </p>
+      </div>
+
+      {/* Two Option Tabs: Student vs Staff */}
+      <div className="grid grid-cols-2 gap-2 p-1.5 bg-slate-100 rounded-xl mb-6">
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedRole('student');
+            setErrorMessage(null);
+          }}
+          className={`flex items-center justify-center gap-2 py-3 px-3 rounded-lg text-xs font-bold transition-all ${
+            selectedRole === 'student'
+              ? 'bg-white text-[#2563EB] shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <GraduationCap className="w-4 h-4" />
+          <span>Student Registration</span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => {
+            setSelectedRole('staff');
+            setErrorMessage(null);
+          }}
+          className={`flex items-center justify-center gap-2 py-3 px-3 rounded-lg text-xs font-bold transition-all ${
+            selectedRole === 'staff'
+              ? 'bg-white text-[#06B6D4] shadow-sm'
+              : 'text-slate-600 hover:text-slate-900'
+          }`}
+        >
+          <Building2 className="w-4 h-4" />
+          <span>Staff Access</span>
+        </button>
+      </div>
+
+      {/* Error Alert */}
+      {errorMessage && (
+        <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs sm:text-sm">
+          <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+          <div className="flex-1 font-medium">{errorMessage}</div>
+        </div>
+      )}
+
+      {/* FORM 1: STUDENT REGISTRATION (2-STEP: RECORD MATCH + BREVO OTP) */}
+      {selectedRole === 'student' && studentStep === 'form' && (
+        <form onSubmit={handleStudentSendOtp} className="space-y-4">
+          <div className="flex items-center justify-between pb-1">
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+              Step 1: Student Information
+            </span>
+           
+          </div>
+
+          
 
           <Segmented
             fullWidth
@@ -803,19 +782,58 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
                 disabled={isLoading}
               />
 
-              <Button
-                type="submit"
-                variant="primary"
-                size="lg"
-                fullWidth
-                loading={isLoading}
-                loadingText="Submitting Access Request..."
-                leftIcon={<BadgeCheck />}
-              >
-                Submit Staff Application
-              </Button>
-            </form>
-          )}
+          {/* Submit -> Brevo Send OTP */}
+          <button
+            type="submit"
+            disabled={isSendingOtp}
+            className="w-full mt-3 py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
+          >
+            {isSendingOtp ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Mail className="w-4 h-4" />
+            )}
+            <span>Verify Record & Send OTP</span>
+          </button>
+        </form>
+      )}
+
+      {/* FORM 1 - STEP 2: PROFESSIONAL MINIMALIST OTP VERIFICATION */}
+      {selectedRole === 'student' && studentStep === 'otp' && (
+        <form onSubmit={handleVerifyOtp} className="space-y-6 pt-2">
+          {/* Header */}
+          <div className="text-center space-y-2">
+            <div className="w-14 h-14 rounded-2xl bg-blue-50 border border-blue-100 text-[#2563EB] flex items-center justify-center mx-auto shadow-sm">
+              <KeyRound className="w-7 h-7" />
+            </div>
+            <h3 className="text-xl sm:text-2xl font-extrabold text-[#172033] tracking-tight">
+              Enter Verification Code
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500 max-w-sm mx-auto leading-relaxed">
+              We have sent a 6-digit verification code to your email{' '}
+              <span className="font-semibold text-slate-800 break-all">{studentEmail}</span>
+            </p>
+          </div>
+
+          {/* 6-Digit Code Input */}
+          <div className="space-y-2">
+            <div className="relative max-w-xs mx-auto">
+              <input
+                type="text"
+                inputMode="numeric"
+                autoComplete="one-time-code"
+                maxLength={6}
+                autoFocus
+                placeholder="• • • • • •"
+                value={otpCode}
+                onChange={(e) => setOtpCode(e.target.value.replace(/[^0-9]/g, ''))}
+                className="w-full py-3.5 px-4 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-4 focus:ring-[#2563EB]/15 text-center font-mono text-2xl tracking-[0.35em] font-bold outline-none transition-all bg-slate-50/40"
+              />
+            </div>
+            <p className="text-center text-[11px] text-slate-400">
+              Enter the 6-digit code received in your inbox
+            </p>
+          </div>
 
           <div className="pt-4 border-t border-line text-center text-xs text-muted">
             Already have an account?{' '}
@@ -824,11 +842,180 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
               onClick={onGoToLogin}
               className="font-semibold text-brand hover:underline"
             >
-              Sign In
+              {isVerifyingOtp ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <CheckCircle2 className="w-4 h-4" />
+              )}
+              <span>Verify OTP & Complete Registration</span>
             </button>
           </div>
-        </CardBody>
-      </Card>
-    </>
-  );
+
+          
+
+          {/* Full Name */}
+          <div className="space-y-1.5">
+            <label className="block text-xs font-semibold text-[#172033]">
+              Full Name <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <User className="w-4 h-4" />
+              </div>
+              <input
+                type="text"
+                placeholder="e.g. Dr. Nusrat Jahan"
+                value={staffName}
+                onChange={(e) => setStaffName(e.target.value)}
+                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 text-sm outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Official Email & Staff ID */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-[#172033]">
+                Official Email <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <Mail className="w-4 h-4" />
+                </div>
+                <input
+                  type="email"
+                  placeholder="name@pub.edu"
+                  value={staffEmail}
+                  onChange={(e) => setStaffEmail(e.target.value)}
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 text-sm outline-none"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-[#172033]">
+                Staff ID / Employee ID <span className="text-red-500">*</span>
+              </label>
+              <div className="relative">
+                <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                  <BadgeCheck className="w-4 h-4" />
+                </div>
+                <input
+                  type="text"
+                  placeholder="e.g. PUB-EMP-781"
+                  value={staffId}
+                  onChange={(e) => setStaffId(e.target.value.toUpperCase())}
+                  className="w-full pl-10 pr-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 text-sm uppercase placeholder:normal-case outline-none"
+                />
+              </div>
+            </div>
+          </div>
+
+          {/* Department & Designation */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-[#172033]">
+                Department <span className="text-red-500">*</span>
+              </label>
+              <select
+                value={staffDepartment}
+                onChange={(e) => setStaffDepartment(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 text-sm outline-none"
+              >
+                <option value="Office of the Controller of Examinations">
+                  Office of the Controller of Examinations
+                </option>
+                <option value="Office of the Registrar">Office of the Registrar</option>
+                <option value="Computer Science & Engineering">Computer Science & Engineering</option>
+                <option value="Business Administration">Business Administration</option>
+                <option value="Electrical & Electronic Engineering">Electrical & Electronic Engineering</option>
+              </select>
+            </div>
+
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-[#172033]">
+                Designation <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Assistant Controller"
+                value={staffDesignation}
+                onChange={(e) => setStaffDesignation(e.target.value)}
+                className="w-full px-3 py-2.5 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 text-sm outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Password & Confirm */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-[#172033]">
+                Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                placeholder="Min 8 characters"
+                value={staffPassword}
+                onChange={(e) => setStaffPassword(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 text-sm outline-none"
+              />
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-semibold text-[#172033]">
+                Confirm Password <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="password"
+                placeholder="Re-enter password"
+                value={staffConfirmPassword}
+                onChange={(e) => setStaffConfirmPassword(e.target.value)}
+                className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 text-sm outline-none"
+              />
+            </div>
+          </div>
+
+          {/* Issuer Signing Wallet with MetaMask Integration */}
+          <MetaMaskIssuerConnect
+            walletAddress={staffWallet}
+            onWalletAddressChange={setStaffWallet}
+            signature={staffSignature}
+            onSignatureChange={setStaffSignature}
+            isVerified={isStaffWalletVerified}
+            onVerificationChange={setIsStaffWalletVerified}
+            staffId={staffId}
+            disabled={isLoading}
+          />
+
+          {/* Submit */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className="w-full mt-3 py-3.5 px-4 rounded-xl bg-[#06B6D4] hover:bg-cyan-600 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
+          >
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <BadgeCheck className="w-4 h-4" />
+            )}
+            <span>Submit for Approval</span>
+          </button>
+        </form>
+      )}
+
+      {/* Footer link back to Login */}
+      <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+        <p className="text-xs text-[#64748B]">
+          Already have an account?{' '}
+          <button
+            type="button"
+            onClick={onGoToLogin}
+            className="font-bold text-[#2563EB] hover:underline"
+          >
+            Sign In
+          </button>
+        </p>
+      </div>
+    </div>
+  </>
+);
 };

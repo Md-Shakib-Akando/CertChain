@@ -1,20 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Mail, LogIn, ArrowRight } from 'lucide-react';
-import { saveSessionUser } from '@/lib/authSession';
+import { useRouter } from 'next/navigation';
 import {
-  Card,
-  CardBody,
-  Field,
-  Input,
-  PasswordInput,
-  Checkbox,
-  Button,
-  ButtonLink,
-  Alert,
-} from '@/components/ui';
+  Mail,
+  Lock,
+  Eye,
+  EyeOff,
+  LogIn,
+  AlertCircle,
+  Loader2,
+  CheckCircle2,
+  ArrowRight,
+  ShieldAlert,
+  X,
+} from 'lucide-react';
+import { saveSessionUser, SESSION_EVENT_NAME } from '@/lib/authSession';
 
 interface LoginFormProps {
   onGoToRegister?: () => void;
@@ -25,24 +27,50 @@ export const LoginForm: React.FC<LoginFormProps> = ({
   onGoToRegister,
   onGoToForgotPassword,
 }) => {
+  const router = useRouter();
+
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [feedback, setFeedback] = useState<{
-    type: 'success' | 'warning';
+  const [pendingWarning, setPendingWarning] = useState<{
+    title: string;
+    message: string;
+  } | null>(null);
+  const [toast, setToast] = useState<{
     title: string;
     message: string;
   } | null>(null);
 
-  const [redirectDestination, setRedirectDestination] = useState<string | null>(null);
+  // Listen for logout or session changes across the app to ensure form is completely reset
+  useEffect(() => {
+    const handleSessionChange = () => {
+      setIsLoading(false);
+      setPassword('');
+      setErrorMessage(null);
+      setPendingWarning(null);
+    };
+    window.addEventListener(SESSION_EVENT_NAME, handleSessionChange);
+    return () => {
+      window.removeEventListener(SESSION_EVENT_NAME, handleSessionChange);
+    };
+  }, []);
+
+  // Auto-dismiss toast in exactly 1 second (1000ms)
+  useEffect(() => {
+    if (toast) {
+      const timer = setTimeout(() => {
+        setToast(null);
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [toast]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMessage(null);
-    setFeedback(null);
-    setRedirectDestination(null);
+    setPendingWarning(null);
 
     if (!email.trim()) {
       setErrorMessage('Please enter your Email Address, Student ID, or Staff ID.');
@@ -62,12 +90,11 @@ export const LoginForm: React.FC<LoginFormProps> = ({
         body: JSON.stringify({ email: email.trim(), password }),
       });
       const data = await res.json();
-      setIsLoading(false);
 
       if (!res.ok) {
+        setIsLoading(false);
         if (data.isPending) {
-          setFeedback({
-            type: 'warning',
+          setPendingWarning({
             title: 'Access Request Pending',
             message:
               data.error ||
@@ -81,170 +108,233 @@ export const LoginForm: React.FC<LoginFormProps> = ({
 
       const user = data.user;
       saveSessionUser(user);
-      let title = `Welcome, ${user.name}`;
-      let message = 'Signing in to PUB CertChain secure workspace...';
+
+      let title = 'Login Successful';
+      let message = `Welcome back, ${user.name || 'User'}!`;
 
       if (user.role === 'admin' || user.role === 'super_admin') {
-        title = 'Welcome, Super Administrator';
-        message = 'Super Admin privileges authenticated. Entering Command Dashboard...';
+        title = 'Login Successful';
+        message = `Welcome back, Super Administrator!`;
       } else if (user.role === 'controller') {
-        title = 'Welcome, Controller of Examinations';
-        message = 'Controller authority authenticated. Entering Controller Desk...';
+        title = 'Login Successful';
+        message = `Welcome back, Controller!`;
       } else if (user.role === 'issuer') {
-        title = 'Welcome, Authorized Registrar / Issuer';
-        message = 'Issuer account verified. Redirecting to Registrar Issuance Portal...';
+        title = 'Login Successful';
+        message = `Welcome back, Authorized Staff!`;
       } else if (user.role === 'student') {
-        title = 'Welcome, Student';
-        message = 'Student credentials validated. Entering Student Credential Vault...';
+        title = 'Login Successful';
+        message = `Welcome back, ${user.name || 'Student'}!`;
       }
 
-      setFeedback({
-        type: 'success',
+      // Show top-right success toast
+      setToast({
         title,
         message,
       });
 
-      setRedirectDestination(data.redirectUrl || '/');
+      // Clear loading state and password so if user logs out later, the login page is clean and ready
+      setIsLoading(false);
+      setPassword('');
 
-      if (typeof window !== 'undefined' && data.redirectUrl) {
-        setTimeout(() => {
-          window.location.href = data.redirectUrl;
-        }, 900);
-      }
+      const destination = data.redirectUrl || '/';
+
+      // Toast disappears and page redirects in exactly 1 second (1000ms)
+      setTimeout(() => {
+        setToast(null);
+        router.push(destination);
+      }, 1000);
     } catch {
       setIsLoading(false);
       setErrorMessage('Network error: Could not connect to authentication server.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   return (
-    <Card>
-      <CardBody className="p-6 sm:p-8 space-y-5">
-        <div>
-          <p className="eyebrow">Institutional Sign In</p>
-          <h2 className="font-serif text-2xl font-semibold text-ink mt-1">
-            Access Your CertChain Workspace
+    <>
+      {/* Top-Right Login Success Toast Notification */}
+      {toast && (
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-5 right-5 sm:top-6 sm:right-6 z-50 max-w-sm sm:max-w-md w-[calc(100%-2.5rem)] sm:w-auto animate-in fade-in slide-in-from-top-3 duration-200 pointer-events-auto"
+        >
+          <div className="bg-[#0B2545] text-white px-4 py-3.5 rounded-2xl shadow-2xl border border-emerald-500/40 flex items-start gap-3 backdrop-blur-md">
+            <div className="w-8 h-8 rounded-full bg-emerald-500/20 text-emerald-400 flex items-center justify-center shrink-0 mt-0.5">
+              <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+            </div>
+            <div className="flex-1 min-w-0 pr-1">
+              <p className="text-sm font-bold text-white tracking-tight">{toast.title}</p>
+              <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{toast.message}</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setToast(null)}
+              aria-label="Close notification"
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
+            >
+              <X className="w-4 h-4" />
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-6 sm:p-10 transition-all">
+        {/* Title */}
+        <div className="space-y-2 mb-6">
+          <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-[#172033]">
+            Welcome Back
           </h2>
-          <p className="text-xs sm:text-[13.5px] text-muted mt-1">
-            Enter your university email, Student ID, or Employee ID to continue.
+          <p className="text-xs sm:text-sm text-[#64748B]">
+            Sign in to access your CertChain account.
           </p>
         </div>
 
+        {/* Error Alert */}
         {errorMessage && (
-          <Alert tone="danger" title="Sign-in failed">
-            {errorMessage}
-          </Alert>
+          <div className="mb-5 p-3.5 rounded-xl bg-red-50 border border-red-200 flex items-start gap-2.5 text-red-700 text-xs sm:text-sm">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5 text-red-600" />
+            <div className="flex-1 font-medium">{errorMessage}</div>
+          </div>
         )}
 
-        {feedback && (
-          <Alert
-            tone={feedback.type === 'warning' ? 'warning' : 'success'}
-            title={feedback.title}
-          >
-            <p>{feedback.message}</p>
-            {redirectDestination && (
-              <div className="mt-2.5">
-                <ButtonLink
-                  href={redirectDestination}
-                  variant="primary"
-                  size="sm"
-                  rightIcon={<ArrowRight />}
-                >
-                  Proceed to Workspace
-                </ButtonLink>
+        {/* Pending Account Warning Alert */}
+        {pendingWarning && (
+          <div className="mb-5 p-4 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 flex items-start gap-3 text-xs sm:text-sm">
+            <ShieldAlert className="w-5 h-5 text-amber-600 shrink-0 mt-0.5" />
+            <div className="flex-1">
+              <p className="font-bold">{pendingWarning.title}</p>
+              <p className="text-xs opacity-90 leading-relaxed mt-0.5">{pendingWarning.message}</p>
+            </div>
+          </div>
+        )}
+
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="space-y-5">
+          {/* Identifier (Email, Student ID, or Staff ID) */}
+          <div className="space-y-1.5">
+            <label htmlFor="login-email" className="block text-xs font-semibold text-[#172033]">
+              Email Address or Student / Staff ID <span className="text-red-500">*</span>
+            </label>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <Mail className="w-4 h-4" />
               </div>
-            )}
-          </Alert>
-        )}
+              <input
+                id="login-email"
+                type="text"
+                autoComplete="username"
+                placeholder="e.g. name@pub.ac.bd or Student ID (0322410105101055)"
+                value={email}
+                onChange={(e) => {
+                  setEmail(e.target.value);
+                  if (errorMessage) setErrorMessage(null);
+                }}
+                className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 bg-white text-[#172033] text-sm placeholder:text-slate-400 transition-all outline-none"
+              />
+            </div>
+          </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-          <Field
-            label="Email Address or Student / Staff ID"
-            required
-            id="login-email"
-          >
-            <Input
-              id="login-email"
-              type="text"
-              autoComplete="username"
-              leftIcon={<Mail />}
-              placeholder="e.g. admin@pub.edu.bd or 0322410105101055"
-              value={email}
-              onChange={(e) => {
-                setEmail(e.target.value);
-                if (errorMessage) setErrorMessage(null);
-              }}
-            />
-          </Field>
-
-          <Field
-            label="Password"
-            required
-            id="login-password"
-            labelAside={
-              onGoToForgotPassword ? (
+          {/* Password */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <label htmlFor="login-password" className="block text-xs font-semibold text-[#172033]">
+                Password <span className="text-red-500">*</span>
+              </label>
+              {onGoToForgotPassword ? (
                 <button
                   type="button"
                   onClick={onGoToForgotPassword}
-                  className="text-xs font-medium text-brand hover:underline"
+                  className="text-xs font-medium text-[#2563EB] hover:text-blue-700 hover:underline transition-colors"
                 >
-                  Forgot password?
+                  Forgot Password?
                 </button>
-              ) : undefined
-            }
-          >
-            <PasswordInput
-              id="login-password"
-              placeholder="Enter your password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                if (errorMessage) setErrorMessage(null);
-              }}
-            />
-          </Field>
+              ) : (
+                <span className="text-xs font-medium text-[#2563EB] cursor-pointer hover:underline">
+                  Forgot Password?
+                </span>
+              )}
+            </div>
+            <div className="relative">
+              <div className="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+                <Lock className="w-4 h-4" />
+              </div>
+              <input
+                id="login-password"
+                type={showPassword ? 'text' : 'password'}
+                autoComplete="current-password"
+                placeholder="Enter your password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  if (errorMessage) setErrorMessage(null);
+                }}
+                className="w-full pl-10 pr-11 py-3 rounded-xl border border-slate-300 focus:border-[#2563EB] focus:ring-2 focus:ring-[#2563EB]/20 bg-white text-[#172033] text-sm placeholder:text-slate-400 transition-all outline-none"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute inset-y-0 right-0 pr-3.5 flex items-center text-slate-400 hover:text-slate-600 focus:outline-none"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
+          </div>
 
-          <Checkbox
-            checked={rememberMe}
-            onChange={(e) => setRememberMe(e.target.checked)}
-            label="Keep me signed in on this trusted workstation"
-          />
+          {/* Remember Me */}
+          <div className="flex items-center">
+            <label className="flex items-center gap-2 cursor-pointer select-none">
+              <input
+                type="checkbox"
+                checked={rememberMe}
+                onChange={(e) => setRememberMe(e.target.checked)}
+                className="w-4 h-4 rounded border-slate-300 text-[#2563EB] focus:ring-[#2563EB]"
+              />
+              <span className="text-xs text-[#64748B]">Remember me on this trusted device</span>
+            </label>
+          </div>
 
-          <Button
+          {/* Submit */}
+          <button
             type="submit"
-            variant="primary"
-            size="lg"
-            fullWidth
-            loading={isLoading}
-            loadingText="Authenticating..."
-            leftIcon={<LogIn />}
+            disabled={isLoading}
+            className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 active:bg-blue-800 text-white font-semibold text-sm shadow-md shadow-blue-500/20 transition-all flex items-center justify-center gap-2 disabled:opacity-80 disabled:cursor-not-allowed cursor-pointer"
           >
-            Sign In
-          </Button>
+            {isLoading ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <LogIn className="w-4 h-4" />
+            )}
+            <span>Sign In</span>
+          </button>
         </form>
 
-        <div className="pt-4 border-t border-line text-center text-xs text-muted">
-          Don&apos;t have an account yet?{' '}
-          {onGoToRegister ? (
-            <button
-              type="button"
-              onClick={onGoToRegister}
-              className="font-semibold text-brand hover:underline inline-flex items-center gap-1"
-            >
-              <span>Create an account</span>
-              <ArrowRight className="size-3" />
-            </button>
-          ) : (
-            <Link
-              href="/register"
-              className="font-semibold text-brand hover:underline inline-flex items-center gap-1"
-            >
-              <span>Create an account</span>
-              <ArrowRight className="size-3" />
-            </Link>
-          )}
+        {/* Link to Register */}
+        <div className="mt-8 pt-6 border-t border-slate-100 text-center">
+          <p className="text-xs text-[#64748B]">
+            Don&lsquo;t have an account?{' '}
+            {onGoToRegister ? (
+              <button
+                type="button"
+                onClick={onGoToRegister}
+                className="font-bold text-[#2563EB] hover:text-blue-700 hover:underline transition-colors inline-flex items-center gap-1"
+              >
+                <span>Register</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+            ) : (
+              <Link
+                href="/register"
+                className="font-bold text-[#2563EB] hover:text-blue-700 hover:underline transition-colors inline-flex items-center gap-1"
+              >
+                <span>Register</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </Link>
+            )}
+          </p>
         </div>
-      </CardBody>
-    </Card>
+      </div>
+    </>
   );
 };

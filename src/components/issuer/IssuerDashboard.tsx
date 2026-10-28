@@ -524,6 +524,7 @@ export const IssuerDashboard: React.FC = () => {
   };
 
   const handleLogout = () => {
+    clearSessionUser();
     router.push('/login');
   };
 
