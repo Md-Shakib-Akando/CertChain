@@ -105,13 +105,13 @@ flowchart TD
 
     %% Verification Flow
     Landing -->|Upload PDF / Enter ID| CertService
-    CertService -->|Call verifyCertificate()| SmartContract
+    CertService -->|Query verifyCertificate| SmartContract
     SmartContract -->|Return State, Issuer & Timestamp| Landing
 
     %% Revocation Flow
     StudentDash -.->|Request Revocation| ControllerDash
-    ControllerDash -->|Execute approveRevocation()| SmartContract
-    SmartContract -->|Update State to isRevoked=true| BlockchainLedger
+    ControllerDash -->|Execute approveRevocation| SmartContract
+    SmartContract -->|Update State to Revoked| BlockchainLedger
     SmartContract -.->|Emit CertificateRevoked| AuditService
     AuditService --> AuditDB
 ```
