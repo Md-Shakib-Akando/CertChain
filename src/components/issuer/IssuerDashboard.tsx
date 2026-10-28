@@ -24,6 +24,7 @@ import {
 import { IssuerSidebar, IssuerTab } from './IssuerSidebar';
 import { IssuerTopHeader } from './IssuerTopHeader';
 import { ReportsSection } from './ReportsSection';
+import { clearSessionUser } from '@/lib/authSession';
 import {
   PageHeader,
   StatStrip,

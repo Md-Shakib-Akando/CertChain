@@ -20,17 +20,19 @@ export const AuthModule: React.FC<AuthModuleProps> = ({
   return (
     <AuthLayout>
       {mode !== 'forgot-password' && (
-        <div className="mb-5">
-          <Segmented
-            fullWidth
-            ariaLabel="Authentication mode"
-            value={mode}
-            onChange={(m) => setMode(m)}
-            items={[
-              { key: 'login', label: 'Sign In', icon: <LogIn /> },
-              { key: 'register', label: 'Create Account', icon: <UserPlus /> },
-            ]}
-          />
+        <div className="mb-6 flex justify-center">
+          <div className="w-full max-w-xs">
+            <Segmented
+              fullWidth
+              ariaLabel="Authentication mode"
+              value={mode}
+              onChange={(m) => setMode(m as 'login' | 'register')}
+              items={[
+                { key: 'login', label: 'Sign In', icon: <LogIn className="size-3.5" /> },
+                { key: 'register', label: 'Create Account', icon: <UserPlus className="size-3.5" /> },
+              ]}
+            />
+          </div>
         </div>
       )}
 
