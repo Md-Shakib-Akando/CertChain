@@ -2,14 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import {
-  ShieldCheck,
-  ArrowLeft,
-  Lock,
-  Layers,
-  KeyRound,
-  CheckCircle2,
-} from 'lucide-react';
+import { ShieldCheck, ArrowLeft } from 'lucide-react';
 
 interface AuthLayoutProps {
   children: React.ReactNode;
@@ -17,10 +10,10 @@ interface AuthLayoutProps {
 
 export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
   return (
-    <div className="min-h-screen flex flex-col bg-[#F5F7FB] text-[#172033] font-sans">
-      <div className="flex-1 flex flex-col lg:flex-row">
-        {/* Left Side: Modern University SaaS + Blockchain Identity (Desktop) */}
-        <aside className="lg:w-[45%] xl:w-[42%] bg-[#10233F] text-white p-8 lg:p-14 flex flex-col justify-between relative overflow-hidden shrink-0 border-r border-slate-800">
+    <div className="min-h-screen lg:h-screen lg:overflow-hidden flex flex-col bg-[#F5F7FB] text-[#172033] font-sans">
+      <div className="flex-1 flex flex-col lg:flex-row lg:h-full lg:overflow-hidden">
+        {/* Left Side: Minimalist Brand Identity (Desktop) - Fixed & Non-scrolling */}
+        <aside className="lg:w-[42%] xl:w-[38%] bg-[#10233F] text-white p-8 lg:p-12 flex flex-col justify-between relative overflow-hidden shrink-0 border-r border-slate-800 lg:sticky lg:top-0 lg:h-full lg:self-start">
           {/* Subtle Blockchain Connected Node Pattern Background (SVG) */}
           <div className="absolute inset-0 pointer-events-none opacity-20">
             <svg
@@ -83,120 +76,34 @@ export const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
             </svg>
           </div>
 
-          {/* Top Brand & Back Link */}
-          <div className="relative z-10 space-y-6">
+          {/* Top: Back to Main Site Link */}
+          <div className="relative z-10">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3 py-1.5 rounded-lg border border-white/10 w-fit"
+              className="inline-flex items-center gap-2 text-xs font-semibold text-slate-300 hover:text-white transition-colors bg-white/5 hover:bg-white/10 px-3.5 py-1.5 rounded-lg border border-white/10 w-fit"
             >
               <ArrowLeft className="w-3.5 h-3.5" />
               <span>Back to Main Site</span>
             </Link>
-
-            {/* University & Brand Header */}
-            <div className="flex items-center gap-3.5 pt-1">
-              <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-[#2563EB] to-[#1D4ED8] flex items-center justify-center shadow-lg shadow-blue-500/25 border border-blue-400/30 shrink-0">
-                <ShieldCheck className="w-7 h-7 text-white" />
-              </div>
-              <div>
-                <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-white">
-                  PUB CertChain
-                </h1>
-                <p className="text-xs text-[#06B6D4] font-medium tracking-wide">
-                  Pundra University of Science & Technology
-                </p>
-              </div>
-            </div>
           </div>
 
-          {/* Center Pitch: Professional Project Overview & Pillars */}
-          <div className="relative z-10 my-8 lg:my-10 space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#2563EB]/20 border border-[#2563EB]/40 text-[#06B6D4] text-xs font-semibold">
-              <span className="w-2 h-2 rounded-full bg-[#06B6D4] animate-pulse" />
-              <span>Official Academic Blockchain Gateway</span>
-            </div>
-
-            <div className="space-y-3">
-              <h2 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold tracking-tight text-white leading-tight">
-                Securing Academic Legacies with Blockchain Integrity.
-              </h2>
-              <p className="text-slate-300 text-xs sm:text-sm leading-relaxed max-w-lg font-normal">
-                PUB CertChain provides an immutable, cryptographically verifiable infrastructure for Pundra University degrees and transcripts — eliminating forgery, automating verification, and empowering graduates globally.
-              </p>
-            </div>
-
-            {/* 4 Professional Project Pillars */}
-            <div className="grid grid-cols-1 gap-3 pt-2">
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 hover:border-blue-400/30 transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-[#06B6D4] flex items-center justify-center shrink-0 mt-0.5 border border-blue-400/30">
-                  <Layers className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-semibold text-white">
-                    Immutable On-Chain Records
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed mt-0.5">
-                    Certificates are SHA-256 hashed and permanently anchored to the blockchain, making unauthorized alteration mathematically impossible.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 hover:border-blue-400/30 transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-[#06B6D4] flex items-center justify-center shrink-0 mt-0.5 border border-blue-400/30">
-                  <CheckCircle2 className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-semibold text-white">
-                    Instant Global QR Verification
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed mt-0.5">
-                    Employers and international institutions can verify academic authenticity in seconds with zero waiting time or manual paperwork.
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-start gap-3 p-3 rounded-xl bg-white/[0.04] border border-white/10 hover:border-blue-400/30 transition-colors">
-                <div className="w-8 h-8 rounded-lg bg-blue-500/20 text-[#06B6D4] flex items-center justify-center shrink-0 mt-0.5 border border-blue-400/30">
-                  <Lock className="w-4 h-4" />
-                </div>
-                <div>
-                  <h3 className="text-xs sm:text-sm font-semibold text-white">
-                    Controller-Authorized Governance
-                  </h3>
-                  <p className="text-[11px] sm:text-xs text-slate-300 leading-relaxed mt-0.5">
-                    Strict role enforcement ensures certificate issuance permissions are granted exclusively with Controller of Examinations approval.
-                  </p>
-                </div>
-              </div>
-            </div>
-
-            {/* Quick Metrics Badge Bar */}
-            <div className="pt-2 flex flex-wrap items-center gap-2">
-              <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[11px] text-slate-300 font-medium">
-                🔒 100% Tamper-Proof
-              </span>
-              <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[11px] text-slate-300 font-medium">
-                ⚡ Real-Time Proof
-              </span>
-              <span className="px-2.5 py-1 rounded-md bg-white/5 border border-white/10 text-[11px] text-slate-300 font-medium">
-                🎓 Self-Sovereign Access
-              </span>
-            </div>
+          {/* Center: Large PUB with CertChain below */}
+          <div className="relative z-10 flex-1 flex flex-col items-center justify-center text-center my-auto py-12 select-none">
+            <h1 className="text-8xl sm:text-9xl lg:text-[10rem] xl:text-[11rem] font-black tracking-[0.25em] lg:tracking-[0.3em] pl-[0.25em] lg:pl-[0.3em] leading-none text-white drop-shadow-md">
+              PUB
+            </h1>
+            <p className="mt-4 sm:mt-6 text-3xl sm:text-4xl lg:text-5xl xl:text-6xl font-extrabold tracking-[0.18em] lg:tracking-[0.22em] pl-[0.18em] lg:pl-[0.22em] text-[#06B6D4]">
+              CertChain
+            </p>
           </div>
 
-          {/* Footer of Left Column */}
-          <div className="relative z-10 pt-4 border-t border-slate-800/80 flex items-center justify-between text-xs text-slate-400">
-            <div className="flex items-center gap-2">
-              <KeyRound className="w-3.5 h-3.5 text-[#06B6D4]" />
-              <span className="text-[11px]">TLS 1.3 End-to-End Encrypted</span>
-            </div>
-            <span className="text-[11px] font-mono text-slate-400">PUB-CC v1.0 Enterprise</span>
-          </div>
+          {/* Bottom Spacer for balanced centering */}
+          <div className="relative z-10 h-8" />
         </aside>
 
-        {/* Right Side: Form Area */}
-        <main className="flex-1 flex flex-col justify-center items-center p-4 sm:p-6 lg:p-10 bg-[#F5F7FB]">
-          <div className="w-full max-w-xl my-auto">
+        {/* Right Side: Form Area - Independently scrollable on desktop */}
+        <main className="flex-1 flex flex-col justify-start items-center p-4 sm:p-6 lg:p-10 bg-[#F5F7FB] lg:overflow-y-auto lg:h-full">
+          <div className="w-full max-w-xl my-auto py-4 sm:py-8">
             {/* Mobile Header (Shown only on small screens) */}
             <div className="lg:hidden flex items-center justify-between mb-6 pb-4 border-b border-slate-200">
               <div className="flex items-center gap-2.5">
