@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState, useEffect } from 'react';
 import {
@@ -11,16 +11,13 @@ import {
   EyeOff,
   AlertCircle,
   Loader2,
-  ShieldCheck,
-  ShieldAlert,
-  Clock,
-  LogIn,
+  
   CheckCircle2,
-  Sparkles,
   Layers,
   KeyRound,
   ArrowLeft,
   RefreshCw,
+  X,
 } from 'lucide-react';
 import { MetaMaskIssuerConnect } from './MetaMaskIssuerConnect';
 
@@ -51,14 +48,19 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
   const [isVerifyingOtp, setIsVerifyingOtp] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
 
-  // Floating Toast state
-  const [toast, setToast] = useState<{ message: string; type: 'error' | 'success' } | null>(null);
+  // Floating Toast state (Matching LoginForm)
+  const [toast, setToast] = useState<{
+    title?: string;
+    message: string;
+    type: 'error' | 'success';
+  } | null>(null);
 
-  const showToast = (message: string, type: 'error' | 'success' = 'error') => {
-    setToast({ message, type });
+  const showToast = (message: string, type: 'error' | 'success' = 'error', title?: string) => {
+    setToast({ message, type, title });
+    const duration = type === 'success' ? 1000 : 3000;
     setTimeout(() => {
       setToast((prev) => (prev?.message === message ? null : prev));
-    }, 4000);
+    }, duration);
   };
 
   // Staff fields
@@ -66,7 +68,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
   const [staffEmail, setStaffEmail] = useState('');
   const [staffId, setStaffId] = useState('');
   const [staffDepartment, setStaffDepartment] = useState('Office of the Controller of Examinations');
-  const [staffDesignation, setStaffDesignation] = useState('Assistant Controller of Examinations');
+  const [staffDesignation, setStaffDesignation] = useState('');
   const [staffPassword, setStaffPassword] = useState('');
   const [staffConfirmPassword, setStaffConfirmPassword] = useState('');
   const [staffWallet, setStaffWallet] = useState('');
@@ -80,20 +82,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
   // Status & feedback
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successResult, setSuccessResult] = useState<{
-    type: 'student' | 'staff';
-    referenceNumber?: string;
-    name: string;
-    email: string;
-    studentId?: string;
-    department?: string;
-    batch?: string;
-    employeeId?: string;
-    designation?: string;
-    walletAddress?: string;
-    isWalletVerified?: boolean;
-    signature?: string;
-  } | null>(null);
+
 
   // Cooldown timer for OTP resend
   useEffect(() => {
@@ -190,7 +179,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
       // Record matched! Transition to OTP verification step
       setStudentStep('otp');
       setResendCooldown(60);
-      showToast(`Verification code sent to ${studentEmail.trim()}`, 'success');
+      showToast(`Verification code sent to ${studentEmail.trim()}`, 'success', 'Verification Code Sent');
     } catch {
       setIsSendingOtp(false);
       showToast('Network error: Could not connect to verification server.', 'error');
@@ -235,15 +224,14 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
         return;
       }
 
-      // Successful registration!
-      setSuccessResult({
-        type: 'student',
-        name: data.data?.name || studentName.trim(),
-        email: data.data?.email || studentEmail.trim(),
-        studentId: data.data?.studentId || studentId.trim(),
-        department: data.data?.department || studentDepartment.trim(),
-        batch: data.data?.batch || studentBatch.trim(),
-      });
+      // Successful registration: Show toast and redirect to login in 1s without card success view
+      showToast('Account registered successfully! Redirecting to login...', 'success', 'Registration Successful');
+      setTimeout(() => {
+        setToast(null);
+        if (onGoToLogin) {
+          onGoToLogin();
+        }
+      }, 1000);
     } catch {
       setIsVerifyingOtp(false);
       showToast('Network error: Could not complete registration.', 'error');
@@ -323,249 +311,62 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
       }
 
       setIsLoading(false);
-      const returnedData = result.data || {};
-      setSuccessResult({
-        type: 'staff',
-        referenceNumber: returnedData.requestId || `REQ-PUB-2026-${Math.floor(1000 + Math.random() * 9000)}`,
-        name: returnedData.name || staffName.trim(),
-        email: returnedData.email || staffEmail.trim(),
-        employeeId: returnedData.employeeId || staffId.trim(),
-        department: returnedData.department || staffDepartment,
-        designation: returnedData.designation || staffDesignation,
-        walletAddress: returnedData.walletAddress || staffWallet.trim(),
-        isWalletVerified: returnedData.isWalletVerified ?? isStaffWalletVerified,
-        signature: staffSignature,
-      });
+      // Successful staff request: Show toast and redirect to login in 1s without card success view
+      showToast('Issuer access request submitted! Redirecting to login...', 'success', 'Request Submitted');
+      setTimeout(() => {
+        setToast(null);
+        if (onGoToLogin) {
+          onGoToLogin();
+        }
+      }, 1000);
     } catch {
       setIsLoading(false);
       setErrorMessage('Network error: Could not connect to the registration server.');
     }
   };
 
-  // Render Success Result State
-  if (successResult) {
-    if (successResult.type === 'student') {
-      return (
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-6 sm:p-10 transition-all text-center">
-          <div className="w-16 h-16 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center mx-auto mb-5">
-            <ShieldCheck className="w-9 h-9" />
-          </div>
-          <h2 className="text-2xl font-extrabold text-[#172033] mb-2">
-            Registration Successful!
-          </h2>
-          <p className="text-xs sm:text-sm text-[#64748B] max-w-sm mx-auto mb-6">
-            Your student account has been registered. You can now sign in with your email and password to view and verify your academic certificates.
-          </p>
-
-          <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-left text-xs mb-6 space-y-2.5">
-            <div className="flex items-center justify-between pb-2 border-b border-slate-200">
-              <span className="text-slate-500 font-semibold text-[11px]">Admission Status:</span>
-              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                Verified Student
-              </span>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-              <div>
-                <span className="text-slate-400 block text-[11px]">Full Name</span>
-                <span className="font-semibold text-slate-800">{successResult.name}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 block text-[11px]">Student ID</span>
-                <span className="font-semibold text-slate-800 font-mono">{successResult.studentId}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 block text-[11px]">Department</span>
-                <span className="font-semibold text-slate-800">{successResult.department}</span>
-              </div>
-              <div>
-                <span className="text-slate-400 block text-[11px]">Batch</span>
-                <span className="font-semibold text-slate-800">{successResult.batch}</span>
-              </div>
-            </div>
-            <div className="pt-1 border-t border-slate-200">
-              <span className="text-slate-400 block text-[11px]">Registered Email</span>
-              <span className="font-semibold text-slate-800">{successResult.email}</span>
-            </div>
-          </div>
-
-          <button
-            type="button"
-            onClick={onGoToLogin}
-            className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-          >
-            <LogIn className="w-4 h-4" />
-            <span>Go to Login</span>
-          </button>
-        </div>
-      );
-    }
-
-    // Staff success state: Visual 5-Stage Approval Roadmap
-    return (
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/90 p-6 sm:p-10 transition-all">
-        <div className="text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-amber-50 border border-amber-200 text-amber-600 flex items-center justify-center mx-auto mb-4">
-            <Clock className="w-9 h-9" />
-          </div>
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-100 text-amber-800 text-xs font-bold border border-amber-200 mb-2">
-            <span>Status: Pending Controller Approval</span>
-          </div>
-          <h2 className="text-2xl font-extrabold text-[#172033]">
-            Issuer Access Request Submitted
-          </h2>
-          <p className="text-xs sm:text-sm text-[#64748B] max-w-md mx-auto mt-1">
-            Your registration and MetaMask wallet address have been stored in the database. Controller approval is required before your wallet can sign certificates on the blockchain.
-          </p>
-        </div>
-
-        {/* Applicant Details & Wallet Card */}
-        <div className="bg-slate-50 border border-slate-200 rounded-xl p-4 text-xs mb-6 space-y-3">
-          <div className="flex items-center justify-between pb-2.5 border-b border-slate-200">
-            <span className="text-slate-500 font-semibold">Request Reference ID:</span>
-            <span className="font-mono font-bold text-[#10233F] text-sm">
-              {successResult.referenceNumber}
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
-            <div>
-              <span className="text-slate-400 block text-[11px]">Applicant Name</span>
-              <span className="font-semibold text-slate-800">{successResult.name}</span>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[11px]">Employee ID</span>
-              <span className="font-semibold text-slate-800">{successResult.employeeId}</span>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[11px]">Official Email</span>
-              <span className="font-semibold text-slate-800">{successResult.email}</span>
-            </div>
-            <div>
-              <span className="text-slate-400 block text-[11px]">Department</span>
-              <span className="font-semibold text-slate-800">{successResult.department}</span>
-            </div>
-          </div>
-
-          {/* Wallet address badge */}
-          {successResult.walletAddress && (
-            <div className="pt-2 border-t border-slate-200">
-              <span className="text-slate-400 block text-[11px] mb-1">
-                Connected Signing Wallet (MetaMask)
-              </span>
-              <div className="flex flex-wrap items-center justify-between gap-2 p-2 bg-white rounded-lg border border-slate-200">
-                <span className="font-mono text-xs font-bold text-slate-800 break-all">
-                  {successResult.walletAddress}
-                </span>
-                {successResult.isWalletVerified ? (
-                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 text-[10px] font-bold">
-                    <CheckCircle2 className="w-3 h-3 text-emerald-600" />
-                    Ownership Verified
-                  </span>
-                ) : (
-                  <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded border border-amber-200">
-                    Wallet Linked
-                  </span>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Visual 5-Step Process Pipeline */}
-        <div className="mb-6 p-4 rounded-xl bg-blue-50/60 border border-blue-200/80">
-          <div className="flex items-center gap-2 mb-3">
-            <Sparkles className="w-4 h-4 text-[#2563EB]" />
-            <h4 className="text-xs font-bold text-[#10233F] uppercase tracking-wide">
-              Issuer Onboarding Pipeline (5 Steps)
-            </h4>
-          </div>
-
-          <div className="space-y-2.5 text-xs">
-            <div className="flex items-start gap-2.5">
-              <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                ✓
-              </div>
-              <div>
-                <p className="font-bold text-slate-800">Step 1 — Issuer Signup Details</p>
-                <p className="text-[11px] text-slate-500">Official email, staff credentials, and password set.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5">
-              <div className="w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                ✓
-              </div>
-              <div>
-                <p className="font-bold text-slate-800">Step 2 — Connect MetaMask Wallet</p>
-                <p className="text-[11px] text-slate-500">Wallet address linked & cryptographically verified.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5">
-              <div className="w-5 h-5 rounded-full bg-amber-500 text-white flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5 animate-pulse">
-                3
-              </div>
-              <div>
-                <p className="font-bold text-amber-800">Step 3 — Pending Approval (Current Stage)</p>
-                <p className="text-[11px] text-amber-700">Stored in database with <code className="bg-amber-100 px-1 rounded font-semibold text-amber-900">status: &apos;pending&apos;</code>.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5">
-              <div className="w-5 h-5 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                4
-              </div>
-              <div>
-                <p className="font-bold text-slate-700">Step 4 — Controller Verification & Smart Contract Authorization</p>
-                <p className="text-[11px] text-slate-500">Controller calls <code className="bg-slate-200 px-1 rounded">authorizeIssuer(walletAddress)</code> on blockchain.</p>
-              </div>
-            </div>
-
-            <div className="flex items-start gap-2.5">
-              <div className="w-5 h-5 rounded-full bg-slate-300 text-slate-700 flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5">
-                5
-              </div>
-              <div>
-                <p className="font-bold text-slate-700">Step 5 — Issuer Access Granted</p>
-                <p className="text-[11px] text-slate-500">Sign in to issue and revoke academic certificates directly on the blockchain.</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <button
-          type="button"
-          onClick={onGoToLogin}
-          className="w-full py-3.5 px-4 rounded-xl bg-[#10233F] hover:bg-slate-800 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
-        >
-          <LogIn className="w-4 h-4" />
-          <span>Return to Sign In</span>
-        </button>
-      </div>
-    );
-  }
-
   return (
     <>
-      {/* Floating Modern Toast Notification */}
+      {/* Top-Right Modern Toast Notification (Matching LoginForm) */}
       {toast && (
-        <div className="fixed top-6 left-1/2 -translate-x-1/2 z-50 pointer-events-auto transition-all animate-in fade-in slide-in-from-top-3 duration-200">
+        <div
+          role="status"
+          aria-live="polite"
+          className="fixed top-5 right-5 sm:top-6 sm:right-6 z-50 max-w-sm sm:max-w-md w-[calc(100%-2.5rem)] sm:w-auto animate-in fade-in slide-in-from-top-3 duration-200 pointer-events-auto"
+        >
           <div
-            className={`flex items-center gap-2.5 px-5 py-3 rounded-2xl shadow-xl text-white text-sm font-semibold border ${
+            className={`px-4 py-3.5 rounded-2xl shadow-2xl border flex items-start gap-3 backdrop-blur-md text-white ${
               toast.type === 'error'
-                ? 'bg-[#E11D48] border-rose-600 shadow-rose-500/20'
-                : 'bg-emerald-600 border-emerald-500 shadow-emerald-500/20'
+                ? 'bg-[#1E112A] border-rose-500/40'
+                : 'bg-[#0B2545] border-emerald-500/40'
             }`}
           >
-            <AlertCircle className="w-4 h-4 shrink-0" />
-            <span>{toast.message}</span>
+            <div
+              className={`w-8 h-8 rounded-full flex items-center justify-center shrink-0 mt-0.5 ${
+                toast.type === 'error'
+                  ? 'bg-rose-500/20 text-rose-400'
+                  : 'bg-emerald-500/20 text-emerald-400'
+              }`}
+            >
+              {toast.type === 'error' ? (
+                <AlertCircle className="w-5 h-5 text-rose-400" />
+              ) : (
+                <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+              )}
+            </div>
+            <div className="flex-1 min-w-0 pr-1">
+              {toast.title && (
+                <p className="text-sm font-bold text-white tracking-tight">{toast.title}</p>
+              )}
+              <p className="text-xs text-slate-300 mt-0.5 leading-relaxed">{toast.message}</p>
+            </div>
             <button
               type="button"
               onClick={() => setToast(null)}
-              className="ml-3 text-white/80 hover:text-white text-base leading-none cursor-pointer"
+              aria-label="Close notification"
+              className="text-slate-400 hover:text-white p-1 rounded-lg hover:bg-white/10 transition-colors shrink-0 cursor-pointer"
             >
-              ✕
+              <X className="w-4 h-4" />
             </button>
           </div>
         </div>
@@ -632,21 +433,10 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
             <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
               Step 1: Student Information
             </span>
-            <span className="text-[11px] font-semibold text-[#2563EB] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-200">
-              Verified Admission Required
-            </span>
+           
           </div>
 
-          {/* Brevo OTP & Student Zero-Crypto Notice */}
-          <div className="p-3 rounded-xl bg-blue-50/80 border border-blue-200 text-blue-900 text-xs space-y-1.5">
-            <div className="flex items-center gap-2 font-semibold">
-              <ShieldCheck className="w-4 h-4 text-[#2563EB] shrink-0" />
-              <span>Official Student Record Matching & Email OTP</span>
-            </div>
-            <p className="text-[11px] text-slate-600 leading-relaxed">
-              Your <strong>Name, ID, Department, Batch, and Email</strong> will be checked against the university&apos;s official <code>student-records</code> database. An OTP will be delivered directly to your email via <strong>Brevo</strong>.
-            </p>
-          </div>
+          
 
           {/* Full Name */}
           <div className="space-y-1.5">
@@ -840,16 +630,11 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
             className="w-full mt-3 py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-60"
           >
             {isSendingOtp ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Checking Record & Sending Brevo OTP...</span>
-              </>
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <>
-                <Mail className="w-4 h-4" />
-                <span>Verify Record & Send OTP</span>
-              </>
+              <Mail className="w-4 h-4" />
             )}
+            <span>Verify Record & Send OTP</span>
           </button>
         </form>
       )}
@@ -899,16 +684,11 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
               className="w-full py-3.5 px-4 rounded-xl bg-[#2563EB] hover:bg-blue-700 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {isVerifyingOtp ? (
-                <>
-                  <Loader2 className="w-4 h-4 animate-spin" />
-                  <span>Verifying OTP...</span>
-                </>
+                <Loader2 className="w-4 h-4 animate-spin" />
               ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" />
-                  <span>Verify OTP & Complete Registration</span>
-                </>
+                <CheckCircle2 className="w-4 h-4" />
               )}
+              <span>Verify OTP & Complete Registration</span>
             </button>
 
             {/* Footer Navigation */}
@@ -952,16 +732,7 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
             </span>
           </div>
 
-          {/* Institutional Governance Callout */}
-          <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-1">
-            <div className="flex items-center gap-1.5 font-bold text-amber-800">
-              <ShieldAlert className="w-3.5 h-3.5 text-amber-600" />
-              <span>Requires Controller Approval</span>
-            </div>
-            <p className="text-amber-800/90 text-[11px] leading-relaxed">
-              Staff cannot self-assign Admin or Issuer roles. Submitting creates an Access Request requiring verification by the Controller of Examinations.
-            </p>
-          </div>
+          
 
           {/* Full Name */}
           <div className="space-y-1.5">
@@ -1103,16 +874,11 @@ export const RegistrationCard: React.FC<RegistrationCardProps> = ({
             className="w-full mt-3 py-3.5 px-4 rounded-xl bg-[#06B6D4] hover:bg-cyan-600 text-white font-semibold text-sm shadow-md transition-all flex items-center justify-center gap-2 cursor-pointer"
           >
             {isLoading ? (
-              <>
-                <Loader2 className="w-4 h-4 animate-spin" />
-                <span>Transmitting Access Request...</span>
-              </>
+              <Loader2 className="w-4 h-4 animate-spin" />
             ) : (
-              <>
-                <BadgeCheck className="w-4 h-4" />
-                <span>Submit for Approval</span>
-              </>
+              <BadgeCheck className="w-4 h-4" />
             )}
+            <span>Submit for Approval</span>
           </button>
         </form>
       )}

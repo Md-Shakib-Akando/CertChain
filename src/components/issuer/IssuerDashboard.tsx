@@ -27,6 +27,7 @@ import {
 import { IssuerSidebar, IssuerTab } from './IssuerSidebar';
 import { IssuerTopHeader } from './IssuerTopHeader';
 import { ReportsSection } from './ReportsSection';
+import { clearSessionUser } from '@/lib/authSession';
 
 interface IssuedCert {
   id: string;
@@ -488,6 +489,7 @@ export const IssuerDashboard: React.FC = () => {
   };
 
   const handleLogout = () => {
+    clearSessionUser();
     router.push('/login');
   };
 
