@@ -43,7 +43,7 @@
 | **10** | **Automated Email & OTP Delivery** | ✅ **Done** | Transactional email delivery of certificates with attached PDFs and verification URLs via Brevo REST API v3. |
 
 ---
-
+## **Project Video link:** [https://drive.google.com/file/d/1_jEOV5GVEuPhtPViII4Q3qZ5HKcuNDjm/view?usp=sharing]
 ## 📌 Executive Summary
 
 Academic credential fraud, forged degree certificates, and slow, manual background verification processes cost universities and employers millions annually. **PUB CertChain** solves this crisis by combining **Ethereum smart contracts**, **SHA-256 cryptographic hashing**, **dynamic QR code generation**, and a **multi-tier Role-Based Access Control (RBAC)** architecture.
