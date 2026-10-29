@@ -418,72 +418,106 @@ The repository includes pre-built sample certificates in the [`demo/`](demo/) di
 ```text
 certchain/
 ├── contracts/
-│   └── CertChain.sol               # OpenZeppelin AccessControl smart contract
+│   └── CertChain.sol                   # OpenZeppelin AccessControl EVM smart contract
 ├── scripts/
-│   ├── deploy.js                   # Automated contract deployer & Web3 ABI exporter
-│   ├── create-super-admin.mjs      # Database seed script for Super Admin
-│   ├── test-tamper-detection.mjs   # End-to-end cryptographic tamper assertion test
-│   ├── set-controller-password.mjs # Convenience password reset utility for Controller
-│   └── export-demo-files.mjs       # Exporter for demo certificate suite
+│   ├── deploy.js                       # Contract deployer & Web3 client ABI exporter
+│   ├── create-super-admin.mjs          # Database seed script for Super Administrator
+│   ├── set-controller-password.mjs     # Emergency password setup utility for Controller
+│   ├── export-demo-files.mjs           # Exporter for demo PDF and QR evaluation assets
+│   └── test-tamper-detection.mjs       # End-to-end cryptographic tamper assertion test
 ├── demo/
-│   ├── PUB-DEG-2026-000105.pdf     # Authentic degree certificate
-│   ├── PUB-DEG-2026-000105-tampered.pdf # Modified PDF for tamper detection testing
+│   ├── PUB-DEG-2026-000105.pdf         # Authentic graduation degree certificate
+│   ├── PUB-DEG-2026-000105-qr.png      # High-density verification QR code
+│   ├── PUB-DEG-2026-000105-tampered.pdf# Modified PDF (1-byte altered) for tamper testing
 │   ├── CERT-DEMO-2026-002-revoked.pdf  # Officially revoked certificate sample
-│   └── README.md                   # Evaluator test guide & cryptographic hashes
-├── test/
-│   └── CertChain.test.js           # Hardhat test suite (11 passing tests)
-├── batch_students_20.csv           # Ready-to-use batch issuance CSV cohort (20 students)
-├── public/
-│   └── images/                     # Institutional branding, logos & visual previews
+│   ├── CERT-DEMO-2026-002-revoked-qr.png# QR code linking to revoked ledger state
+│   └── README.md                       # Evaluator test guide with SHA-256 ledger checksums
 ├── docs/
-│   ├── AUTH_UI_DESIGN.md           # UI/UX design system specification
-│   └── screenshots/                # Application preview screenshots
+│   ├── AUTH_UI_DESIGN.md               # UI/UX design system & token documentation
+│   └── screenshots/                    # Application preview captures & workflow diagrams
+├── public/
+│   ├── images/                         # Institutional seal, hero graphics & verification visuals
+│   └── *.svg                           # Next.js and Vercel vector web assets
+├── test/
+│   └── CertChain.test.js               # Comprehensive Hardhat Chai test suite (11 passing tests)
+├── batch_students_20.csv               # Ground-truth student registry CSV (20 real cohort records)
 ├── src/
-│   ├── app/                        # Next.js 16 App Router
-│   │   ├── page.tsx                # Public landing page with instant verifier
-│   │   ├── login/ & register/      # Minimalist dual-panel authentication gateways
-│   │   ├── verify/                 # Standalone public verification workbench
-│   │   ├── s/[token]/              # Public resolver for time-expiring share links
-│   │   ├── dashboard/              # Role-specific gateway dispatcher
-│   │   └── api/                    # RESTful backend API routes
-│   │       ├── auth/               # Login, registration, Brevo OTP handlers
-│   │       ├── certificates/       # Single & batch issuance, PDF generation
-│   │       ├── public/verify/      # Zero-gas on-chain verification endpoint
-│   │       ├── controller/         # Revocation approval & issuer management
-│   │       ├── student/            # Share link generation & profile queries
-│   │       └── admin/              # User management & immutable audit logs
-│   ├── components/                 # Atomic UI component library
-│   │   ├── auth/                   # AuthLayout, LoginForm, RegistrationCard
-│   │   ├── brand/                  # Vector SealMark and university typography
-│   │   ├── public/                 # LandingHero, QuickVerification, HowItWorks
-│   │   ├── student/                # StudentDashboard, ShareLinkModal, Vault
-│   │   ├── issuer/                 # Single/Batch issuance desks, CSV processor
-│   │   ├── controller/             # Co-signature desk, revocation queue
-│   │   ├── admin/                  # SuperAdminDashboard, SystemMonitoring
-│   │   └── ui/                     # Accessible component primitives (Card, Button, Field, etc.)
-│   ├── lib/                        # Core utilities & services
-│   │   ├── mongodb.ts              # Cached Mongoose connection client
-│   │   ├── authSession.ts          # Stateless cookie session parser
-│   │   ├── brevo.ts                # Brevo REST API v3 transactional email client
-│   │   ├── studentRecordMatcher.ts # Exact & fuzzy admissions record validator
+│   ├── app/                            # Next.js 16 App Router (Pages, Layouts & APIs)
+│   │   ├── page.tsx                    # Public landing page with instant client verifier
+│   │   ├── layout.tsx & globals.css    # Root HTML layout, font definitions & Tailwind theme
+│   │   ├── login/ & register/          # Institutional dual-panel authentication gateways
+│   │   ├── verify/                     # Standalone public verification workbench
+│   │   ├── s/[token]/                  # Zero-knowledge public resolver for expiring share links
+│   │   ├── dashboard/                  # Dynamic role-based session gateway dispatcher
+│   │   ├── auth/setup-password/        # Invited staff password creation portal
+│   │   ├── admin/                      # Super Admin Console routes (dashboard & requests)
+│   │   ├── controller/                 # Controller of Examinations sub-routes:
+│   │   │   ├── dashboard/              # Metrics, quick stats, and workflow triage
+│   │   │   ├── applications/           # Pending student ID approval workspace
+│   │   │   ├── revocations/            # Syndicate-directed certificate revocation queue
+│   │   │   ├── issuers/                # Registrar directory and authorization status
+│   │   │   ├── registrations/          # Staff application review workbench
+│   │   │   ├── audit-logs/             # Immutable university administrative ledger
+│   │   │   └── reports/                # Issuance velocity and verification analytics
+│   │   ├── student/                    # Student Credential Vault & privacy sharing desk
+│   │   └── api/                        # RESTful backend API routes:
+│   │       ├── admin/                  # User status, role assignment, audit logs, system health
+│   │       ├── auth/                   # Credentials login, staff register, student Brevo OTP
+│   │       ├── certificates/           # Issuance engine, batch CSV parser, PDF download, revocation
+│   │       ├── controller/             # Applications, issuer approvals, revocations, demo seeder
+│   │       ├── issuer/                 # Registrar audit trail records
+│   │       ├── public/verify/          # Zero-gas public on-chain verification & hash lookup
+│   │       ├── student/                # Student profile and privacy share-link generator
+│   │       └── students/               # Admissions registry query interface
+│   ├── components/                     # Atomic and Composite UI Component Suite
+│   │   ├── admin/                      # SuperAdminDashboard, UserManagement, SystemMonitoring, modals
+│   │   ├── auth/                       # AuthLayout, LoginForm, RegistrationCard, SetupPassword, MetaMask
+│   │   ├── brand/                      # Vector institutional SealMark and University typography
+│   │   ├── controller/                 # ControllerDashboard, CoSignatureCenter, Revocation, modals
+│   │   ├── issuer/                     # IssuerDashboard, IssuerSidebar, TopHeader, ReportsSection
+│   │   ├── layout/                     # Header, Footer, WorkspaceShell (responsive desktop sidebar)
+│   │   ├── public/                     # LandingHero, QuickVerification, HowItWorks, Testimonials, CTA
+│   │   ├── student/                    # StudentPortal, StudentDashboardView, Vault, ShareLinkModal
+│   │   └── ui/                         # Design system primitives:
+│   │       ├── Badge.tsx, Button.tsx, Card.tsx, Dialog.tsx, Field.tsx, FileDrop.tsx
+│   │       ├── Hash.tsx, Menu.tsx, PageHeader.tsx, Stepper.tsx, Table.tsx, Tabs.tsx, Toast.tsx
+│   │       └── CertificateDocumentPreview.tsx (vector paper certificate preview)
+│   ├── hooks/                          # Reusable Stateful React 19 Custom Hooks
+│   │   ├── useSuperAdminDashboard.ts   # Admin metrics, user filtering, role modification state
+│   │   ├── useControllerDashboard.ts   # Controller queue, multi-tab state, co-signature handlers
+│   │   ├── useStudentPortal.ts         # Student certificate vault, share link modal controls
+│   │   └── useSetupPassword.ts         # Tokenized staff invitation password onboarding
+│   ├── lib/                            # Business Logic, Integrations & Helpers
+│   │   ├── mongodb.ts                  # Cached Mongoose connection singleton with connection pool
+│   │   ├── authSession.ts              # Stateless iron-session cookie parser and identity decoder
+│   │   ├── brevo.ts                    # Brevo REST API v3 transactional email and OTP engine
+│   │   ├── studentRecordMatcher.ts     # Ground-truth admissions matcher (fuzzy & exact logic)
+│   │   ├── cn.ts                       # Class variance authority and Tailwind class merger
 │   │   ├── pdf/
-│   │   │   └── certificateGenerator.ts # Deterministic vector PDF synthesizer
+│   │   │   └── certificateGenerator.ts # Deterministic vector PDF synthesizer (zero metadata jitter)
 │   │   └── web3/
-│   │       ├── serverWeb3.ts       # Server-side ethers.js contract signer & provider
-│   │       ├── certChainClient.ts  # Client-side smart contract read utilities
-│   │       ├── CertChainABI.json   # Auto-exported smart contract ABI
-│   │       └── contractDeployment.json # Auto-exported deployment address & chain ID
-│   └── models/                     # Mongoose database models
-│       ├── User.ts                 # Credentials, roles, approval statuses
-│       ├── Certificate.ts          # Metadata, SHA-256 hash, txHash, block number
-│       ├── StudentRecord.ts        # Ground-truth admissions database
-│       ├── RevocationRequest.ts    # Formal revocation requests & co-signatures
-│       ├── AuditLog.ts             # Tamper alerts & administrative event trail
-│       ├── ShareLink.ts            # Expiring, tokenized privacy share permissions
-│       └── OtpVerification.ts      # Brevo email verification challenges
-├── hardhat.config.js               # Hardhat EVM compiler & network settings
-├── package.json                    # Project metadata & npm scripts
-└── tsconfig.json                   # Strict TypeScript compiler configuration
+│   │       ├── serverWeb3.ts           # Server-side ethers.js contract signer and provider bridge
+│   │       ├── certChainClient.ts      # Client-side smart contract read and event listener utilities
+│   │       ├── CertChainABI.json       # Auto-generated contract ABI (6 interfaces)
+│   │       └── contractDeployment.json # Live deployed contract address and EVM chain ID
+│   ├── models/                         # Mongoose Schema Definitions
+│   │   ├── User.ts                     # User accounts, hashed passwords, wallet addresses, statuses
+│   │   ├── Certificate.ts              # Stored metadata, canonical SHA-256 hash, txHash, block number
+│   │   ├── StudentRecord.ts            # Ground-truth university admissions and examination records
+│   │   ├── RevocationRequest.ts        # Syndicate revocation requests, reasons, and co-signatures
+│   │   ├── AuditLog.ts                 # Cryptographic tamper alerts and administrative security trail
+│   │   ├── ShareLink.ts                # Tokenized, expiring share permissions with view counters
+│   │   └── OtpVerification.ts          # Time-expiring Brevo email OTP challenge records
+│   └── types/                          # TypeScript Domain Interfaces & Type Contracts
+│       ├── admin.ts                    # Admin state, user management types, system health models
+│       ├── auth.ts                     # Session tokens, registration payloads, OTP requests
+│       ├── controller.ts               # Co-signature requests, revocation states, issuer records
+│       └── student.ts                  # Certificate vault objects, share links, verification models
+├── .env.example                        # Documented environment variable template
+├── hardhat.config.js                   # Hardhat EVM compiler, Paris optimizer & network configs
+├── package.json                        # Project dependencies, build and test script commands
+├── tsconfig.json                       # TypeScript compiler options and `@/*` path aliases
+└── LICENSE                             # MIT Open Source License
 ```
 
 ---
