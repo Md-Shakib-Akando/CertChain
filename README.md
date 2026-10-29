@@ -16,7 +16,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-F59E0B?style=for-the-badge)](LICENSE)
 
 <p align="center">
-  <strong>Developed by Team <code>_FSociety</code></strong><br />
+  <strong>Developed by Team <code>FSociety</code></strong><br />
   <em>PUB CSE fest Hackathon 2026 — Problem Statement A1: PUB CertChain: Blockchain-Based Academic Certificate Verification</em><br />
   <strong>Pundra University of Science & Technology (PUB)</strong>
 </p>
