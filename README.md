@@ -3,6 +3,7 @@
 <img src="public/images/hero4.png" alt="PUB CertChain Banner" width="100%" style="border-radius: 14px; max-height: 380px; object-fit: cover; box-shadow: 0 12px 32px rgba(14,22,34,0.18);" />
 
 # 🎓 PUB CertChain
+
 ### Cryptographic Academic Credential Registry & Multi-Signature Ledger Governance
 
 [![Next.js](https://img.shields.io/badge/Next.js-16.4.2-000000?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
@@ -16,26 +17,21 @@
 
 <p align="center">
   <strong>Developed by Team <code>_FSociety</code></strong><br />
-  <em>National Hackathon — Problem Statement A1: Blockchain-Based Academic Certificate Verification</em><br />
-  <strong>Pundra University of Science & Technology (PUST / PUB)</strong>
+  <em>PUB CSE fest Hackathon 2026 — Problem Statement A1: PUB CertChain: Blockchain-Based Academic Certificate Verification</em><br />
+  <strong>Pundra University of Science & Technology (PUB)</strong>
 </p>
 
 </div>
 
 ---
 
-> **Over \$1 Billion [VERIFY] is lost annually to diploma mills, altered transcripts, and manual background verification backlogs.**  
-> **PUB CertChain** eliminates credential forgery at the root by anchoring deterministically fingerprinted academic credentials to the Ethereum blockchain—delivering instant, zero-gas public verification for employers and embassies while guaranteeing student data privacy.
-
 ---
 
 ## 📺 Demonstration & Visual Evidence
 
-| Resource | Direct Link | Description |
-| :--- | :--- | :--- |
+| Resource                         | Direct Link                                                                                                           | Description                                                                    |
+| :------------------------------- | :-------------------------------------------------------------------------------------------------------------------- | :----------------------------------------------------------------------------- |
 | 🎥 **Project Video Walkthrough** | [Google Drive Video Presentation](https://drive.google.com/file/d/1_jEOV5GVEuPhtPViII4Q3qZ5HKcuNDjm/view?usp=sharing) | Full end-to-end system walkthrough, batch issuance, and tamper detection demo. |
-| 🌐 **Live Web Application** | [PLACEHOLDER: https://certchain.pub.ac.bd] | Public portal, multi-modal verifier, and role-based login gateway. |
-| 📁 **Evaluator Demo Files** | [`demo/README.md`](demo/README.md) | Pre-seeded test certificates (Authentic, Tampered, and Revoked) for hands-on grading. |
 
 <div align="center">
   <img src="docs/screenshots/landing-preview.png" alt="PUB CertChain Portal Landing" width="49%" style="border-radius: 8px; border: 1px solid #E3DFD5;" />
@@ -46,12 +42,11 @@
 
 ## 🛑 The Problem Statement
 
-Traditional academic degree issuance and background check workflows suffer from critical structural vulnerabilities:
-
-1. **Rampant Credential Forgery**: Sophisticated desktop publishing tools make forging university transcripts and paper certificates trivial. Over 50,000 fraudulent degrees are circulated worldwide each year [VERIFY].
-2. **Crippling Verification Delays**: Employers, scholarship boards, and foreign embassies spend 2 to 6 weeks waiting for manual registrar verification via physical mail or unauthenticated emails.
-3. **Centralized Database Vulnerability**: Traditional university databases have single points of failure, leaving academic records vulnerable to unauthorized database modifications, ransomware, or administrative errors.
-4. **Privacy Over-Exposure**: Students forced to transmit unredacted academic records to third-party employers risk identity theft and lack control over who accesses their academic history.
+Employers, foreign universities and scholarship boards usually verify a graduate's certificate by emailing
+the Registrar's office or by checking a scanned copy, which is slow and makes forged certificates hard to
+detect. Build a system in which the university issues digitally verifiable certificates and transcripts, records
+their fingerprints on a blockchain, and allows anyone to check a certificate within seconds without
+contacting the university.
 
 ---
 
@@ -59,45 +54,52 @@ Traditional academic degree issuance and background check workflows suffer from 
 
 **PUB CertChain** redefines academic credential governance by bridging **Ethereum smart contracts**, **deterministic vector PDF synthesis**, **time-expiring privacy tokens**, and **dual-authority multi-signature revocation**:
 
-* **Deterministic Mathematical Fingerprinting**: Every generated certificate PDF is normalized with standardized font metrics and zeroed timestamps (`Date(0)`). The resulting byte stream produces an identical SHA-256 cryptographic digest across any device or operating system.
-* **On-Chain Immutability with Zero Gas for Verifiers**: The SHA-256 digest is anchored directly to the `CertChain.sol` smart contract. Anyone can verify records worldwide in milliseconds through read-only EVM calls without paying gas or installing crypto wallets.
-* **Dual-Authority Revocation Governance**: Registrars can request revocations, but revocations can only be finalized on-chain when co-signed by the Controller of Examinations with a documented justification.
-* **Privacy-Preserving Expiring Share Links**: Students generate tokenized, expiring URLs (`/s/[token]`) for job applications with custom view limits and instant revocation controls.
+- **Deterministic Mathematical Fingerprinting**: Every generated certificate PDF is normalized with standardized font metrics and zeroed timestamps (`Date(0)`). The resulting byte stream produces an identical SHA-256 cryptographic digest across any device or operating system.
+- **On-Chain Immutability with Zero Gas for Verifiers**: The SHA-256 digest is anchored directly to the `CertChain.sol` smart contract. Anyone can verify records worldwide in milliseconds through read-only EVM calls without paying gas or installing crypto wallets.
+- **Dual-Authority Revocation Governance**: Registrars can request revocations, but revocations can only be finalized on-chain when co-signed by the Controller of Examinations with a documented justification.
+- **Privacy-Preserving Expiring Share Links**: Students generate tokenized, expiring URLs (`/s/[token]`) for job applications with custom view limits and instant revocation controls.
 
 ---
 
 ## ⚡ Core Capabilities & Key Features
 
 ### 🛡️ 1. Cryptographic Tamper-Proof Anchoring
-* **SHA-256 Mathematical Identity**: The exact binary bytes of every certificate PDF are hashed using SHA-256 and committed on-chain alongside the student ID, issuer address, and block timestamp.
-* **Active Tamper Detection Engine**: Modifying a single character, date, or changing a CGPA from `3.20` to `3.95` completely alters the computed hash. The platform instantly triggers a red **`INVALID_MODIFIED`** security alert and flags the mismatch side-by-side.
+
+- **SHA-256 Mathematical Identity**: The exact binary bytes of every certificate PDF are hashed using SHA-256 and committed on-chain alongside the student ID, issuer address, and block timestamp.
+- **Active Tamper Detection Engine**: Modifying a single character, date, or changing a CGPA from `3.20` to `3.95` completely alters the computed hash. The platform instantly triggers a red **`INVALID_MODIFIED`** security alert and flags the mismatch side-by-side.
 
 ### 🔍 2. Zero-Gas Multi-Modal Verification
-* **Certificate ID Query**: Instant verification by unique institutional identifier (e.g. `PUB-DEG-2026-000105`).
-* **Client-Side Drag & Drop**: Browser computes the SHA-256 hash locally in client memory and queries the smart contract—no files are uploaded to third-party servers.
-* **Live Camera QR Scanning**: Scans embedded high-density QR codes to resolve verification status in sub-seconds.
-* **Zero Cost**: Built entirely on free EVM `view` functions (`verifyCertificate` and `verifyCertificateByHash`).
+
+- **Certificate ID Query**: Instant verification by unique institutional identifier (e.g. `PUB-DEG-2026-000105`).
+- **Client-Side Drag & Drop**: Browser computes the SHA-256 hash locally in client memory and queries the smart contract—no files are uploaded to third-party servers.
+- **Live Camera QR Scanning**: Scans embedded high-density QR codes to resolve verification status in sub-seconds.
+- **Zero Cost**: Built entirely on free EVM `view` functions (`verifyCertificate` and `verifyCertificateByHash`).
 
 ### 📦 3. High-Throughput Batch Issuance
-* **Graduation Cohort CSV Upload**: Issuers can upload hundreds of student records simultaneously via CSV (e.g. [`batch_students_20.csv`](batch_students_20.csv)).
-* **Single-Transaction Batch Anchoring**: The smart contract method `batchIssueCertificates(string[], bytes32[])` writes entire graduating classes in a single block transaction, slashing administrative gas fees by up to 70% [VERIFY].
+
+- **Graduation Cohort CSV Upload**: Issuers can upload hundreds of student records simultaneously via CSV (e.g. [`batch_students_20.csv`](batch_students_20.csv)).
+- **Single-Transaction Batch Anchoring**: The smart contract method `batchIssueCertificates(string[], bytes32[])` writes entire graduating classes in a single block transaction, slashing administrative gas fees by up to 70% [VERIFY].
 
 ### ⚖️ 4. Multi-Tier Role-Based Access Control (RBAC)
-* **Super Administrator (`DEFAULT_ADMIN_ROLE`)**: Manages university officials, provisions Controller accounts, monitors system health, and grants/revokes on-chain issuer credentials.
-* **Controller of Examinations (`CONTROLLER_ROLE`)**: Supreme institutional authority; inspects graduation rosters, reviews revocation requests, and co-signs on-chain certificate revocations with formal Syndicate justifications.
-* **Authorized Certificate Issuer (`ISSUER_ROLE`)**: Authorized staff that validates academic eligibility, executes single/batch certificate issuance, and generates official stamped PDFs.
-* **Student Portal**: Authenticated graduate vault to view issued degrees, download verified PDFs, and generate secure time-limited employer share links.
+
+- **Super Administrator (`DEFAULT_ADMIN_ROLE`)**: Manages university officials, provisions Controller accounts, monitors system health, and grants/revokes on-chain issuer credentials.
+- **Controller of Examinations (`CONTROLLER_ROLE`)**: Supreme institutional authority; inspects graduation rosters, reviews revocation requests, and co-signs on-chain certificate revocations with formal Syndicate justifications.
+- **Authorized Certificate Issuer (`ISSUER_ROLE`)**: Authorized staff that validates academic eligibility, executes single/batch certificate issuance, and generates official stamped PDFs.
+- **Student Portal**: Authenticated graduate vault to view issued degrees, download verified PDFs, and generate secure time-limited employer share links.
 
 ### 🔐 5. Admissions Pre-Matching & Brevo Email OTP
-* **Zero Student Enumeration**: Self-registering students must match pre-seeded university admission records (Name, Student ID, Department, Batch, and Email).
-* **Automated 6-Digit Brevo OTP**: Authenticates students via their university email using Brevo's REST API v3 before granting vault access.
+
+- **Zero Student Enumeration**: Self-registering students must match pre-seeded university admission records (Name, Student ID, Department, Batch, and Email).
+- **Automated 6-Digit Brevo OTP**: Authenticates students via their university email using Brevo's REST API v3 before granting vault access.
 
 ### ⏱️ 6. Tokenized Privacy-Preserving Share Links
-* **Targeted Employer Access**: Students generate unique shareable URLs (`/s/[token]`) with configurable durations (24 hours to 30 days) and view limits.
-* **SHA-256 Token Protection**: Tokens are hashed in the database (`tokenHash`); credentials can be revoked instantly with a single click.
+
+- **Targeted Employer Access**: Students generate unique shareable URLs (`/s/[token]`) with configurable durations (24 hours to 30 days) and view limits.
+- **SHA-256 Token Protection**: Tokens are hashed in the database (`tokenHash`); credentials can be revoked instantly with a single click.
 
 ### 📜 7. Immutable Security Audit Trail
-* Every administrative action, issuance event, public lookup, and tamper intrusion is logged with actor role, IP address, user agent, and blockchain transaction hash.
+
+- Every administrative action, issuance event, public lookup, and tamper intrusion is logged with actor role, IP address, user agent, and blockchain transaction hash.
 
 ---
 
@@ -114,28 +116,28 @@ flowchart TD
     end
 
     subgraph Client ["Frontend Presentation Layer (Next.js 16 + React 19)"]
-        Landing["Public Verifier & Landing (/)"]
-        AuthUI["Institutional Gateway (/login, /register)"]
-        AdminDesk["Super Admin Console (/admin)"]
-        ControllerDesk["Controller Desk (/controller)"]
-        IssuerDesk["Registrar Issuance Desk (/issuer)"]
-        StudentVault["Student Credential Vault (/student)"]
-        ShareView["Public Token Resolver (/s/[token])"]
+        Landing["Public Verifier & Landing"]
+        AuthUI["Institutional Gateway"]
+        AdminDesk["Super Admin Console"]
+        ControllerDesk["Controller Desk"]
+        IssuerDesk["Registrar Issuance Desk"]
+        StudentVault["Student Credential Vault"]
+        ShareView["Public Token Resolver"]
     end
 
     subgraph Backend ["Server & Security Core (Next.js API Engine)"]
         AuthAPI["Session & OTP Validator"]
-        CertEngine["Deterministic PDF Synthesizer (pdf-lib)"]
+        CertEngine["Deterministic PDF Synthesizer"]
         Matcher["Admissions Registry Matcher"]
         AuditEngine["Security Audit Trail Logger"]
         BrevoClient["Brevo Transactional Email Engine"]
-        Web3Service["Server Web3 Bridge (ethers.js v6)"]
+        Web3Service["Server Web3 Bridge"]
     end
 
     subgraph Persistence ["Data & Blockchain Layer"]
-        MongoAtlas[("MongoDB Atlas (Users, Metadata, Logs, ShareLinks)")]
-        LocalNode[("Ethereum Hardhat Node / Sepolia Testnet")]
-        SmartContract["CertChain.sol (OpenZeppelin AccessControl)"]
+        MongoAtlas[("MongoDB Atlas Database")]
+        LocalNode[("Ethereum Blockchain Node")]
+        SmartContract["CertChain Smart Contract"]
     end
 
     %% User Interaction Flow
@@ -149,27 +151,27 @@ flowchart TD
     %% Component to Backend Mapping
     AuthUI --> AuthAPI
     AdminDesk --> AuditEngine
-    IssuerDesk -->|1. Submit Record / CSV| CertEngine
-    CertEngine -->|2. Pre-validate Record| Matcher
+    IssuerDesk -->|"1. Submit Record or CSV"| CertEngine
+    CertEngine -->|"2. Pre-validate Record"| Matcher
     Matcher --> MongoAtlas
-    CertEngine -->|3. Generate Deterministic PDF & QR| CertEngine
-    CertEngine -->|4. Push Canonical SHA-256| Web3Service
-    Web3Service -->|5. issueCertificate / batchIssue| SmartContract
+    CertEngine -->|"3. Generate PDF and QR"| CertEngine
+    CertEngine -->|"4. Push Canonical SHA-256"| Web3Service
+    Web3Service -->|"5. Anchor Hash On-Chain"| SmartContract
     SmartContract --> LocalNode
-    CertEngine -->|6. Store Metadata & PDF| MongoAtlas
-    CertEngine -->|7. Dispatch Notification| BrevoClient
+    CertEngine -->|"6. Store Metadata and PDF"| MongoAtlas
+    CertEngine -->|"7. Dispatch Notification"| BrevoClient
 
     %% Verification Flow
-    Landing -->|Upload PDF / Enter Cert ID| Web3Service
-    Web3Service -->|verifyCertificate (Zero Gas View)| SmartContract
-    ShareView -->|Resolve Token Hash| MongoAtlas
-    ShareView -->|Verify Ledger State| Web3Service
+    Landing -->|"Upload PDF or Cert ID"| Web3Service
+    Web3Service -->|"verifyCertificate: Zero-Gas View"| SmartContract
+    ShareView -->|"Resolve Token Hash"| MongoAtlas
+    ShareView -->|"Verify Ledger State"| Web3Service
 
     %% Revocation Flow
-    IssuerDesk -.->|Submit Revocation Request| ControllerDesk
-    ControllerDesk -->|Co-Sign & Execute approveRevocation| Web3Service
-    Web3Service -->|approveRevocation| SmartContract
-    SmartContract -.->|Emit CertificateRevoked| AuditEngine
+    IssuerDesk -.->|"Submit Revocation Request"| ControllerDesk
+    ControllerDesk -->|"Co-Sign & Execute approveRevocation"| Web3Service
+    Web3Service -->|"approveRevocation"| SmartContract
+    SmartContract -.->|"Emit CertificateRevoked"| AuditEngine
     AuditEngine --> MongoAtlas
 ```
 
@@ -194,45 +196,46 @@ struct CertificateRecord {
 
 ### Core Contract Interface
 
-| Method | Role Required | Gas Type | Description |
-| :--- | :--- | :--- | :--- |
-| `issueCertificate(string, bytes32)` | `ISSUER_ROLE` | State-Changing | Anchors a single certificate hash and ID to Ethereum. |
-| `batchIssueCertificates(string[], bytes32[])` | `ISSUER_ROLE` | State-Changing | Gas-optimized bulk issuance for entire graduating cohorts. |
-| `approveRevocation(string, string)` | `CONTROLLER_ROLE` | State-Changing | Marks certificate revoked with formal Syndicate reason. |
-| `verifyCertificate(string)` | `Public` | **View (Zero Gas)** | Instant lookup of validity, issuer, and timestamps by ID. |
-| `verifyCertificateByHash(bytes32)` | `Public` | **View (Zero Gas)** | Instant reverse lookup by uploaded PDF byte hash. |
-| `addIssuer(address)` / `removeIssuer(address)` | `ADMIN` / `CONTROLLER` | State-Changing | Authorizes or revokes registrar issuance permissions. |
-| `addController(address)` | `DEFAULT_ADMIN_ROLE` | State-Changing | Appoints an authorized Controller of Examinations. |
-| `getTotalCertificates()` | `Public` | **View (Zero Gas)** | Returns the total count of certificates registered on-chain. |
+| Method                                         | Role Required          | Gas Type            | Description                                                  |
+| :--------------------------------------------- | :--------------------- | :------------------ | :----------------------------------------------------------- |
+| `issueCertificate(string, bytes32)`            | `ISSUER_ROLE`          | State-Changing      | Anchors a single certificate hash and ID to Ethereum.        |
+| `batchIssueCertificates(string[], bytes32[])`  | `ISSUER_ROLE`          | State-Changing      | Gas-optimized bulk issuance for entire graduating cohorts.   |
+| `approveRevocation(string, string)`            | `CONTROLLER_ROLE`      | State-Changing      | Marks certificate revoked with formal Syndicate reason.      |
+| `verifyCertificate(string)`                    | `Public`               | **View (Zero Gas)** | Instant lookup of validity, issuer, and timestamps by ID.    |
+| `verifyCertificateByHash(bytes32)`             | `Public`               | **View (Zero Gas)** | Instant reverse lookup by uploaded PDF byte hash.            |
+| `addIssuer(address)` / `removeIssuer(address)` | `ADMIN` / `CONTROLLER` | State-Changing      | Authorizes or revokes registrar issuance permissions.        |
+| `addController(address)`                       | `DEFAULT_ADMIN_ROLE`   | State-Changing      | Appoints an authorized Controller of Examinations.           |
+| `getTotalCertificates()`                       | `Public`               | **View (Zero Gas)** | Returns the total count of certificates registered on-chain. |
 
 ---
 
 ## 💻 Tech Stack & Engineering Decisions
 
-| Architectural Layer | Technology / Library | Version | Why We Chose It |
-| :--- | :--- | :--- | :--- |
-| **Frontend Framework** | [Next.js (App Router)](https://nextjs.org/) | `16.4.2` | High-performance Server Components, Turbopack compilation, API route encapsulation, and SEO-optimized public routes. |
-| **UI Library** | [React](https://react.dev/) | `19.3.0` | Concurrent rendering, strict state transitions, and streamlined async hook integrations. |
-| **Styling System** | [Tailwind CSS](https://tailwindcss.com/) | `v4.0` | Institutional "Registry" design tokens (`bg-night`, `bg-canvas`, `text-seal-bright`), responsive glassmorphism, zero runtime CSS overhead. |
-| **Icons** | [Lucide React](https://lucide.dev/) | `1.59.0` | Pixel-perfect, accessible, and lightweight vector iconography. |
-| **Smart Contracts** | [Solidity](https://soliditylang.org/) | `^0.8.20` | Native EVM execution, Paris EVM compiler target with 200 optimizer runs for minimal contract footprint. |
-| **Security Standards** | [OpenZeppelin Contracts](https://www.openzeppelin.com/) | `v5.6.1` | Battle-tested, audited `AccessControl` preventing privilege escalation and reentrancy bugs. |
-| **Local Blockchain** | [Hardhat](https://hardhat.org/) | `^2.29.1` | Complete EVM development network with instantaneous deterministic block mining and integrated Chai assertions. |
-| **Web3 Client** | [Ethers.js](https://docs.ethers.org/) | `^6.17.0` | Modern, modular client for cryptographic hash conversion, contract invocation, and wallet challenge signing. |
-| **Database & ODM** | [MongoDB](https://www.mongodb.com/) / [Mongoose](https://mongoosejs.com/) | `^9.11.2` | High-availability document store for metadata, student admissions truth records, expiring share links, and audit trails. |
-| **PDF Synthesis** | [pdf-lib](https://pdf-lib.js.org/) | `^1.17.1` | Deterministic, vector-accurate PDF generation with zeroed creation metadata for bit-exact SHA-256 reproducibility. |
-| **QR Engine** | [qrcode](https://www.npmjs.com/package/qrcode) & [jsqr](https://github.com/cozmo/jsQR) | `1.5.4` / `1.4.0` | Real-time high-contrast QR generation and live webcam QR stream decoding. |
-| **Transactional Email**| [Brevo REST API v3](https://www.brevo.com/) | `v3` | Automated transactional email notifications with PDF attachments and 6-digit registration OTP codes. |
-| **Password Security** | [bcryptjs](https://www.npmjs.com/package/bcryptjs) | `^3.0.3` | Salted one-way password hashing for institutional portal protection. |
+| Architectural Layer     | Technology / Library                                                                   | Version           | Why We Chose It                                                                                                                            |
+| :---------------------- | :------------------------------------------------------------------------------------- | :---------------- | :----------------------------------------------------------------------------------------------------------------------------------------- |
+| **Frontend Framework**  | [Next.js (App Router)](https://nextjs.org/)                                            | `16.4.2`          | High-performance Server Components, Turbopack compilation, API route encapsulation, and SEO-optimized public routes.                       |
+| **UI Library**          | [React](https://react.dev/)                                                            | `19.3.0`          | Concurrent rendering, strict state transitions, and streamlined async hook integrations.                                                   |
+| **Styling System**      | [Tailwind CSS](https://tailwindcss.com/)                                               | `v4.0`            | Institutional "Registry" design tokens (`bg-night`, `bg-canvas`, `text-seal-bright`), responsive glassmorphism, zero runtime CSS overhead. |
+| **Icons**               | [Lucide React](https://lucide.dev/)                                                    | `1.59.0`          | Pixel-perfect, accessible, and lightweight vector iconography.                                                                             |
+| **Smart Contracts**     | [Solidity](https://soliditylang.org/)                                                  | `^0.8.20`         | Native EVM execution, Paris EVM compiler target with 200 optimizer runs for minimal contract footprint.                                    |
+| **Security Standards**  | [OpenZeppelin Contracts](https://www.openzeppelin.com/)                                | `v5.6.1`          | Battle-tested, audited `AccessControl` preventing privilege escalation and reentrancy bugs.                                                |
+| **Local Blockchain**    | [Hardhat](https://hardhat.org/)                                                        | `^2.29.1`         | Complete EVM development network with instantaneous deterministic block mining and integrated Chai assertions.                             |
+| **Web3 Client**         | [Ethers.js](https://docs.ethers.org/)                                                  | `^6.17.0`         | Modern, modular client for cryptographic hash conversion, contract invocation, and wallet challenge signing.                               |
+| **Database & ODM**      | [MongoDB](https://www.mongodb.com/) / [Mongoose](https://mongoosejs.com/)              | `^9.11.2`         | High-availability document store for metadata, student admissions truth records, expiring share links, and audit trails.                   |
+| **PDF Synthesis**       | [pdf-lib](https://pdf-lib.js.org/)                                                     | `^1.17.1`         | Deterministic, vector-accurate PDF generation with zeroed creation metadata for bit-exact SHA-256 reproducibility.                         |
+| **QR Engine**           | [qrcode](https://www.npmjs.com/package/qrcode) & [jsqr](https://github.com/cozmo/jsQR) | `1.5.4` / `1.4.0` | Real-time high-contrast QR generation and live webcam QR stream decoding.                                                                  |
+| **Transactional Email** | [Brevo REST API v3](https://www.brevo.com/)                                            | `v3`              | Automated transactional email notifications with PDF attachments and 6-digit registration OTP codes.                                       |
+| **Password Security**   | [bcryptjs](https://www.npmjs.com/package/bcryptjs)                                     | `^3.0.3`          | Salted one-way password hashing for institutional portal protection.                                                                       |
 
 ---
 
 ## 🚀 Tested Quickstart & Installation Guide
 
 ### Prerequisites
-* **Node.js**: `v20.x` or higher installed ([Download Node.js](https://nodejs.org/))
-* **MongoDB**: Local MongoDB daemon running (`mongodb://127.0.0.1:27017/certchain`) OR a free [MongoDB Atlas](https://www.mongodb.com/atlas) connection URI.
-* **Git**: Installed on your system.
+
+- **Node.js**: `v20.x` or higher installed ([Download Node.js](https://nodejs.org/))
+- **MongoDB**: Local MongoDB daemon running (`mongodb://127.0.0.1:27017/certchain`) OR a free [MongoDB Atlas](https://www.mongodb.com/atlas) connection URI.
+- **Git**: Installed on your system.
 
 ---
 
@@ -331,18 +334,19 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 The database can be accessed using the following pre-configured institutional testing accounts:
 
-| Role | Email / Identifier | Password | Access Portal |
-| :--- | :--- | :--- | :--- |
-| **Super Administrator** | `admin@pub.edu.bd` | `Admin@123456` | `/dashboard/admin` |
-| **Controller of Examinations** | `controller@pub.edu.bd` | `Controller@123` | `/dashboard/controller` |
-| **Authorized Certificate Issuer** | `issuer@pub.edu.bd` | `Issuer@123` | `/dashboard/issuer` |
-| **Graduated Student** | `0322410105101055` / `shakib@pub.edu.bd` | `Student@123` | `/dashboard/student` |
+| Role                              | Email / Identifier                       | Password         | Access Portal           |
+| :-------------------------------- | :--------------------------------------- | :--------------- | :---------------------- |
+| **Super Administrator**           | `admin@pub.edu.bd`                       | `Admin@123456`   | `/dashboard/admin`      |
+| **Controller of Examinations**    | `controller@pub.edu.bd`                  | `Controller@123` | `/dashboard/controller` |
+| **Authorized Certificate Issuer** | `issuer@pub.edu.bd`                      | `Issuer@123`     | `/dashboard/issuer`     |
+| **Graduated Student**             | `0322410105101055` / `shakib@pub.edu.bd` | `Student@123`    | `/dashboard/student`    |
 
 ---
 
 ## 🧪 Verified Testing Suite & Execution Proof
 
 ### 1. Hardhat Smart Contract Unit Tests (Chai / Mocha)
+
 To execute the automated blockchain test suite verifying access control, single issuance, batch issuance, duplicate hash rejection, and Controller revocation:
 
 ```bash
@@ -350,6 +354,7 @@ npm run chain:test
 ```
 
 **Real Terminal Output:**
+
 ```text
   PUB CertChain Smart Contract
     Deployment & Roles
@@ -374,6 +379,7 @@ npm run chain:test
 ---
 
 ### 2. Cryptographic Tamper-Detection CLI Test
+
 To test the active tamper detection pipeline against real binary files:
 
 ```bash
@@ -381,6 +387,7 @@ node scripts/test-tamper-detection.mjs
 ```
 
 **Real Terminal Output:**
+
 ```text
 ========================================================
  PUB CertChain: Cryptographic Tamper Detection Test
@@ -409,11 +416,11 @@ node scripts/test-tamper-detection.mjs
 
 The repository includes pre-built sample certificates in the [`demo/`](demo/) directory for immediate judge evaluation:
 
-| Test Certificate File | Type | Expected Result | Action to Perform |
-| :--- | :--- | :--- | :--- |
-| [`demo/PUB-DEG-2026-000105.pdf`](demo/PUB-DEG-2026-000105.pdf) | **Authentic Certificate** | 🟢 **Verified Authentic** | Drop into the **Upload PDF** tab on [http://localhost:3000](http://localhost:3000). Displays green verification badge, student data, and Ethereum transaction hash. |
-| [`demo/PUB-DEG-2026-000105-tampered.pdf`](demo/PUB-DEG-2026-000105-tampered.pdf) | **Forged / Altered File** | 🔴 **Security Alert: Tamper Detected** | Upload to verifier. Computes hash mismatch against ledger, highlights altered bits, and logs an intrusion alert. |
-| [`demo/CERT-DEMO-2026-002-revoked.pdf`](demo/CERT-DEMO-2026-002-revoked.pdf) | **Revoked Certificate** | 🟡 **Certificate Revoked** | Upload file or search ID `CERT-DEMO-2026-002`. Displays warning with Syndicate revocation rationale and Controller timestamp. |
+| Test Certificate File                                                            | Type                      | Expected Result                        | Action to Perform                                                                                                                                                   |
+| :------------------------------------------------------------------------------- | :------------------------ | :------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| [`demo/PUB-DEG-2026-000105.pdf`](demo/PUB-DEG-2026-000105.pdf)                   | **Authentic Certificate** | 🟢 **Verified Authentic**              | Drop into the **Upload PDF** tab on [http://localhost:3000](http://localhost:3000). Displays green verification badge, student data, and Ethereum transaction hash. |
+| [`demo/PUB-DEG-2026-000105-tampered.pdf`](demo/PUB-DEG-2026-000105-tampered.pdf) | **Forged / Altered File** | 🔴 **Security Alert: Tamper Detected** | Upload to verifier. Computes hash mismatch against ledger, highlights altered bits, and logs an intrusion alert.                                                    |
+| [`demo/CERT-DEMO-2026-002-revoked.pdf`](demo/CERT-DEMO-2026-002-revoked.pdf)     | **Revoked Certificate**   | 🟡 **Certificate Revoked**             | Upload file or search ID `CERT-DEMO-2026-002`. Displays warning with Syndicate revocation rationale and Controller timestamp.                                       |
 
 ---
 
@@ -495,35 +502,36 @@ certchain/
 ## 🧠 Technical Challenges & Engineering Breakthroughs
 
 1. **Deterministic PDF Synthesis Across Runtimes**:  
-   *Problem*: Generating a PDF dynamically using different system timezones or PDF generators embeds variable metadata timestamps, altering the file's SHA-256 hash even if visual contents are identical.  
-   *Solution*: Implemented programmatic normalization in `certificateGenerator.ts` using `pdf-lib`, forcing creation and modification dates to `Date(0)` (`1970-01-01T00:00:00.000Z`) and setting static producer strings. This guarantees bit-exact cryptographic reproducibility across any server or client.
+   _Problem_: Generating a PDF dynamically using different system timezones or PDF generators embeds variable metadata timestamps, altering the file's SHA-256 hash even if visual contents are identical.  
+   _Solution_: Implemented programmatic normalization in `certificateGenerator.ts` using `pdf-lib`, forcing creation and modification dates to `Date(0)` (`1970-01-01T00:00:00.000Z`) and setting static producer strings. This guarantees bit-exact cryptographic reproducibility across any server or client.
 
 2. **Zero-Gas Verification for Web2 Users**:  
-   *Problem*: Traditional blockchain apps require users to install MetaMask and pay transaction fees to verify authenticity.  
-   *Solution*: Engineered the public verification layer entirely on EVM `view` methods (`verifyCertificate` and `verifyCertificateByHash`). Verifiers calculate the SHA-256 hash client-side in the browser and query the blockchain free of charge, with zero gas fees and zero wallet installation.
+   _Problem_: Traditional blockchain apps require users to install MetaMask and pay transaction fees to verify authenticity.  
+   _Solution_: Engineered the public verification layer entirely on EVM `view` methods (`verifyCertificate` and `verifyCertificateByHash`). Verifiers calculate the SHA-256 hash client-side in the browser and query the blockchain free of charge, with zero gas fees and zero wallet installation.
 
 3. **Fast RPC Health Probing with Fallback**:  
-   *Problem*: If a local blockchain node is offline during developer onboarding, `ethers.JsonRpcProvider` initiates exponential retry loops that freeze HTTP responses for over 60 seconds.  
-   *Solution*: Created an AbortSignal-bounded pre-flight health probe in `serverWeb3.ts` with a 1500ms timeout. If the node is unreachable, it cleanly transitions to a deterministic cryptographic simulation mode without crashing or hanging the user interface.
+   _Problem_: If a local blockchain node is offline during developer onboarding, `ethers.JsonRpcProvider` initiates exponential retry loops that freeze HTTP responses for over 60 seconds.  
+   _Solution_: Created an AbortSignal-bounded pre-flight health probe in `serverWeb3.ts` with a 1500ms timeout. If the node is unreachable, it cleanly transitions to a deterministic cryptographic simulation mode without crashing or hanging the user interface.
 
 4. **Privacy-Preserving Expiring Share Links**:  
-   *Problem*: Public blockchain records cannot hold personal student data due to GDPR and FERPA regulations.  
-   *Solution*: Architecture strictly isolates personally identifiable information (PII) to off-chain encrypted MongoDB storage. Students generate unique shareable tokens (`/s/[token]`) protected by SHA-256 `tokenHash`, enforcing time expiration and view caps.
+   _Problem_: Public blockchain records cannot hold personal student data due to GDPR and FERPA regulations.  
+   _Solution_: Architecture strictly isolates personally identifiable information (PII) to off-chain encrypted MongoDB storage. Students generate unique shareable tokens (`/s/[token]`) protected by SHA-256 `tokenHash`, enforcing time expiration and view caps.
 
 ---
 
 ## 📈 Impact, Real-World Scalability & Compliance
 
-* **Institutional Cost Reduction**: Lowers credential verification costs from \$15–\$50 per document to fractions of a cent.
-* **Turnaround Speed**: Reduces verification turnaround time from 2–6 weeks to under **500 milliseconds**.
-* **FERPA & GDPR Compliance**: Personal identifiable information (PII) is never committed to the public blockchain. Only the 32-byte SHA-256 mathematical hash, certificate ID, and timestamp exist on-chain.
-* **Gas Scalability**: The `batchIssueCertificates` method leverages batch calldata array structures, allowing universities to anchor hundreds of certificates in single blocks while staying well below block gas limits.
+- **Institutional Cost Reduction**: Lowers credential verification costs from \$15–\$50 per document to fractions of a cent.
+- **Turnaround Speed**: Reduces verification turnaround time from 2–6 weeks to under **500 milliseconds**.
+- **FERPA & GDPR Compliance**: Personal identifiable information (PII) is never committed to the public blockchain. Only the 32-byte SHA-256 mathematical hash, certificate ID, and timestamp exist on-chain.
+- **Gas Scalability**: The `batchIssueCertificates` method leverages batch calldata array structures, allowing universities to anchor hundreds of certificates in single blocks while staying well below block gas limits.
 
 ---
 
 ## 🗺️ Strategic Roadmap
 
 - [x] **Phase 1: Hackathon MVP Core (Completed)**
+
   - [x] OpenZeppelin `AccessControl` Smart Contract (`CertChain.sol`).
   - [x] Deterministic A4 Landscape PDF synthesis with dynamic QR codes.
   - [x] Client-side SHA-256 drag-and-drop tamper detection engine.
@@ -542,21 +550,9 @@ certchain/
 
 ---
 
-## 👥 Team `_FSociety`
-
-| Team Member | Department | Role & Key Contributions |
-| :--- | :--- | :--- |
-| **Md. Shakib Akando** | CSE, PUST | **Team Lead & Full-Stack / Blockchain Architect** — `CertChain.sol` smart contract architecture, Next.js 16 core integration, Web3 client bridge, deterministic PDF hashing. |
-| **Md. Maruf Hasan** | CSE, PUST | **Frontend & UI/UX Engineer** — Minimalist "The Registry" institutional design system, Bento Grid layout, verification workbench, and student vault views. |
-| **Mst. Riya Moni** | CSE, PUST | **Backend & Governance Specialist** — Controller multi-signature co-signing workflow, Brevo REST API v3 integration, and admissions record matcher. |
-| **Md. Al Amin** | CSE, PUST | **Security & QA Engineer** — Client-side SHA-256 tamper detection assertions, Hardhat unit test suites, and cryptographic verification scripts. |
-| **Md. Sakib Hossain** | CSE, PUST | **DevOps & Technical Documentation** — Architecture documentation, batch issuance pipeline, Docker / deployment automation, and audit logging. |
-
----
-
 ## 📄 License & Attribution
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for complete details.
 
-Designed and engineered with pride by **Team `_FSociety`** for **Pundra University of Science & Technology (PUST / PUB)**.  
-*PUB CSE Fest-26 National Hackathon — Problem Statement A1.*
+Designed and engineered with pride by **Team `_FSociety`** for **Pundra University of Science & Technology (PUB)**.  
+_PUB CSE Fest-26 Hackathon — Problem Statement A1._

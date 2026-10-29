@@ -25,8 +25,8 @@ graph LR
     E -->|login| F["LoginForm"]
     E -->|register| G["RegistrationCard (Student / Staff)"]
     E -->|forgot-password| H["ForgotPasswordForm"]
-    F -->|Success| I["Top-Right Night Toast (1000ms) -> Dashboard"]
-    G -->|Success| J["Top-Right Night Toast (1000ms) -> Login"]
+    F -->|"Success"| I["Top-Right Night Toast (1000ms) to Dashboard"]
+    G -->|"Success"| J["Top-Right Night Toast (1000ms) to Login"]
 ```
 
 ---
