@@ -330,18 +330,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 
 ---
 
-## 🔐 Default Demonstration Accounts
 
-The database can be accessed using the following pre-configured institutional testing accounts:
-
-| Role                              | Email / Identifier                       | Password         | Access Portal           |
-| :-------------------------------- | :--------------------------------------- | :--------------- | :---------------------- |
-| **Super Administrator**           | `admin@pub.edu.bd`                       | `Admin@123456`   | `/dashboard/admin`      |
-| **Controller of Examinations**    | `controller@pub.edu.bd`                  | `Controller@123` | `/dashboard/controller` |
-| **Authorized Certificate Issuer** | `issuer@pub.edu.bd`                      | `Issuer@123`     | `/dashboard/issuer`     |
-| **Graduated Student**             | `0322410105101055` / `shakib@pub.edu.bd` | `Student@123`    | `/dashboard/student`    |
-
----
 
 ## 🧪 Verified Testing Suite & Execution Proof
 
