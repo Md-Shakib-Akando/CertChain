@@ -1,79 +1,79 @@
+'use client';
+
 import React from 'react';
-import Link from 'next/link';
-import { ShieldCheck, LayoutDashboard, ArrowRight } from 'lucide-react';
+import { ArrowRight, LayoutDashboard, LogIn, ShieldCheck } from 'lucide-react';
 import { useAuthSession } from '@/lib/authSession';
+import { Button, ButtonLink } from '@/components/ui';
 
 export const CtaBanner: React.FC = () => {
   const { isLoggedIn, user } = useAuthSession();
   const dashboardUrl =
     user?.role === 'student'
       ? '/dashboard/student'
+      : user?.role === 'issuer' || user?.role === 'registrar'
+      ? '/dashboard/issuer'
       : user?.role === 'admin' || user?.role === 'super_admin'
       ? '/admin/dashboard'
       : '/dashboard/controller';
 
   const handleVerifyClick = () => {
     const el = document.getElementById('verify');
-    el?.scrollIntoView({ behavior: 'smooth' });
-    setTimeout(() => {
-      const input = document.getElementById('cert-id-search-input');
-      input?.focus();
-    }, 400);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth' });
+      setTimeout(() => {
+        const input = document.getElementById('cert-id-search-input');
+        input?.focus();
+      }, 350);
+    }
   };
 
   return (
-    <section id="contact" className="bg-white py-14 sm:py-20">
+    <section className="bg-surface py-14 sm:py-16 border-b border-line">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Blue Banner Box */}
-        <div className="bg-[#1D4ED8] bg-gradient-to-r from-blue-700 via-blue-600 to-blue-700 rounded-3xl p-8 sm:p-12 shadow-xl shadow-blue-600/20 text-white flex flex-col lg:flex-row items-center justify-between gap-8">
-          
-          {/* Left Content */}
-          <div className="flex items-center gap-5 text-left w-full lg:w-auto">
-            <div className="w-14 h-14 rounded-2xl bg-white/15 border border-white/20 flex items-center justify-center shrink-0 shadow-inner">
-              <ShieldCheck className="w-8 h-8 text-white" />
+        <div className="rounded-lg bg-night text-night-text border border-night-line px-6 py-8 sm:px-10 sm:py-10 flex flex-col lg:flex-row lg:items-center justify-between gap-6 on-night">
+          <div className="space-y-2 max-w-xl">
+            <div className="inline-flex items-center gap-2 text-xs font-mono text-seal-bright">
+              <ShieldCheck className="size-4" aria-hidden />
+              <span>Pundra University Credential Registry</span>
             </div>
-            <div>
-              <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">
-                {isLoggedIn ? `Welcome Back, ${user?.name || 'Student'}` : 'Ready to Get Started?'}
-              </h2>
-              <p className="text-xs sm:text-sm text-blue-100 mt-1 max-w-md">
-                {isLoggedIn
-                  ? 'Access your tamper-proof blockchain certificates, manage share links, and verify credentials.'
-                  : 'Join thousands of students, universities and employers who trust PUB CertChain.'}
-              </p>
-            </div>
+            <h2 className="font-serif text-2xl sm:text-3xl font-semibold text-night-text">
+              {isLoggedIn
+                ? `Welcome back, ${user?.name || 'User'}`
+                : 'Access the Institutional Credential Portal'}
+            </h2>
+            <p className="text-xs sm:text-sm text-night-muted leading-relaxed">
+              {isLoggedIn
+                ? 'Open your role workspace to inspect credentials, manage time-bound verification links, or execute authorized registry actions.'
+                : 'Students can claim their verified degree certificates and create shareable employer links. Authorized university staff can issue or co-sign credentials.'}
+            </p>
           </div>
 
-          {/* Right Action Buttons */}
-          <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3.5 w-full sm:w-auto shrink-0">
-            <button
-              onClick={handleVerifyClick}
-              className="px-7 py-3.5 rounded-xl bg-white hover:bg-slate-100 text-blue-700 font-bold text-xs sm:text-sm transition-all shadow-md active:scale-95 text-center cursor-pointer"
-            >
-              Verify Certificate
-            </button>
+          <div className="flex flex-wrap items-center gap-3 shrink-0">
+            <Button variant="night" size="lg" onClick={handleVerifyClick}>
+              Verify a Certificate
+            </Button>
             {isLoggedIn ? (
-              <Link
+              <ButtonLink
                 href={dashboardUrl}
-                className="px-7 py-3.5 rounded-xl bg-[#091F47] hover:bg-[#071735] text-white border border-white/30 font-bold text-xs sm:text-sm transition-all text-center flex items-center justify-center gap-2 shadow-lg"
+                variant="night-ghost"
+                size="lg"
+                leftIcon={<LayoutDashboard />}
+                rightIcon={<ArrowRight />}
               >
-                <LayoutDashboard className="w-4 h-4 text-blue-400" />
-                <span>Go to Dashboard</span>
-                <ArrowRight className="w-4 h-4" />
-              </Link>
+                Go to Workspace
+              </ButtonLink>
             ) : (
-              <Link
+              <ButtonLink
                 href="/login"
-                className="px-7 py-3.5 rounded-xl bg-[#091F47] hover:bg-[#071735] text-white border border-white/20 font-semibold text-xs sm:text-sm transition-all text-center flex items-center justify-center gap-1.5"
+                variant="night-ghost"
+                size="lg"
+                leftIcon={<LogIn />}
               >
-                Sign In / Register
-              </Link>
+                Portal Sign In
+              </ButtonLink>
             )}
           </div>
-
         </div>
-
       </div>
     </section>
   );

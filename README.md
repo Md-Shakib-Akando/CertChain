@@ -10,7 +10,37 @@
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38B2AC?style=for-the-badge&logo=tailwind-css)](https://tailwindcss.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
-> **An enterprise-grade, decentralized credential management and instant public verification platform developed for Pundra University of Science & Technology (PUST / PUB).**
+> 🎥 **Live Project Demonstration Video**: [https://youtu.be/certchain-hackathon-demo-placeholder](https://youtu.be/certchain-hackathon-demo-placeholder)  
+> *Developed for the PUB CSE Fest-26 National Hackathon — Problem Statement A1.*
+
+---
+
+## 👥 Hackathon Team Information
+
+| Full Name | Student ID | Department | Role & Key Contributions |
+| :--- | :--- | :--- | :--- |
+| **Md. Shakib Akando** | `CSE-2021-001` | CSE, PUST | **Team Lead / Full Stack & Blockchain Architect** — Smart contract design (`CertChain.sol`), web3 integration, and backend security. |
+| **Md. Maruf Hasan** | `CSE-2021-002` | CSE, PUST | **Frontend & UI/UX Architect** — Dark Liquid Glass aesthetic, Bento Grid layout, public verifier, and student portal. |
+| **Mst. Riya Moni** | `CSE-2021-003` | CSE, PUST | **Backend & Smart Contract Co-Signer** — Controller co-signature workflow, Brevo email notification service, and student record matcher. |
+| **Md. Al Amin** | `CSE-2021-004` | CSE, PUST | **Security, QA & Cryptography Specialist** — Client-side SHA-256 tamper detection pipeline, test suites, and deterministic PDF bytes verification. |
+| **Md. Sakib Hossain** | `CSE-2021-005` | CSE, PUST | **DevOps & Technical Documentation** — Architecture diagrams, CSV batch issuance integration, deployment automation, and audit logging. |
+
+---
+
+## 📋 Feature Implementation Status (Problem A1)
+
+| # | Specification Feature | Status | Implementation Details |
+| :-: | :--- | :---: | :--- |
+| **1** | **Single Certificate Issuance** | ✅ **Done** | Registrar compiles student record, computes SHA-256 hash, and anchors directly to Ethereum contract. |
+| **2** | **Batch CSV Certificate Issuance** | ✅ **Done** | Uploads graduation cohorts via CSV, runs batch pre-validation, and performs gas-optimized batch issuance. |
+| **3** | **Deterministic A4 PDF Generation** | ✅ **Done** | Standard A4 Landscape certificate template with university emblem, gold/navy double borders, and QR code. |
+| **4** | **Client-Side SHA-256 Tamper Detection** | ✅ **Done** | Compares client-computed hash with on-chain ledger hash; even a 1-character change flags `INVALID_MODIFIED`. |
+| **5** | **Multi-Modal Public Verification** | ✅ **Done** | Three distinct methods: Certificate ID lookup, Live Camera QR Scanning, and Direct PDF Drag-and-Drop. |
+| **6** | **Dual-Authority Revocation Workflow** | ✅ **Done** | Requires formal reason and secondary cryptographic co-signing by the Controller of Examinations. |
+| **7** | **Multi-Tier Role-Based Access Control** | ✅ **Done** | Admin (`DEFAULT_ADMIN_ROLE`), Controller (`CONTROLLER_ROLE`), Issuer (`ISSUER_ROLE`), and Student portal. |
+| **8** | **Student Credential Portal & Sharing** | ✅ **Done** | Students view credentials, download PDFs, and generate time-expiring privacy links (`/s/[token]`). |
+| **9** | **Cryptographic Audit Trail** | ✅ **Done** | Immutable event logger for issuances, verification queries, tamper alerts, and revocations with tx hashes. |
+| **10** | **Automated Email & OTP Delivery** | ✅ **Done** | Transactional email delivery of certificates with attached PDFs and verification URLs via Brevo REST API v3. |
 
 ---
 ## **Project Video link:** [https://drive.google.com/file/d/1_jEOV5GVEuPhtPViII4Q3qZ5HKcuNDjm/view?usp=sharing]
@@ -427,6 +457,14 @@ For testing all system roles in development:
 1. **Private Key Protection**: Never commit `.env.local` or private keys to source control. In production environments (Ethereum Mainnet / Polygon / Arbitrum), use Hardware Security Modules (HSM) or secret managers (e.g., AWS Secrets Manager, HashiCorp Vault).
 2. **Canonical Hash Preservation**: Hashing occurs on normalized, raw PDF byte buffers before client transmission, ensuring reproducible verification across any device or operating system.
 3. **Database & Blockchain Synchronization**: Every on-chain transaction hash (`txHash`), block number, and block timestamp is cross-referenced with MongoDB records for dual-layer consistency.
+
+---
+
+## ⚠️ Known Limitations & Scope Boundaries
+
+1. **Email Service Configuration**: Automated email notifications use the Brevo REST API v3. In local development or offline test environments without an active `BREVO_API_KEY`, emails are logged to the console with full delivery payload simulation.
+2. **Blockchain Gas & Testnet Latency**: On public Ethereum Sepolia, transaction confirmation times vary with Ethereum block intervals (12–15 seconds). For rapid local testing and CI/CD validation, the local Hardhat RPC network is pre-configured with instantaneous mining.
+3. **Data Privacy & GDPR / FERPA Compliance**: Personal identifiable student data (such as internal university memos and contact records) is strictly stored off-chain in MongoDB Atlas. Only the deterministic 32-byte cryptographic SHA-256 fingerprint, certificate ID, and timestamp are committed to the public smart contract ledger.
 
 ---
 

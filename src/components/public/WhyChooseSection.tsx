@@ -7,80 +7,113 @@ import {
   QrCode,
   Ban,
   History,
-  User,
+  UserCheck,
+  Layers,
+  Lock,
 } from 'lucide-react';
+import { Badge } from '@/components/ui';
 
 export const WhyChooseSection: React.FC = () => {
-  const benefits = [
+  const features = [
     {
-      icon: <ShieldCheck className="w-6 h-6 text-[#2563EB]" />,
-      title: 'Secure Issuance',
-      description: 'Only authorized university staff can issue or revoke certificates.',
+      icon: Fingerprint,
+      title: 'Deterministic SHA-256 Anchoring',
+      description:
+        'Each certificate PDF is generated deterministically and hashed with SHA-256. The 32-byte digest is stored on Ethereum for permanent tamper resistance.',
+      badge: 'Zero-Trust Integrity',
     },
     {
-      icon: <Fingerprint className="w-6 h-6 text-[#2563EB]" />,
-      title: 'Tamper Detection',
-      description: 'Cryptographic hash ensures certificates cannot be altered or forged.',
+      icon: ShieldCheck,
+      title: 'Byte-Level Tamper Detection',
+      description:
+        'Altering a single character, graduation date, or CGPA decimal point produces a completely different hash and immediately flags INVALID_MODIFIED.',
+      badge: 'Active Fraud Alert',
     },
     {
-      icon: <QrCode className="w-6 h-6 text-[#2563EB]" />,
-      title: 'QR Code Verification',
-      description: 'Instant access to verification page via QR code on every certificate.',
+      icon: QrCode,
+      title: 'Embedded High-Density QR Stamp',
+      description:
+        'Every official PDF carries an error-correcting QR code linking directly to its verification record for instant camera or image scanning.',
+      badge: 'Sub-Second Lookup',
     },
     {
-      icon: <Ban className="w-6 h-6 text-[#2563EB]" />,
-      title: 'Revocation Support',
-      description: 'Revoke certificates with a reason. Always verifiable as revoked.',
+      icon: Ban,
+      title: 'Dual-Authority Revocation',
+      description:
+        'Revocations require a formal justification from the Registrar and cryptographic co-signature by the Controller of Examinations.',
+      badge: 'Co-Signed Governance',
     },
     {
-      icon: <History className="w-6 h-6 text-[#2563EB]" />,
-      title: 'Audit Trail',
-      description: 'Complete history of issuance, revocation and verification events with blockchain hash.',
+      icon: Layers,
+      title: 'Batch CSV Cohort Issuance',
+      description:
+        'Registrars can pre-validate graduating cohorts from CSV files and anchor multiple credentials in gas-optimized batch operations.',
+      badge: 'Cohort Scale',
     },
     {
-      icon: <User className="w-6 h-6 text-[#2563EB]" />,
-      title: 'Student Portal',
-      description: 'View your certificates and share time-limited verification links with employers.',
+      icon: UserCheck,
+      title: 'Privacy-Preserving Share Links',
+      description:
+        'Graduates create time-limited /s/[token] verification links for recruiters without exposing raw personal records on the public ledger.',
+      badge: 'FERPA / GDPR Mindful',
+    },
+    {
+      icon: History,
+      title: 'Immutable Security Audit Log',
+      description:
+        'Every issuance, revocation, public verification, and tamper-detection alert is recorded with actor role, timestamp, and transaction hash.',
+      badge: 'Compliance Trail',
+    },
+    {
+      icon: Lock,
+      title: 'OpenZeppelin Role Governance',
+      description:
+        'Smart contract permissions strictly separate Super Admin infrastructure management, Controller authority, and Registrar issuance.',
+      badge: 'AccessControl RBAC',
     },
   ];
 
   return (
-    <section id="features" className="bg-white py-16 sm:py-24 border-b border-slate-200">
+    <section id="features" className="bg-canvas py-16 sm:py-24 border-b border-line">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
-        {/* Section Header */}
-        <div className="text-center max-w-3xl mx-auto space-y-2 mb-14">
-          <span className="text-xs font-bold tracking-wider uppercase text-[#2563EB] bg-blue-50 px-3.5 py-1.5 rounded-full inline-block border border-blue-100">
-            Key Benefits
-          </span>
-          <h2 className="text-3xl sm:text-4xl font-extrabold text-[#0B2545] tracking-tight">
-            Why Choose PUB CertChain?
+        <div className="max-w-2xl mb-12">
+          <p className="eyebrow mb-1.5">Cryptographic Architecture &amp; Security</p>
+          <h2 className="font-serif text-3xl sm:text-4xl font-semibold text-ink tracking-tight">
+            Built for Institutional Accountability
           </h2>
-          <p className="text-slate-500 text-sm sm:text-base leading-relaxed">
-            Built for modern education. Trusted by universities, students and employers.
+          <p className="mt-2 text-sm sm:text-base text-muted leading-relaxed">
+            CertChain combines OpenZeppelin smart contract governance with deterministic PDF synthesis so universities retain full authority while verifiers gain mathematical certainty.
           </p>
         </div>
 
-        {/* 6 Feature Cards Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
-          {benefits.map((item, index) => (
-            <div
-              key={index}
-              className="bg-white p-7 rounded-2xl border border-slate-100 shadow-sm hover:shadow-md hover:border-blue-200 transition-all duration-200 group"
-            >
-              <div className="w-12 h-12 rounded-xl bg-blue-50/90 flex items-center justify-center mb-5 group-hover:scale-105 transition-transform">
-                {item.icon}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {features.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.title}
+                className="bg-surface border border-line rounded-lg p-5 shadow-card flex flex-col justify-between"
+              >
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <span className="size-9 rounded-md bg-brand-soft text-brand border border-brand-line inline-flex items-center justify-center">
+                      <Icon className="size-4" aria-hidden />
+                    </span>
+                    <Badge tone="neutral" size="sm">
+                      {item.badge}
+                    </Badge>
+                  </div>
+                  <h3 className="font-serif text-base font-semibold text-ink">
+                    {item.title}
+                  </h3>
+                  <p className="mt-1.5 text-xs text-muted leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
               </div>
-              <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-2">
-                {item.title}
-              </h3>
-              <p className="text-xs sm:text-sm text-slate-500 leading-relaxed">
-                {item.description}
-              </p>
-            </div>
-          ))}
+            );
+          })}
         </div>
-
       </div>
     </section>
   );

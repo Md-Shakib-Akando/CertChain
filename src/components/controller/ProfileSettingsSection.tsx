@@ -2,13 +2,26 @@
 
 import React, { useState } from 'react';
 import {
-  Key,
   Wallet,
-  Bell,
   Laptop,
   ShieldCheck,
+  LogOut,
 } from 'lucide-react';
 import { ControllerProfileData } from '@/types/controller';
+import {
+  PageHeader,
+  Card,
+  CardHeader,
+  CardBody,
+  CardFooter,
+  Field,
+  PasswordInput,
+  Switch,
+  Button,
+  Badge,
+  RoleBadge,
+  HashText,
+} from '@/components/ui';
 
 interface ProfileSettingsSectionProps {
   profile: ControllerProfileData;
@@ -34,7 +47,6 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
   const [confirmPassword, setConfirmPassword] = useState('');
   const [isChangingPassword, setIsChangingPassword] = useState(false);
 
-  // Notification Preferences
   const [notifyApplications, setNotifyApplications] = useState(true);
   const [notifyRevocations, setNotifyRevocations] = useState(true);
   const [notifyBlockchainEvents, setNotifyBlockchainEvents] = useState(true);
@@ -65,232 +77,194 @@ export const ProfileSettingsSection: React.FC<ProfileSettingsSectionProps> = ({
   };
 
   return (
-    <div className="space-y-6 max-w-4xl mx-auto animate-in fade-in duration-200">
-      {/* Profile Overview Card */}
-      <div className="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-2xs">
-        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-slate-100">
-          <div className="flex items-center gap-4">
-            <div className="w-14 h-14 rounded-2xl bg-[#0B2545] text-teal-300 flex items-center justify-center text-xl font-bold shadow-sm">
-              CO
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h3 className="text-lg font-bold text-[#0B2545]">{profile.name}</h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200">
-                  Controller Role
-                </span>
+    <div className="space-y-6 max-w-4xl mx-auto">
+      <PageHeader
+        eyebrow="Officer Identity & Security"
+        title="Controller Profile & Security Controls"
+        description="Manage your institutional identity, Web3 co-signature wallet binding, password, and notification preferences."
+      />
+
+      <Card>
+        <CardBody className="space-y-5">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 pb-5 border-b border-line">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-night text-seal border border-seal/40 flex items-center justify-center text-lg font-serif font-bold shrink-0">
+                CO
               </div>
-              <p className="text-xs text-slate-500 font-mono mt-0.5">{profile.email}</p>
-              <p className="text-xs text-slate-600 mt-1 font-medium">
-                {profile.designation} &bull; {profile.department}
-              </p>
+              <div className="space-y-1">
+                <div className="flex flex-wrap items-center gap-2">
+                  <h3 className="text-lg font-serif font-semibold text-ink">{profile.name}</h3>
+                  <RoleBadge role="controller" />
+                </div>
+                <p className="text-xs text-muted font-mono">{profile.email}</p>
+                <p className="text-xs text-ink-2 font-medium">
+                  {profile.designation} • {profile.department}
+                </p>
+              </div>
+            </div>
+
+            <div className="text-left sm:text-right">
+              <span className="eyebrow block">Institution</span>
+              <span className="text-xs font-semibold text-ink block mt-0.5">
+                {profile.university}
+              </span>
             </div>
           </div>
 
-          <div className="text-right self-stretch sm:self-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-slate-100">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
-              Institution
-            </span>
-            <span className="text-xs font-bold text-[#0B2545] block">
-              {profile.university}
-            </span>
-          </div>
-        </div>
+          <div className="space-y-3">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <h4 className="text-xs font-bold text-ink uppercase tracking-wider flex items-center gap-1.5">
+                  <Wallet className="w-3.5 h-3.5 text-brand" />
+                  <span>Authorized Co-Signature Web3 Wallet</span>
+                </h4>
+                <p className="text-xs text-muted mt-0.5">
+                  MetaMask address used to submit secondary cryptographic authorizations on Ethereum Sepolia.
+                </p>
+              </div>
 
-        {/* Connected Wallet Section per PDF Section 10 */}
-        <div className="mt-5 pt-2">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-xs font-bold text-slate-700 flex items-center gap-1.5 uppercase tracking-wider">
-                <Wallet className="w-3.5 h-3.5 text-teal-600" />
-                <span>Authorized Co-signature Web3 Wallet</span>
-              </h4>
-              <p className="text-[11px] text-slate-500 mt-0.5">
-                MetaMask address used to submit secondary cryptographic authorizations on Ethereum Sepolia.
-              </p>
+              {walletAddress ? (
+                <Button variant="danger-outline" size="xs" onClick={onDisconnectWallet}>
+                  Disconnect Wallet
+                </Button>
+              ) : (
+                <Button
+                  variant="primary"
+                  size="xs"
+                  loading={isWalletConnecting}
+                  leftIcon={<Wallet className="w-3.5 h-3.5" />}
+                  onClick={onConnectWallet}
+                >
+                  Connect MetaMask
+                </Button>
+              )}
             </div>
 
-            {walletAddress ? (
-              <button
-                onClick={onDisconnectWallet}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-rose-600 hover:bg-rose-50 border border-rose-200 transition cursor-pointer"
+            <div className="p-4 rounded-xl bg-canvas border border-line flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div>
+                <span className="eyebrow block mb-1">Bound Wallet Address</span>
+                {walletAddress ? (
+                  <HashText value={walletAddress} start={12} end={8} />
+                ) : (
+                  <span className="font-mono text-muted">No wallet currently connected</span>
+                )}
+              </div>
+              <div className="sm:text-right">
+                <span className="eyebrow block mb-1">Target Network</span>
+                <Badge tone="success" size="xs" dot>
+                  Sepolia Testnet (11155111)
+                </Badge>
+              </div>
+            </div>
+
+            <p className="text-xs text-muted flex items-center gap-1.5">
+              <ShieldCheck className="w-3.5 h-3.5 text-brand" />
+              <span>Never share your private keys or seed phrases with anyone.</span>
+            </p>
+          </div>
+        </CardBody>
+      </Card>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 items-start">
+        <Card>
+          <CardHeader
+            eyebrow="Credential Rotation"
+            title="Security & Password"
+          />
+          <CardBody className="space-y-4">
+            <form onSubmit={handlePasswordSubmit} className="space-y-3">
+              <Field label="Current Password" required>
+                <PasswordInput
+                  value={currentPassword}
+                  onChange={(e) => setCurrentPassword(e.target.value)}
+                  placeholder="Enter current password"
+                />
+              </Field>
+
+              <Field label="New Password" required>
+                <PasswordInput
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Minimum 8 characters"
+                />
+              </Field>
+
+              <Field label="Confirm New Password" required>
+                <PasswordInput
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                />
+              </Field>
+
+              <Button
+                type="submit"
+                variant="primary"
+                size="sm"
+                fullWidth
+                loading={isChangingPassword}
               >
-                Disconnect
-              </button>
-            ) : (
-              <button
-                onClick={onConnectWallet}
-                disabled={isWalletConnecting}
-                className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white shadow-xs transition flex items-center gap-1.5 cursor-pointer disabled:opacity-50"
-              >
-                <Wallet className="w-3.5 h-3.5" />
-                <span>{isWalletConnecting ? 'Connecting...' : 'Connect MetaMask'}</span>
-              </button>
-            )}
-          </div>
+                Update Password
+              </Button>
+            </form>
 
-          <div className="mt-3 p-3.5 rounded-xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
-            <div>
-              <span className="text-[10px] text-slate-400 font-semibold block uppercase">
-                Bound Wallet Address
-              </span>
-              <span className="font-mono font-bold text-[#0B2545] break-all">
-                {walletAddress || 'No wallet currently connected'}
-              </span>
-            </div>
-            <div className="text-right shrink-0">
-              <span className="text-[10px] text-slate-400 font-semibold block uppercase">
-                Network
-              </span>
-              <span className="text-emerald-700 font-bold flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                Sepolia Testnet (11155111)
-              </span>
-            </div>
-          </div>
-
-          <div className="mt-2 text-[11px] text-slate-500 flex items-center gap-1.5">
-            <ShieldCheck className="w-3.5 h-3.5 text-teal-600" />
-            <span>Never share your private keys or seed phrases with anyone.</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Grid: Security Settings + Notifications */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Password & Security Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5">
-          <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-            <Key className="w-4 h-4 text-teal-600" />
-            <h4 className="text-sm font-bold text-[#0B2545]">Security &amp; Password</h4>
-          </div>
-
-          <form onSubmit={handlePasswordSubmit} className="space-y-3 mt-4 text-xs">
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Current Password</label>
-              <input
-                type="password"
-                value={currentPassword}
-                onChange={(e) => setCurrentPassword(e.target.value)}
-                placeholder="Enter current password"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B2545] focus:bg-white focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">New Password</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                placeholder="Minimum 8 characters"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B2545] focus:bg-white focus:outline-none"
-              />
-            </div>
-
-            <div>
-              <label className="font-bold text-slate-700 block mb-1">Confirm New Password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="Confirm new password"
-                className="w-full p-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B2545] focus:bg-white focus:outline-none"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isChangingPassword}
-              className="w-full py-2.5 rounded-xl text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white transition shadow-xs cursor-pointer disabled:opacity-50 mt-2"
-            >
-              {isChangingPassword ? 'Updating Password...' : 'Update Password'}
-            </button>
-          </form>
-
-          {/* Active Sessions */}
-          <div className="mt-5 pt-4 border-t border-slate-100 text-xs">
-            <span className="font-bold text-slate-700 block mb-2">Active Sessions</span>
-            <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Laptop className="w-4 h-4 text-slate-500" />
-                <div>
-                  <span className="font-semibold text-[#0B2545] block">Current Web Session</span>
-                  <span className="text-[10px] text-slate-400">Windows &bull; Chrome &bull; Active Now</span>
+            <div className="pt-4 border-t border-line space-y-2 text-xs">
+              <span className="eyebrow block">Active Sessions</span>
+              <div className="p-3 rounded-lg bg-canvas border border-line flex items-center justify-between">
+                <div className="flex items-center gap-2.5">
+                  <Laptop className="w-4 h-4 text-muted" />
+                  <div>
+                    <span className="font-semibold text-ink block">Current Web Session</span>
+                    <span className="text-[11px] text-muted">Authenticated • Active Now</span>
+                  </div>
                 </div>
-              </div>
-              <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                Current
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* Notifications & Institutional Preferences Card */}
-        <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs p-5 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center gap-2 pb-3 border-b border-slate-100">
-              <Bell className="w-4 h-4 text-teal-600" />
-              <h4 className="text-sm font-bold text-[#0B2545]">Notification Preferences</h4>
-            </div>
-
-            <div className="space-y-4 mt-4 text-xs">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <span className="font-bold text-slate-800 block">Pending Issuer Applications</span>
-                  <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
-                    Receive alert notifications when an academic officer submits an issuer registration application.
-                  </span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notifyApplications}
-                  onChange={(e) => setNotifyApplications(e.target.checked)}
-                  className="rounded text-teal-600 focus:ring-teal-500 h-4 w-4 mt-0.5 cursor-pointer"
-                />
-              </div>
-
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <span className="font-bold text-slate-800 block">Certificate Revocation Requests</span>
-                  <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
-                    Immediate notification when an authorized registrar requests a certificate revocation.
-                  </span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notifyRevocations}
-                  onChange={(e) => setNotifyRevocations(e.target.checked)}
-                  className="rounded text-teal-600 focus:ring-teal-500 h-4 w-4 mt-0.5 cursor-pointer"
-                />
-              </div>
-
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <span className="font-bold text-slate-800 block">Blockchain Confirmations &amp; Failures</span>
-                  <span className="text-[11px] text-slate-500 leading-tight block mt-0.5">
-                    Status updates when revocation transactions confirm or revert on Ethereum Sepolia.
-                  </span>
-                </div>
-                <input
-                  type="checkbox"
-                  checked={notifyBlockchainEvents}
-                  onChange={(e) => setNotifyBlockchainEvents(e.target.checked)}
-                  className="rounded text-teal-600 focus:ring-teal-500 h-4 w-4 mt-0.5 cursor-pointer"
-                />
+                <Badge tone="success" size="xs">
+                  Current
+                </Badge>
               </div>
             </div>
-          </div>
+          </CardBody>
+        </Card>
 
-          <div className="pt-6 border-t border-slate-100">
-            <button
+        <Card>
+          <CardHeader
+            eyebrow="Alert Routing"
+            title="Notification Preferences"
+          />
+          <CardBody className="space-y-4">
+            <Switch
+              checked={notifyApplications}
+              onChange={setNotifyApplications}
+              label="Pending Issuer Applications"
+              description="Receive alert notifications when an academic officer submits an issuer registration application."
+            />
+
+            <Switch
+              checked={notifyRevocations}
+              onChange={setNotifyRevocations}
+              label="Certificate Revocation Requests"
+              description="Immediate notification when an authorized registrar requests a certificate revocation."
+            />
+
+            <Switch
+              checked={notifyBlockchainEvents}
+              onChange={setNotifyBlockchainEvents}
+              label="Blockchain Confirmations & Failures"
+              description="Status updates when revocation transactions confirm or revert on Ethereum Sepolia."
+            />
+          </CardBody>
+          <CardFooter>
+            <Button
+              variant="danger-outline"
+              size="sm"
+              fullWidth
+              leftIcon={<LogOut className="w-4 h-4" />}
               onClick={onLogout}
-              className="w-full py-2.5 rounded-xl text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition cursor-pointer"
             >
               Sign Out of Controller Session
-            </button>
-          </div>
-        </div>
+            </Button>
+          </CardFooter>
+        </Card>
       </div>
     </div>
   );

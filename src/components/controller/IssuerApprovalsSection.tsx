@@ -2,17 +2,34 @@
 
 import React from 'react';
 import {
-  Search,
-  Filter,
   CheckCircle2,
   XCircle,
   HelpCircle,
   Eye,
-  Clock,
   UserCheck,
   Mail,
 } from 'lucide-react';
-import { IssuerApplication, IssuerApplicationStatus } from '@/types/controller';
+import { IssuerApplication } from '@/types/controller';
+import {
+  PageHeader,
+  Card,
+  TableToolbar,
+  SearchInput,
+  Select,
+  Badge,
+  StatusBadge,
+  HashText,
+  Button,
+  IconButton,
+  TableContainer,
+  Table,
+  THead,
+  TBody,
+  TR,
+  TH,
+  TD,
+  EmptyState,
+} from '@/components/ui';
 
 interface IssuerApprovalsSectionProps {
   applications: IssuerApplication[];
@@ -39,217 +56,159 @@ export const IssuerApprovalsSection: React.FC<IssuerApprovalsSectionProps> = ({
   onOpenRequestInfoModal,
   isActionLoading,
 }) => {
-
-  const getStatusBadge = (status: IssuerApplicationStatus) => {
-    switch (status) {
-      case 'approved':
-        return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200">
-            <CheckCircle2 className="w-3 h-3" />
-            Approved
-          </span>
-        );
-      case 'rejected':
-        return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200">
-            <XCircle className="w-3 h-3" />
-            Rejected
-          </span>
-        );
-      case 'more_info_required':
-        return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-blue-50 text-blue-700 border border-blue-200">
-            <HelpCircle className="w-3 h-3" />
-            More Info Req.
-          </span>
-        );
-      case 'pending':
-      default:
-        return (
-          <span className="inline-flex items-center gap-1 text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200">
-            <Clock className="w-3 h-3" />
-            Pending Review
-          </span>
-        );
-    }
-  };
-
   return (
-    <div className="space-y-5 animate-in fade-in duration-200">
-      {/* Header Info Banner */}
-      <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h3 className="text-base font-bold text-[#0B2545] flex items-center gap-2">
-            <UserCheck className="w-5 h-5 text-teal-600" />
-            <span>Issuer Account Authorization Applications</span>
-          </h3>
-          <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
-            Review registration requests submitted by eligible Registrar and Academic Officers. Only authorized accounts are permitted to prepare certificates and initiate revocation requests.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2">
-          <span className="text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 text-slate-700">
+    <div className="space-y-6">
+      <PageHeader
+        eyebrow="Access Vetting"
+        title="Issuer Account Authorization Applications"
+        description="Review registration requests submitted by eligible Registrar and Academic Officers. Only Controller-approved accounts may compile diplomas or initiate revocation requests."
+        actions={
+          <Badge tone="neutral">
             Total Applications: {applications.length}
-          </span>
-        </div>
-      </div>
+          </Badge>
+        }
+      />
 
-      {/* Search and Filters Bar */}
-      <div className="bg-white rounded-2xl p-4 border border-slate-200/90 shadow-2xs flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
-        {/* Search */}
-        <div className="relative flex-1">
-          <Search className="w-4 h-4 absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => onSearchChange(e.target.value)}
-            placeholder="Search by applicant name, official email, employee ID, or department..."
-            className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs text-[#0B2545] placeholder-slate-400 focus:bg-white focus:outline-none transition"
-          />
-        </div>
+      <Card>
+        <TableToolbar
+          left={
+            <>
+              <SearchInput
+                value={searchQuery}
+                onChange={(e) => onSearchChange(e.target.value)}
+                onClear={() => onSearchChange('')}
+                placeholder="Search by applicant name, official email, employee ID, or department..."
+                className="w-full sm:w-96"
+              />
+              <Select
+                value={statusFilter}
+                onChange={(e) => onStatusFilterChange(e.target.value)}
+                className="w-full sm:w-48"
+                aria-label="Filter applications by status"
+              >
+                <option value="all">All Statuses</option>
+                <option value="pending">Pending Review</option>
+                <option value="approved">Approved</option>
+                <option value="rejected">Rejected</option>
+              </Select>
+            </>
+          }
+        />
 
-        {/* Status Filter */}
-        <div className="flex items-center gap-2 shrink-0">
-          <Filter className="w-4 h-4 text-slate-400 hidden sm:block" />
-          <select
-            value={statusFilter}
-            onChange={(e) => onStatusFilterChange(e.target.value)}
-            className="px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-semibold text-slate-700 focus:outline-none focus:bg-white cursor-pointer"
-          >
-            <option value="all">All Statuses</option>
-            <option value="pending">Pending Review</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
-        </div>
-      </div>
-
-      {/* Applications Data Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 shadow-2xs overflow-hidden">
         {applications.length === 0 ? (
-          <div className="py-16 text-center flex flex-col items-center justify-center p-6">
-            <UserCheck className="w-12 h-12 text-slate-300 mb-3" />
-            <h4 className="text-sm font-bold text-[#0B2545]">No Applications Found</h4>
-            <p className="text-xs text-slate-500 max-w-sm mt-1">
-              There are currently no registrar or issuer account applications requiring review.
-            </p>
-          </div>
+          <EmptyState
+            icon={<UserCheck className="w-5 h-5" />}
+            title="No issuer applications found"
+            description="There are currently no registrar or issuer account applications matching your filter criteria."
+          />
         ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse text-xs">
-              <thead>
-                <tr className="bg-slate-50/80 border-b border-slate-200/90 text-slate-500 uppercase tracking-wider font-bold text-[10px]">
-                  <th className="py-3.5 px-4">Applicant Profile</th>
-                  <th className="py-3.5 px-4">Department &amp; Designation</th>
-                  <th className="py-3.5 px-4">Employee ID</th>
-                  <th className="py-3.5 px-4">Requested Role</th>
-                  <th className="py-3.5 px-4">Submitted At</th>
-                  <th className="py-3.5 px-4">Status</th>
-                  <th className="py-3.5 px-4 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100">
+          <TableContainer className="border-0 rounded-none">
+            <Table>
+              <THead>
+                <TR>
+                  <TH>Applicant Profile</TH>
+                  <TH>Department &amp; Designation</TH>
+                  <TH>Employee ID</TH>
+                  <TH>Requested Role</TH>
+                  <TH>Submitted At</TH>
+                  <TH>Status</TH>
+                  <TH align="right">Actions</TH>
+                </TR>
+              </THead>
+              <TBody>
                 {applications.map((app) => (
-                  <tr key={app.id} className="hover:bg-slate-50/60 transition">
-                    {/* Applicant Profile */}
-                    <td className="py-3 px-4">
-                      <div className="font-bold text-[#0B2545]">{app.name}</div>
-                      <div className="text-[11px] text-slate-500 flex items-center gap-1 font-mono">
-                        <Mail className="w-3 h-3 text-slate-400" />
-                        <span>{app.email}</span>
-                      </div>
-                      {app.walletAddress && (
-                        <div className="text-[10px] text-teal-700 font-mono mt-0.5 flex items-center gap-1">
-                          <span className="text-slate-400">Wallet:</span>
-                          <span>{app.walletAddress.slice(0, 6)}...{app.walletAddress.slice(-4)}</span>
+                  <TR key={app.id}>
+                    <TD>
+                      <div className="space-y-0.5">
+                        <div className="font-semibold text-ink text-sm">{app.name}</div>
+                        <div className="text-xs text-muted flex items-center gap-1 font-mono">
+                          <Mail className="w-3 h-3 text-subtle" />
+                          <span>{app.email}</span>
                         </div>
-                      )}
-                    </td>
+                        {app.walletAddress && (
+                          <div className="pt-0.5">
+                            <HashText value={app.walletAddress} start={6} end={4} />
+                          </div>
+                        )}
+                      </div>
+                    </TD>
 
-                    {/* Department / Designation */}
-                    <td className="py-3 px-4">
-                      <div className="font-semibold text-slate-800">{app.department}</div>
-                      <div className="text-[11px] text-slate-500">{app.designation}</div>
-                    </td>
+                    <TD>
+                      <div className="font-medium text-ink text-xs">{app.department}</div>
+                      <div className="text-xs text-muted">{app.designation}</div>
+                    </TD>
 
-                    {/* Employee ID */}
-                    <td className="py-3 px-4">
-                      <span className="font-mono font-bold text-slate-700 px-2 py-0.5 rounded bg-slate-100">
+                    <TD>
+                      <Badge tone="neutral" size="xs" className="font-mono">
                         {app.employeeId}
-                      </span>
-                    </td>
+                      </Badge>
+                    </TD>
 
-                    {/* Requested Role */}
-                    <td className="py-3 px-4">
-                      <span className="font-semibold text-slate-700">
-                        {app.requestedRole}
-                      </span>
-                    </td>
+                    <TD>
+                      <span className="text-xs font-medium text-ink-2">{app.requestedRole}</span>
+                    </TD>
 
-                    {/* Submitted At */}
-                    <td className="py-3 px-4 text-slate-500 text-[11px]">
-                      {app.submittedAt}
-                    </td>
+                    <TD>
+                      <span className="text-xs text-muted">{app.submittedAt}</span>
+                    </TD>
 
-                    {/* Status */}
-                    <td className="py-3 px-4">
-                      {getStatusBadge(app.status)}
-                    </td>
+                    <TD>
+                      <StatusBadge status={app.status} />
+                    </TD>
 
-                    {/* Actions */}
-                    <td className="py-3 px-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
-                        <button
+                    <TD align="right">
+                      <div className="inline-flex items-center justify-end gap-1.5">
+                        <IconButton
+                          label="Inspect application details"
+                          variant="secondary"
+                          size="xs"
                           onClick={() => onOpenDetailModal(app)}
-                          className="p-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 border border-slate-200 transition cursor-pointer"
-                          title="View Application Details"
                         >
                           <Eye className="w-3.5 h-3.5" />
-                        </button>
+                        </IconButton>
 
                         {app.status === 'pending' && (
                           <>
-                            <button
+                            <Button
+                              variant="primary"
+                              size="xs"
+                              disabled={isActionLoading}
+                              leftIcon={<CheckCircle2 className="w-3.5 h-3.5" />}
                               onClick={() => onApproveIssuer(app.id)}
-                              disabled={isActionLoading}
-                              className="px-2.5 py-1.5 rounded-lg text-xs font-bold bg-teal-600 hover:bg-teal-500 text-white shadow-2xs transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                              title="Approve Issuer"
                             >
-                              <CheckCircle2 className="w-3 h-3" />
-                              <span>Approve</span>
-                            </button>
+                              Approve
+                            </Button>
 
-                            <button
+                            <Button
+                              variant="danger-outline"
+                              size="xs"
+                              disabled={isActionLoading}
+                              leftIcon={<XCircle className="w-3.5 h-3.5" />}
                               onClick={() => onOpenRejectModal(app)}
-                              disabled={isActionLoading}
-                              className="px-2 py-1.5 rounded-lg text-xs font-bold text-rose-700 bg-rose-50 hover:bg-rose-100 border border-rose-200 transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                              title="Reject Application"
                             >
-                              <XCircle className="w-3 h-3" />
-                              <span>Reject</span>
-                            </button>
+                              Reject
+                            </Button>
 
-                            <button
-                              onClick={() => onOpenRequestInfoModal(app)}
+                            <Button
+                              variant="secondary"
+                              size="xs"
                               disabled={isActionLoading}
-                              className="px-2 py-1.5 rounded-lg text-xs font-bold text-slate-600 bg-slate-100 hover:bg-slate-200 transition flex items-center gap-1 cursor-pointer disabled:opacity-50"
-                              title="Request More Info"
+                              leftIcon={<HelpCircle className="w-3.5 h-3.5" />}
+                              onClick={() => onOpenRequestInfoModal(app)}
                             >
-                              <HelpCircle className="w-3 h-3" />
-                              <span className="hidden sm:inline">Info</span>
-                            </button>
+                              Info
+                            </Button>
                           </>
                         )}
                       </div>
-                    </td>
-                  </tr>
+                    </TD>
+                  </TR>
                 ))}
-              </tbody>
-            </table>
-          </div>
+              </TBody>
+            </Table>
+          </TableContainer>
         )}
-      </div>
+      </Card>
     </div>
   );
 };

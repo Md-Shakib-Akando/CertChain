@@ -1,158 +1,140 @@
 'use client';
 
 import React, { useState } from 'react';
-import {
-  BarChart3,
-  Award,
-  AlertTriangle,
-  CheckCircle2,
-  ShieldCheck,
-} from 'lucide-react';
+import { Award, AlertTriangle, CheckCircle2, ShieldCheck } from 'lucide-react';
 import { AnalyticsTrendPoint, DashboardKPIs } from '@/types/admin';
+import {
+  PageHeader,
+  StatStrip,
+  Card,
+  Badge,
+  Segmented,
+  TableContainer,
+  Table,
+  THead,
+  TBody,
+  TR,
+  TH,
+  TD,
+} from '@/components/ui';
 
 interface ReportsAnalyticsSectionProps {
   kpis: DashboardKPIs;
   trends: AnalyticsTrendPoint[];
 }
 
-export const ReportsAnalyticsSection: React.FC<ReportsAnalyticsSectionProps> = ({ kpis, trends }) => {
+export const ReportsAnalyticsSection: React.FC<ReportsAnalyticsSectionProps> = ({
+  kpis,
+  trends,
+}) => {
   const [selectedRange, setSelectedRange] = useState<'30d' | '90d' | 'all'>('30d');
 
   return (
     <div className="space-y-6">
-      {/* Header & Controls */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-lg sm:text-xl font-bold text-[#0B2545] flex items-center gap-2">
-            <BarChart3 className="w-5 h-5 text-blue-600" />
-            <span>Platform Reports &amp; Analytics</span>
-          </h2>
-          <p className="text-xs text-slate-500 mt-0.5">
-            Institutional verification metrics, issuance throughput, and revocation trends.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 self-start sm:self-auto">
-          {/* Range Picker */}
-          <div className="flex items-center gap-1 bg-white border border-slate-200 p-1 rounded-xl shadow-2xs">
-            {(['30d', '90d', 'all'] as const).map((r) => (
-              <button
-                key={r}
-                onClick={() => setSelectedRange(r)}
-                className={`px-3 py-1 rounded-lg text-xs font-semibold transition cursor-pointer ${
-                  selectedRange === r
-                    ? 'bg-blue-600 text-white font-bold'
-                    : 'text-slate-600 hover:text-slate-900'
-                }`}
-              >
-                {r === '30d' ? 'Last 30 Days' : r === '90d' ? 'Last 90 Days' : 'All Time'}
-              </button>
-            ))}
-          </div>
-        </div>
-      </div>
+      <PageHeader
+        eyebrow="Aggregate Registry Telemetry"
+        title="Platform Reports & Analytics"
+        description="Institutional verification metrics, issuance throughput, and revocation trends."
+        actions={
+          <Segmented
+            size="sm"
+            value={selectedRange}
+            onChange={setSelectedRange}
+            options={[
+              { value: '30d', label: 'Last 30 Days' },
+              { value: '90d', label: 'Last 90 Days' },
+              { value: 'all', label: 'All Time' },
+            ]}
+          />
+        }
+      />
 
       {/* Aggregate Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Total On-Chain Issuances
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-              <Award className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-[#0B2545]">{kpis.totalCertificates}</span>
-            <span className="text-xs text-emerald-600 font-semibold">Verified Active</span>
-          </div>
-          <p className="text-[11px] text-slate-400 mt-1">Primeasia University Degrees &amp; Transcripts</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Public Verifications
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-              <CheckCircle2 className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-emerald-600">{kpis.verificationEvents}</span>
-            <span className="text-xs text-emerald-700/80 font-medium">100% Cryptographic</span>
-          </div>
-          <p className="text-[11px] text-slate-400 mt-1">Queries from employers, banks &amp; universities</p>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200/90 p-5 shadow-xs">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
-              Revocation Ratio
-            </span>
-            <div className="w-8 h-8 rounded-lg bg-red-50 text-red-600 flex items-center justify-center">
-              <AlertTriangle className="w-4 h-4" />
-            </div>
-          </div>
-          <div className="mt-3 flex items-baseline gap-2">
-            <span className="text-3xl font-black text-red-600">{kpis.revokedCertificates}</span>
-            <span className="text-xs text-slate-400">of {kpis.totalCertificates} total</span>
-          </div>
-          <p className="text-[11px] text-slate-400 mt-1">Sealed with Controller co-signature</p>
-        </div>
-      </div>
+      <StatStrip
+        items={[
+          {
+            label: 'Total On-Chain Issuances',
+            value: kpis.totalCertificates,
+            delta: 'Verified Active',
+            deltaTone: 'up',
+            hint: 'Pundra University of Science & Technology Degrees & Transcripts',
+            icon: <Award className="w-4 h-4" />,
+          },
+          {
+            label: 'Public Verifications',
+            value: kpis.verificationEvents,
+            delta: '100% Cryptographic',
+            deltaTone: 'up',
+            hint: 'Queries from employers, banks & universities',
+            icon: <CheckCircle2 className="w-4 h-4" />,
+          },
+          {
+            label: 'Revocation Ratio',
+            value: kpis.revokedCertificates,
+            delta: `of ${kpis.totalCertificates} total`,
+            deltaTone: kpis.revokedCertificates > 0 ? 'down' : 'neutral',
+            hint: 'Sealed with Controller co-signature',
+            icon: <AlertTriangle className="w-4 h-4" />,
+          },
+        ]}
+      />
 
       {/* Issuance Breakdown Table */}
-      <div className="bg-white rounded-2xl border border-slate-200/90 p-5 sm:p-6 shadow-xs space-y-4">
-        <div className="flex items-center justify-between border-b border-slate-100 pb-3">
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
           <div>
-            <h3 className="text-sm font-bold text-[#0B2545]">Credential Issuance &amp; Verification Daily Velocity</h3>
-            <p className="text-xs text-slate-500 mt-0.5">Chronological throughput recorded across the academic year</p>
+            <h3 className="font-serif text-base font-semibold text-ink">
+              Credential Issuance &amp; Verification Daily Velocity
+            </h3>
+            <p className="text-xs text-muted">
+              Chronological throughput recorded across the academic year
+            </p>
           </div>
-          <span className="text-[11px] font-mono text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded">
+          <Badge tone="neutral" size="md" className="font-mono">
             Audit Period: 7-Day Window
-          </span>
+          </Badge>
         </div>
 
-        <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
-            <thead>
-              <tr className="bg-slate-50 text-[11px] font-bold uppercase text-slate-500 border-b border-slate-200">
-                <th className="py-2.5 px-4">Date</th>
-                <th className="py-2.5 px-4">Credentials Issued</th>
-                <th className="py-2.5 px-4">Public Verifications</th>
-                <th className="py-2.5 px-4">Revocations</th>
-                <th className="py-2.5 px-4 text-right">Integrity Score</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100">
+        <TableContainer>
+          <Table>
+            <THead>
+              <TR>
+                <TH>Date</TH>
+                <TH>Credentials Issued</TH>
+                <TH>Public Verifications</TH>
+                <TH>Revocations</TH>
+                <TH align="right">Integrity Score</TH>
+              </TR>
+            </THead>
+            <TBody>
               {trends.map((pt) => (
-                <tr key={pt.date} className="hover:bg-slate-50/70 transition">
-                  <td className="py-3 px-4 font-mono font-bold text-slate-800">{pt.date}</td>
-                  <td className="py-3 px-4 text-blue-600 font-semibold">{pt.issued}</td>
-                  <td className="py-3 px-4 text-emerald-600 font-semibold">{pt.verified}</td>
-                  <td className="py-3 px-4 text-red-600 font-semibold">{pt.revoked}</td>
-                  <td className="py-3 px-4 text-right">
-                    <span className="inline-block px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 text-[10px] font-bold">
+                <TR key={pt.date}>
+                  <TD className="font-mono font-semibold text-ink">{pt.date}</TD>
+                  <TD className="font-mono font-semibold text-brand">{pt.issued}</TD>
+                  <TD className="font-mono font-semibold text-success">{pt.verified}</TD>
+                  <TD className="font-mono font-semibold text-danger">{pt.revoked}</TD>
+                  <TD align="right">
+                    <Badge tone="success" size="sm">
                       100% Intact
-                    </span>
-                  </td>
-                </tr>
+                    </Badge>
+                  </TD>
+                </TR>
               ))}
-            </tbody>
-          </table>
-        </div>
+            </TBody>
+          </Table>
+        </TableContainer>
       </div>
 
       {/* Privacy Guarantee Note (PDF Spec Section 5.6) */}
-      <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-xs text-slate-600 flex items-start gap-3">
-        <ShieldCheck className="w-4 h-4 text-blue-600 shrink-0 mt-0.5" />
-        <div>
-          <strong className="text-slate-800">Aggregate Data Minimization Policy: </strong>
-          In accordance with Section 5.6 of the specification, aggregate reports strictly exclude individual student course-wise grades, GPA calculations, contact numbers, and raw PDF credentials to preserve institutional privacy compliance.
+      <Card padding="md" className="bg-sunken border-line">
+        <div className="flex items-start gap-3 text-xs">
+          <ShieldCheck className="w-4 h-4 text-brand shrink-0 mt-0.5" />
+          <div className="text-muted leading-relaxed">
+            <strong className="text-ink font-semibold">Aggregate Data Minimization Policy: </strong>
+            In accordance with Section 5.6 of the specification, aggregate reports strictly exclude individual student course-wise grades, GPA calculations, contact numbers, and raw PDF credentials to preserve institutional privacy compliance.
+          </div>
         </div>
-      </div>
+      </Card>
     </div>
   );
 };

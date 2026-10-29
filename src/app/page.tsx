@@ -13,13 +13,10 @@ import { CtaBanner } from '@/components/public/CtaBanner';
 
 export default function Home() {
   return (
-    <div className="min-h-screen flex flex-col bg-[#F8FAFC] text-[#0B2545]">
-      {/* Main Header */}
+    <div className="min-h-screen flex flex-col bg-canvas text-ink">
       <Header />
 
-      {/* Full Landing Page */}
       <main className="flex-1">
-        {/* 1. Hero Section */}
         <LandingHero
           onStartVerify={() => {
             const el = document.getElementById('verify');
@@ -27,34 +24,22 @@ export default function Home() {
             setTimeout(() => {
               const input = document.getElementById('cert-id-search-input');
               input?.focus();
-            }, 400);
+            }, 350);
           }}
           onLearnMore={() => {
-            const el = document.getElementById('features');
+            const el = document.getElementById('how-it-works');
             el?.scrollIntoView({ behavior: 'smooth' });
           }}
         />
 
-        {/* 2. Fast & Easy Quick Verification Section */}
         <QuickVerification />
-
-        {/* 3. Key Benefits: Why Choose PUB CertChain? */}
-        <WhyChooseSection />
-
-        {/* 4. Simple Process: How It Works */}
         <HowItWorksSection />
-
-        {/* 5. Trusted by Academic Community (Quote & Stats) */}
+        <WhyChooseSection />
         <StatsCommunitySection />
-
-        {/* 6. What People Say (Testimonials) */}
         <TestimonialsSection />
-
-        {/* 7. Ready to Get Started? (CTA Banner) */}
         <CtaBanner />
       </main>
 
-      {/* Global Footer */}
       <Footer />
     </div>
   );
