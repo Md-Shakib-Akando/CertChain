@@ -550,6 +550,23 @@ certchain/
 
 ---
 
+
+## 👥 Hackathon Team Members
+
+| Name | Batch | Role |
+|---|---|---|
+| Md. Shakib Akando | 24 | Team Leader & Developer |
+| Maruf Hasan | 26 | Developer |
+| Simla Shahrin | 24 | Video Editor & Voice Narrator |
+| Habiba Akter Hafsa | 27 | Researcher |
+| Tasnima Refat | 28 | |
+
+---
+
+
+
+---
+
 ## 📄 License & Attribution
 
 This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for complete details.
