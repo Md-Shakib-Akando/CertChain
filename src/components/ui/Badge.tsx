@@ -112,6 +112,7 @@ export type StatusKey =
   | 'valid'
   | 'revoked'
   | 'tampered'
+  | 'invalid'
   | 'not_found'
   | 'unavailable'
   | 'superseded'
@@ -137,7 +138,8 @@ const STATUS: Record<StatusKey, { label: string; tone: Tone; icon: LucideIcon }>
   valid: { label: 'Valid', tone: 'success', icon: BadgeCheck },
   revoked: { label: 'Revoked', tone: 'danger', icon: Ban },
   tampered: { label: 'Tampered', tone: 'danger', icon: ShieldAlert },
-  not_found: { label: 'Not found', tone: 'neutral', icon: CircleHelp },
+  invalid: { label: 'Invalid', tone: 'danger', icon: ShieldAlert },
+  not_found: { label: 'Invalid', tone: 'danger', icon: ShieldAlert },
   unavailable: { label: 'Unavailable', tone: 'warning', icon: CloudOff },
   superseded: { label: 'Superseded', tone: 'neutral', icon: FileWarning },
   pending: { label: 'Pending', tone: 'warning', icon: Clock3 },

@@ -142,8 +142,9 @@ export const IssuerDashboard: React.FC = () => {
     if (!issuedResult?.id) return;
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
     QRCode.toDataURL(`${origin}/?id=${encodeURIComponent(issuedResult.id)}#verify`, {
-      width: 256,
-      margin: 1,
+      errorCorrectionLevel: 'M',
+      width: 280,
+      margin: 2,
       color: { dark: '#0B1F3AFF', light: '#FFFFFFFF' },
     })
       .then((url) => {
@@ -161,8 +162,9 @@ export const IssuerDashboard: React.FC = () => {
     if (!previewCert?.id) return;
     const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
     QRCode.toDataURL(`${origin}/?id=${encodeURIComponent(previewCert.id)}#verify`, {
-      width: 256,
-      margin: 1,
+      errorCorrectionLevel: 'M',
+      width: 280,
+      margin: 2,
       color: { dark: '#0B1F3AFF', light: '#FFFFFFFF' },
     })
       .then((url) => {
@@ -200,6 +202,9 @@ export const IssuerDashboard: React.FC = () => {
   // Batch CSV Issuance States
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [csvRows, setCsvRows] = useState<CsvParsedRow[]>([]);
+  const [batchCertType, setBatchCertType] = useState<
+    'csv' | 'Degree Certificate' | 'Provisional Certificate' | 'Academic Transcript'
+  >('csv');
   const [isProcessingBatch, setIsProcessingBatch] = useState(false);
   const [batchResult, setBatchResult] = useState<{
     processedCount: number;
@@ -323,6 +328,7 @@ export const IssuerDashboard: React.FC = () => {
         setIssuedResult(data.certificate);
         setWizardStep(4);
         fetchCertificates();
+        fetchStudents();
         fetchAuditLogs();
         showToast('Certificate successfully issued and anchored to blockchain!', 'success');
       } else {
@@ -423,7 +429,15 @@ export const IssuerDashboard: React.FC = () => {
         const sProg = (progIdx !== -1 ? cols[progIdx] : cols[3]) || 'B.Sc. in Computer Science & Engineering';
         const sSession = (sessionIdx !== -1 ? cols[sessionIdx] : cols[4]) || '2020 - 2024';
         const sCgpa = (cgpaIdx !== -1 ? cols[cgpaIdx] : cols[6]) || '3.75';
-        const sType = (typeIdx !== -1 ? cols[typeIdx] : cols[5]) || 'Degree Certificate';
+        const rawType = (typeIdx !== -1 ? cols[typeIdx] : cols[5]) || 'Degree Certificate';
+        const lowerType = rawType.trim().toLowerCase();
+        const normalizedRowType =
+          lowerType.includes('transcript') || lowerType === 'trn'
+            ? 'Academic Transcript'
+            : lowerType.includes('provisional') || lowerType === 'pro'
+            ? 'Provisional Certificate'
+            : 'Degree Certificate';
+        const effectiveType = batchCertType !== 'csv' ? batchCertType : normalizedRowType;
 
         const isValid = Boolean(sId.trim() && sName.trim());
         parsed.push({
@@ -434,7 +448,7 @@ export const IssuerDashboard: React.FC = () => {
           session: sSession.trim(),
           batch: '42nd',
           cgpa: sCgpa.trim(),
-          type: sType.trim(),
+          type: effectiveType,
           isValid,
           validationError: !isValid ? 'Missing Student ID or Student Name' : undefined,
         });
@@ -447,8 +461,26 @@ export const IssuerDashboard: React.FC = () => {
     reader.readAsText(file);
   };
 
+  const handleBatchCertTypeChange = (
+    nextType: 'csv' | 'Degree Certificate' | 'Provisional Certificate' | 'Academic Transcript'
+  ) => {
+    setBatchCertType(nextType);
+    if (nextType !== 'csv') {
+      setCsvRows((prev) => prev.map((r) => ({ ...r, type: nextType })));
+    }
+  };
+
+  const handleRowCertTypeChange = (
+    rowIndex: number,
+    nextType: 'Degree Certificate' | 'Provisional Certificate' | 'Academic Transcript'
+  ) => {
+    setCsvRows((prev) =>
+      prev.map((row, idx) => (idx === rowIndex ? { ...row, type: nextType } : row))
+    );
+  };
+
   const handleDownloadCsvTemplate = () => {
-    const csvSample = `student_id,name,email,program,session,cert_type,cgpa\n0322410105102001,Rahim Ahmed,rahim@pub.ac.bd,B.Sc. in Computer Science & Engineering,2020 - 2024,Degree Certificate,3.92\n0322410105102002,Fatima Begum,fatima@pub.ac.bd,B.Sc. in Computer Science & Engineering,2020 - 2024,Degree Certificate,3.85\n0322410105102003,Tanvir Islam,tanvir@pub.ac.bd,B.Sc. in Electrical & Electronic Engineering,2020 - 2024,Degree Certificate,3.78`;
+    const csvSample = `student_id,name,email,program,session,cert_type,cgpa\n0322410105102001,Rahim Ahmed,rahim@pub.ac.bd,B.Sc. in Computer Science & Engineering,2020 - 2024,Degree Certificate,3.92\n0322410105102002,Fatima Begum,fatima@pub.ac.bd,B.Sc. in Computer Science & Engineering,2020 - 2024,Provisional Certificate,3.85\n0322410105102003,Tanvir Islam,tanvir@pub.ac.bd,B.Sc. in Electrical & Electronic Engineering,2020 - 2024,Academic Transcript,3.78`;
     const blob = new Blob([csvSample], { type: 'text/csv' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -483,6 +515,7 @@ export const IssuerDashboard: React.FC = () => {
         });
         showToast(`Batch of ${data.processedCount} certificates anchored to Blockchain!`, 'success');
         fetchCertificates();
+        fetchStudents();
         fetchAuditLogs();
       } else {
         showToast(data.message || 'Batch issuance failed', 'error');
@@ -1172,12 +1205,55 @@ export const IssuerDashboard: React.FC = () => {
               />
 
               <Card padding="lg" className="space-y-6">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end p-4 rounded-xl bg-sunken/60 border border-line">
+                  <Field
+                    label="Batch Credential Document Type"
+                    hint="Use per-row CSV values or override all rows to Degree, Provisional, or Academic Transcript."
+                  >
+                    <Select
+                      value={batchCertType}
+                      onChange={(e) =>
+                        handleBatchCertTypeChange(
+                          e.target.value as
+                            | 'csv'
+                            | 'Degree Certificate'
+                            | 'Provisional Certificate'
+                            | 'Academic Transcript'
+                        )
+                      }
+                    >
+                      <option value="csv">Use CSV Column (cert_type per student)</option>
+                      <option value="Degree Certificate">
+                        Degree Certificate (Main Parchment — All Rows)
+                      </option>
+                      <option value="Provisional Certificate">
+                        Provisional Certificate (All Rows)
+                      </option>
+                      <option value="Academic Transcript">
+                        Official Academic Transcript (All Rows)
+                      </option>
+                    </Select>
+                  </Field>
+
+                  <div className="flex flex-wrap items-center gap-1.5 pb-1">
+                    <Badge tone="brand" size="xs">
+                      Degree Certificate (PUB-DEG)
+                    </Badge>
+                    <Badge tone="seal" size="xs">
+                      Provisional Certificate (PUB-PRO)
+                    </Badge>
+                    <Badge tone="info" size="xs">
+                      Academic Transcript (PUB-TRN)
+                    </Badge>
+                  </div>
+                </div>
+
                 <FileDrop
                   accept=".csv,text/csv"
                   file={csvFile}
                   onFileChange={parseCsvFile}
                   title="Drop graduating batch CSV spreadsheet here, or click to browse"
-                  hint="Expected columns: student_id, name, email, program, session, cert_type, cgpa"
+                  hint="Expected columns: student_id, name, email, program, session, cert_type (Degree Certificate / Provisional Certificate / Academic Transcript), cgpa"
                 />
 
                 {csvRows.length > 0 && (
@@ -1188,7 +1264,7 @@ export const IssuerDashboard: React.FC = () => {
                           Parsed Candidate Rows ({csvRows.length} Total)
                         </h4>
                         <p className="text-xs text-muted">
-                          {csvRows.filter((r) => r.isValid).length} valid candidate records ready for on-chain anchoring.
+                          {csvRows.filter((r) => r.isValid).length} valid candidate records ready for on-chain anchoring. You can also adjust each candidate&apos;s credential type below.
                         </p>
                       </div>
                       <Button
@@ -1203,7 +1279,7 @@ export const IssuerDashboard: React.FC = () => {
                       </Button>
                     </div>
 
-                    <TableContainer className="max-h-80 overflow-y-auto">
+                    <TableContainer className="max-h-80 overflow-y-auto no-scrollbar">
                       <Table>
                         <THead>
                           <TR>
@@ -1211,6 +1287,7 @@ export const IssuerDashboard: React.FC = () => {
                             <TH>Student Roll ID</TH>
                             <TH>Candidate Name</TH>
                             <TH>Program</TH>
+                            <TH>Credential Type</TH>
                             <TH>CGPA</TH>
                             <TH>Validation</TH>
                           </TR>
@@ -1224,6 +1301,26 @@ export const IssuerDashboard: React.FC = () => {
                               </TD>
                               <TD className="font-medium text-ink text-xs">{row.studentName}</TD>
                               <TD className="text-xs text-ink-2">{row.program}</TD>
+                              <TD>
+                                <Select
+                                  value={row.type}
+                                  onChange={(e) =>
+                                    handleRowCertTypeChange(
+                                      idx,
+                                      e.target.value as
+                                        | 'Degree Certificate'
+                                        | 'Provisional Certificate'
+                                        | 'Academic Transcript'
+                                    )
+                                  }
+                                  className="h-8 text-xs min-w-[175px]"
+                                  aria-label={`Credential type for ${row.studentName}`}
+                                >
+                                  <option value="Degree Certificate">Degree Certificate</option>
+                                  <option value="Provisional Certificate">Provisional Certificate</option>
+                                  <option value="Academic Transcript">Academic Transcript</option>
+                                </Select>
+                              </TD>
                               <TD className="font-mono font-semibold text-xs text-success">
                                 {row.cgpa}
                               </TD>

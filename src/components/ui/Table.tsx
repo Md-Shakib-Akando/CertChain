@@ -10,7 +10,7 @@ import { cn } from '@/lib/cn';
    -------------------------------------------------------------------------- */
 export function TableContainer({ className, children, ...rest }: React.HTMLAttributes<HTMLDivElement>) {
   return (
-    <div className={cn('w-full overflow-x-auto scrollbar-thin bg-surface border border-line rounded-lg shadow-card', className)} {...rest}>
+    <div className={cn('w-full overflow-x-auto no-scrollbar bg-surface border border-line rounded-lg shadow-card', className)} {...rest}>
       {children}
     </div>
   );

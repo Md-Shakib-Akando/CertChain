@@ -12,13 +12,13 @@ import {
   CardBody,
   StatusBadge,
   HashText,
-  explorerTxUrl,
   CertificateDocumentPreview,
   ButtonLink,
   Alert,
   DescriptionList,
   PageSkeleton,
 } from '@/components/ui';
+import { explorerTxUrl } from '@/components/ui/hashUtils';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -37,17 +37,34 @@ async function SharedCredentialContent({
   const { token } = await params;
   await connectDB();
 
-  // 1. Hash incoming token to match database
-  const tokenHash = crypto.createHash('sha256').update(token.trim()).digest('hex');
+  const rawToken = decodeURIComponent(token || '').trim();
+
+  // 1. Hash incoming token to match database (support both exact, lowercase hex, and direct token/hash match)
+  const candidateHashes = [
+    rawToken,
+    rawToken.toLowerCase(),
+    crypto.createHash('sha256').update(rawToken).digest('hex'),
+    crypto.createHash('sha256').update(rawToken.toLowerCase()).digest('hex'),
+  ];
 
   // 2. Query ShareLink
-  const shareLink = await ShareLink.findOne({ tokenHash });
+  const shareLink = await ShareLink.findOne({
+    $or: [
+      { tokenHash: { $in: candidateHashes } },
+      { token: { $in: [rawToken, rawToken.toLowerCase()] } },
+    ],
+  });
 
-  // 3. Handle 410 Expired or Revoked
+  // 3. Handle 410 Expired, Revoked, or Max Views Reached
   const isExpired = shareLink && new Date() > new Date(shareLink.expiresAt);
   const isRevoked = shareLink && shareLink.status === 'revoked';
+  const isMaxedOut =
+    shareLink &&
+    typeof shareLink.maxViews === 'number' &&
+    shareLink.maxViews > 0 &&
+    shareLink.viewCount >= shareLink.maxViews;
 
-  if (!shareLink || isExpired || isRevoked) {
+  if (!shareLink || isExpired || isRevoked || isMaxedOut) {
     return (
       <main className="flex-1 max-w-xl w-full mx-auto px-4 py-16 sm:py-24 flex items-center">
         <Card className="w-full text-center">
@@ -61,7 +78,7 @@ async function SharedCredentialContent({
                 Verification Link Expired or Cancelled
               </h1>
               <p className="text-sm text-muted mt-1.5 leading-relaxed max-w-md mx-auto">
-                This time-bound credential share link has either passed its expiration window or was revoked by the graduate. You can still verify any official certificate directly using its Certificate ID or PDF file.
+                This time-bound credential share link has either passed its expiration window, reached its maximum view limit, or was revoked by the graduate. You can still verify any official certificate directly using its Certificate ID or PDF file.
               </p>
             </div>
             <div className="pt-2">
@@ -79,8 +96,12 @@ async function SharedCredentialContent({
   shareLink.viewCount += 1;
   await shareLink.save();
 
-  // 5. Fetch Certificate Details
-  const cert = await Certificate.findOne({ id: shareLink.certId }).select('-pdfBase64');
+  // 5. Fetch Certificate Details (case-insensitive match)
+  const cleanCertId = shareLink.certId.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const cert = await Certificate.findOne({
+    id: { $regex: new RegExp(`^${cleanCertId}$`, 'i') },
+  }).select('-pdfBase64');
+
   if (!cert) {
     return (
       <main className="flex-1 max-w-xl w-full mx-auto px-4 py-16 flex items-center">
@@ -263,20 +284,20 @@ async function SharedCredentialContent({
       {/* Formal Certificate Specimen */}
       <CertificateDocumentPreview
         certificate={{
-          id: cert.id,
-          type: cert.type,
-          studentName: cert.studentName,
-          studentId: cert.studentId,
-          program: cert.program,
-          degreeName: cert.degreeName,
-          session: cert.session,
-          cgpa: cert.cgpa,
-          issueDate: cert.issueDate,
-          sha256Hash: cert.sha256Hash,
-          txHash: cert.txHash,
-          blockNumber: cert.blockNumber,
-          status: cert.status,
-          revocationReason: cert.revocationReason,
+          id: String(cert.id),
+          type: String(cert.type || 'Degree Certificate'),
+          studentName: String(cert.studentName),
+          studentId: String(cert.studentId),
+          program: String(cert.program),
+          degreeName: String(cert.degreeName || cert.program),
+          session: String(cert.session),
+          cgpa: String(cert.cgpa),
+          issueDate: String(cert.issueDate),
+          sha256Hash: cert.sha256Hash ? String(cert.sha256Hash) : undefined,
+          txHash: cert.txHash ? String(cert.txHash) : undefined,
+          blockNumber: typeof cert.blockNumber === 'number' ? cert.blockNumber : undefined,
+          status: String(cert.status),
+          revocationReason: cert.revocationReason ? String(cert.revocationReason) : undefined,
         }}
       />
     </main>

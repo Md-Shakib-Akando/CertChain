@@ -16,6 +16,19 @@ export interface BatchItemInput {
   type?: string;
 }
 
+function normalizeCertificateType(
+  rawType?: string
+): 'Degree Certificate' | 'Academic Transcript' | 'Provisional Certificate' {
+  const lower = (rawType || '').trim().toLowerCase();
+  if (lower.includes('transcript') || lower === 'trn') {
+    return 'Academic Transcript';
+  }
+  if (lower.includes('provisional') || lower === 'pro') {
+    return 'Provisional Certificate';
+  }
+  return 'Degree Certificate';
+}
+
 export async function POST(req: NextRequest) {
   try {
     await connectDB();
@@ -38,10 +51,29 @@ export async function POST(req: NextRequest) {
 
     const origin = req.nextUrl.origin || 'http://localhost:3000';
     const year = new Date().getFullYear();
-    const baseCount = await Certificate.countDocuments();
+
+    // Find highest existing sequence number across all certificates in MongoDB
+    const existingDocs = await Certificate.find({}, { id: 1 }).lean();
+    const existingIds = new Set<string>();
+    let maxSeq = existingDocs.length + 100;
+
+    for (const doc of existingDocs) {
+      if (!doc.id) continue;
+      const upper = String(doc.id).trim().toUpperCase();
+      existingIds.add(upper);
+
+      const match = upper.match(/^PUB-(?:DEG|PRO|TRN|CRT)-\d{4}-(\d+)$/);
+      if (match) {
+        const parsedSeq = parseInt(match[1], 10);
+        if (!Number.isNaN(parsedSeq) && parsedSeq > maxSeq) {
+          maxSeq = parsedSeq;
+        }
+      }
+    }
 
     const validRows: Array<{
       input: BatchItemInput;
+      normalizedType: 'Degree Certificate' | 'Academic Transcript' | 'Provisional Certificate';
       certId: string;
       pdfBase64: string;
       sha256Hash: string;
@@ -52,7 +84,7 @@ export async function POST(req: NextRequest) {
     const failedRows: Array<{ row: number; studentId: string; reason: string }> = [];
 
     // Step 1: Validate rows and generate PDFs
-    let seqOffset = 0;
+    let currentSeq = maxSeq;
     for (let i = 0; i < rows.length; i++) {
       const rowNum = i + 1;
       const r = rows[i];
@@ -67,17 +99,30 @@ export async function POST(req: NextRequest) {
       }
 
       const cleanId = r.studentId.trim().toUpperCase();
-      const cleanType = r.type?.trim() || 'Degree Certificate';
+      const normalizedType = normalizeCertificateType(r.type);
       const typePrefix =
-        cleanType === 'Academic Transcript'
+        normalizedType === 'Academic Transcript'
           ? 'TRN'
-          : cleanType === 'Provisional Certificate'
+          : normalizedType === 'Provisional Certificate'
           ? 'PRO'
           : 'DEG';
 
-      seqOffset++;
-      const seq = String(baseCount + 100 + seqOffset).padStart(6, '0');
-      const certId = `PUB-${typePrefix}-${year}-${seq}`;
+      let certId = '';
+      while (true) {
+        currentSeq++;
+        const seqStr = String(currentSeq).padStart(6, '0');
+        const candidateId = `PUB-${typePrefix}-${year}-${seqStr}`;
+        if (
+          !existingIds.has(candidateId) &&
+          !existingIds.has(`PUB-DEG-${year}-${seqStr}`) &&
+          !existingIds.has(`PUB-PRO-${year}-${seqStr}`) &&
+          !existingIds.has(`PUB-TRN-${year}-${seqStr}`)
+        ) {
+          certId = candidateId;
+          existingIds.add(candidateId);
+          break;
+        }
+      }
 
       const issueDate = new Date().toLocaleDateString('en-US', {
         month: 'long',
@@ -88,7 +133,7 @@ export async function POST(req: NextRequest) {
       try {
         const { pdfBase64, sha256Hash, bytes32Hash } = await generateCertificatePdf({
           certId,
-          type: cleanType,
+          type: normalizedType,
           studentName: r.studentName.trim(),
           studentId: cleanId,
           program: r.program.trim(),
@@ -100,6 +145,7 @@ export async function POST(req: NextRequest) {
 
         validRows.push({
           input: r,
+          normalizedType,
           certId,
           pdfBase64,
           sha256Hash,
@@ -116,13 +162,16 @@ export async function POST(req: NextRequest) {
     }
 
     if (validRows.length === 0) {
-      return NextResponse.json({
-        success: false,
-        message: 'All submitted rows failed validation.',
-        processedCount: 0,
-        failedCount: failedRows.length,
-        failedRows,
-      }, { status: 422 });
+      return NextResponse.json(
+        {
+          success: false,
+          message: 'All submitted rows failed validation.',
+          processedCount: 0,
+          failedCount: failedRows.length,
+          failedRows,
+        },
+        { status: 422 }
+      );
     }
 
     // Step 2: Batch issue on-chain in Smart Contract
@@ -134,27 +183,32 @@ export async function POST(req: NextRequest) {
     const chainResult = await batchIssueOnChainServer(chainItems);
 
     // Step 3: Insert into MongoDB
-    const certDocs = validRows.map((v) => ({
-      id: v.certId,
-      type: v.input.type?.trim() || 'Degree Certificate',
-      program: v.input.program.trim(),
-      session: v.input.session?.trim() || '2020 - 2024',
-      batch: v.input.batch?.trim() || '42nd',
-      issueDate: v.issueDate,
-      status: 'valid',
-      sha256Hash: v.sha256Hash,
-      txHash: chainResult.txHash,
-      blockNumber: chainResult.blockNumber,
-      issuerAddress: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
-      network: 'Hardhat Local / Ethereum Sepolia',
-      degreeName: v.input.program.trim(),
-      studentName: v.input.studentName.trim(),
-      studentId: v.input.studentId.trim().toUpperCase(),
-      studentEmail: v.input.studentEmail?.trim().toLowerCase(),
-      cgpa: v.input.cgpa?.trim() || '3.75',
-      version: 1,
-      pdfBase64: v.pdfBase64,
-    }));
+    const certDocs = validRows.map((v) => {
+      const cleanEmail = v.input.studentEmail?.trim()
+        ? v.input.studentEmail.trim().toLowerCase()
+        : undefined;
+      return {
+        id: v.certId,
+        type: v.normalizedType,
+        program: v.input.program.trim(),
+        session: v.input.session?.trim() || '2020 - 2024',
+        batch: v.input.batch?.trim() || '42nd',
+        issueDate: v.issueDate,
+        status: 'valid' as const,
+        sha256Hash: v.sha256Hash,
+        txHash: chainResult.txHash,
+        blockNumber: chainResult.blockNumber,
+        issuerAddress: '0x3C44CdDdB6a900fa2b585dd299e03d12FA4293BC',
+        network: 'Hardhat Local / Ethereum Sepolia',
+        degreeName: v.input.program.trim(),
+        studentName: v.input.studentName.trim(),
+        studentId: v.input.studentId.trim().toUpperCase(),
+        ...(cleanEmail ? { studentEmail: cleanEmail } : {}),
+        cgpa: v.input.cgpa?.trim() || '3.75',
+        version: 1,
+        pdfBase64: v.pdfBase64,
+      };
+    });
 
     await Certificate.insertMany(certDocs, { ordered: false });
 

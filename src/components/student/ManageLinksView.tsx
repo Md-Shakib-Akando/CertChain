@@ -86,7 +86,7 @@ export const ManageLinksView: React.FC<ManageLinksViewProps> = ({
         </Card>
       ) : (
         <Card>
-          <TableContainer className="border-0 rounded-none">
+          <TableContainer className="border-0 rounded-none no-scrollbar">
             <Table>
               <THead>
                 <TR>

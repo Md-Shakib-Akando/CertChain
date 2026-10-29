@@ -15,14 +15,28 @@ const HARDHAT_CONTROLLER_PRIVATE_KEY =
   process.env.CONTROLLER_PRIVATE_KEY || '0x59c6995e998f97a5a0044966f0945389dc9e86dae88c7a8412f4603b6b78690d';
 
 /**
+ * Fast JSON-RPC probe with a 1500ms timeout so offline local nodes fail immediately
+ * without triggering ethers.JsonRpcProvider's background retry loops.
+ */
+async function getConnectedProvider(): Promise<JsonRpcProvider> {
+  const probe = await fetch(HARDHAT_RPC_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ jsonrpc: '2.0', method: 'eth_blockNumber', params: [], id: 1 }),
+    signal: AbortSignal.timeout(1500),
+  });
+  if (!probe.ok) {
+    throw new Error(`RPC responded with HTTP ${probe.status}`);
+  }
+  return new JsonRpcProvider(HARDHAT_RPC_URL, undefined, { staticNetwork: true });
+}
+
+/**
  * Server-side helper to interact with CertChain smart contract
  */
 export async function issueOnChainServer(certId: string, sha256Hex: string) {
   try {
-    const provider = new JsonRpcProvider(HARDHAT_RPC_URL);
-    // Test provider connection with a short timeout
-    await provider.getBlockNumber();
-
+    const provider = await getConnectedProvider();
     const wallet = new Wallet(HARDHAT_ISSUER_PRIVATE_KEY, provider);
     const contract = new Contract(CONTRACT_ADDRESS, CertChainABI, wallet);
 
@@ -54,9 +68,7 @@ export async function issueOnChainServer(certId: string, sha256Hex: string) {
 export async function batchIssueOnChainServer(items: { certId: string; sha256Hex: string }[]) {
   if (items.length === 0) return { success: true, txHash: '0x0', blockNumber: 0 };
   try {
-    const provider = new JsonRpcProvider(HARDHAT_RPC_URL);
-    await provider.getBlockNumber();
-
+    const provider = await getConnectedProvider();
     const wallet = new Wallet(HARDHAT_ISSUER_PRIVATE_KEY, provider);
     const contract = new Contract(CONTRACT_ADDRESS, CertChainABI, wallet);
 
@@ -88,7 +100,7 @@ export async function batchIssueOnChainServer(items: { certId: string; sha256Hex
  */
 export async function verifyOnChainServer(certId: string) {
   try {
-    const provider = new JsonRpcProvider(HARDHAT_RPC_URL);
+    const provider = await getConnectedProvider();
     const contract = new Contract(CONTRACT_ADDRESS, CertChainABI, provider);
 
     const res = await contract.verifyCertificate(certId);
@@ -121,9 +133,7 @@ export async function verifyOnChainServer(certId: string) {
  */
 export async function revokeOnChainServer(certId: string, reason: string) {
   try {
-    const provider = new JsonRpcProvider(HARDHAT_RPC_URL);
-    await provider.getBlockNumber();
-
+    const provider = await getConnectedProvider();
     const wallet = new Wallet(HARDHAT_CONTROLLER_PRIVATE_KEY, provider);
     const contract = new Contract(CONTRACT_ADDRESS, CertChainABI, wallet);
 
@@ -153,9 +163,7 @@ export async function revokeOnChainServer(certId: string, reason: string) {
  */
 export async function addIssuerOnChainServer(walletAddress: string) {
   try {
-    const provider = new JsonRpcProvider(HARDHAT_RPC_URL);
-    await provider.getBlockNumber();
-
+    const provider = await getConnectedProvider();
     const wallet = new Wallet(HARDHAT_CONTROLLER_PRIVATE_KEY, provider);
     const contract = new Contract(CONTRACT_ADDRESS, CertChainABI, wallet);
 
@@ -185,9 +193,7 @@ export async function addIssuerOnChainServer(walletAddress: string) {
  */
 export async function removeIssuerOnChainServer(walletAddress: string) {
   try {
-    const provider = new JsonRpcProvider(HARDHAT_RPC_URL);
-    await provider.getBlockNumber();
-
+    const provider = await getConnectedProvider();
     const wallet = new Wallet(HARDHAT_CONTROLLER_PRIVATE_KEY, provider);
     const contract = new Contract(CONTRACT_ADDRESS, CertChainABI, wallet);
 

@@ -56,7 +56,7 @@ export function Tabs<K extends string = string>({
   const list = items || options || [];
   const { refs, onKeyDown } = useRovingKeys(list, value, onChange);
   return (
-    <div role="tablist" aria-label={ariaLabel} onKeyDown={onKeyDown} className={cn('flex items-center gap-1 border-b border-line overflow-x-auto scrollbar-thin', className)}>
+    <div role="tablist" aria-label={ariaLabel} onKeyDown={onKeyDown} className={cn('flex items-center gap-1 border-b border-line overflow-x-auto overflow-y-hidden no-scrollbar', className)}>
       {list.map((t) => {
         const k = resolveTabKey(t);
         const active = k === value;
@@ -84,7 +84,7 @@ export function Tabs<K extends string = string>({
                 {t.count}
               </span>
             )}
-            {active && <span className="absolute inset-x-2 -bottom-px h-0.5 bg-brand rounded-full" aria-hidden />}
+            {active && <span className="absolute inset-x-2 bottom-0 h-0.5 bg-brand rounded-full" aria-hidden />}
           </button>
         );
       })}
@@ -119,7 +119,7 @@ export function Segmented<K extends string = string>({
       role="tablist"
       aria-label={ariaLabel}
       onKeyDown={onKeyDown}
-      className={cn('inline-flex max-w-full overflow-x-auto scrollbar-thin items-center gap-0.5 p-0.5 rounded-md bg-sunken border border-line', fullWidth && 'flex w-full', className)}
+      className={cn('inline-flex max-w-full overflow-x-auto overflow-y-hidden no-scrollbar items-center gap-0.5 p-0.5 rounded-md bg-sunken border border-line', fullWidth && 'flex w-full', className)}
     >
       {list.map((t) => {
         const k = resolveTabKey(t);

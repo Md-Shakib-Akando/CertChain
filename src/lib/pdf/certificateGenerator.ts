@@ -251,9 +251,9 @@ export async function generateCertificatePdf(data: CertificateData): Promise<Gen
   const verifyUrl = `${baseUrl}/?id=${encodeURIComponent(data.certId)}#verify`;
 
   const qrDataUrl = await QRCode.toDataURL(verifyUrl, {
-    errorCorrectionLevel: 'H',
-    margin: 1,
-    width: 200,
+    errorCorrectionLevel: 'M',
+    margin: 2,
+    width: 240,
     color: {
       dark: '#0B1F3AFF',
       light: '#FFFFFFFF',
