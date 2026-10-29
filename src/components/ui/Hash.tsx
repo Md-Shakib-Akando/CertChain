@@ -3,6 +3,9 @@
 import React, { useState } from 'react';
 import { Check, Copy, ExternalLink } from 'lucide-react';
 import { cn } from '@/lib/cn';
+import { truncateMiddle, explorerTxUrl } from './hashUtils';
+
+export { truncateMiddle, explorerTxUrl };
 
 export async function copyText(text: string): Promise<boolean> {
   try {
@@ -25,7 +28,17 @@ export async function copyText(text: string): Promise<boolean> {
   }
 }
 
-export function CopyButton({ value, label = 'Copy', className, showLabel }: { value: string; label?: string; className?: string; showLabel?: boolean }) {
+export function CopyButton({
+  value,
+  label = 'Copy',
+  className,
+  showLabel,
+}: {
+  value: string;
+  label?: string;
+  className?: string;
+  showLabel?: boolean;
+}) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -47,15 +60,11 @@ export function CopyButton({ value, label = 'Copy', className, showLabel }: { va
     >
       {copied ? <Check className="size-3.5 text-success" /> : <Copy className="size-3.5" />}
       {showLabel && (copied ? 'Copied' : label)}
-      <span className="sr-only" aria-live="polite">{copied ? 'Copied to clipboard' : ''}</span>
+      <span className="sr-only" aria-live="polite">
+        {copied ? 'Copied to clipboard' : ''}
+      </span>
     </button>
   );
-}
-
-export function truncateMiddle(value: string, head = 10, tail = 8) {
-  if (!value) return '';
-  if (value.length <= head + tail + 1) return value;
-  return `${value.slice(0, head)}…${value.slice(-tail)}`;
 }
 
 /**
@@ -72,6 +81,7 @@ export function HashText({
   copy,
   copyable,
   href,
+  network,
   size = 'sm',
   className,
   label,
@@ -87,6 +97,8 @@ export function HashText({
   copyable?: boolean;
   /** Optional explorer link */
   href?: string;
+  /** Optional network name to derive block explorer link on client */
+  network?: string | null;
   size?: 'xs' | 'sm' | 'md';
   className?: string;
   label?: string;
@@ -95,6 +107,7 @@ export function HashText({
   const resolvedHead = head ?? start ?? 10;
   const resolvedTail = tail ?? end ?? 8;
   const shouldCopy = copy ?? copyable ?? true;
+  const resolvedHref = href ?? (network ? explorerTxUrl(value, network) : undefined);
   return (
     <span className={cn('inline-flex items-center gap-0.5 min-w-0 max-w-full', className)}>
       <code
@@ -107,10 +120,12 @@ export function HashText({
       >
         {full ? value : truncateMiddle(value, resolvedHead, resolvedTail)}
       </code>
-      {shouldCopy && <CopyButton value={value} label={label ? `Copy ${label}` : 'Copy'} className="shrink-0" />}
-      {href && (
+      {shouldCopy && (
+        <CopyButton value={value} label={label ? `Copy ${label}` : 'Copy'} className="shrink-0" />
+      )}
+      {resolvedHref && (
         <a
-          href={href}
+          href={resolvedHref}
           target="_blank"
           rel="noopener noreferrer"
           className="size-7 inline-flex items-center justify-center rounded text-muted hover:text-ink hover:bg-sunken shrink-0"
@@ -122,13 +137,4 @@ export function HashText({
       )}
     </span>
   );
-}
-
-/** Block explorer link helper; returns undefined for local/unknown networks. */
-export function explorerTxUrl(txHash?: string | null, network?: string | null) {
-  if (!txHash || !/^0x[0-9a-fA-F]{64}$/.test(txHash)) return undefined;
-  const n = (network || '').toLowerCase();
-  if (n.includes('sepolia')) return `https://sepolia.etherscan.io/tx/${txHash}`;
-  if (n.includes('mainnet')) return `https://etherscan.io/tx/${txHash}`;
-  return undefined;
 }

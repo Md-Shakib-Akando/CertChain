@@ -102,7 +102,7 @@ export const IssuerApprovalsSection: React.FC<IssuerApprovalsSectionProps> = ({
             description="There are currently no registrar or issuer account applications matching your filter criteria."
           />
         ) : (
-          <TableContainer className="border-0 rounded-none">
+          <TableContainer className="border-0 rounded-none no-scrollbar">
             <Table>
               <THead>
                 <TR>

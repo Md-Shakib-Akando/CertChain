@@ -108,7 +108,7 @@ export const RevocationRequestsSection: React.FC<RevocationRequestsSectionProps>
             description="There are currently no certificate revocation requests matching your filter criteria."
           />
         ) : (
-          <TableContainer className="border-0 rounded-none">
+          <TableContainer className="border-0 rounded-none no-scrollbar">
             <Table>
               <THead>
                 <TR>

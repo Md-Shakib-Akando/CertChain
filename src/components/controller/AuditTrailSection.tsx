@@ -133,7 +133,7 @@ export const AuditTrailSection: React.FC<AuditTrailSectionProps> = ({
             description="No audit trail records matched your filter criteria."
           />
         ) : (
-          <TableContainer className="border-0 rounded-none">
+          <TableContainer className="border-0 rounded-none no-scrollbar">
             <Table>
               <THead>
                 <TR>
@@ -165,7 +165,7 @@ export const AuditTrailSection: React.FC<AuditTrailSectionProps> = ({
                     </TD>
 
                     <TD>
-                      <Badge tone="neutral" size="xs" className="font-mono">
+                      <Badge tone="neutral" size="xs" className="font-mono max-w-[220px] truncate">
                         {log.targetReference}
                       </Badge>
                     </TD>

@@ -8,6 +8,7 @@ import {
   Mail,
   MessageCircle,
   ExternalLink,
+  Download,
 } from 'lucide-react';
 import { StudentShareLink, ShareLinkModalProps } from '@/types/student';
 import {
@@ -54,8 +55,9 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
         canvasRef.current,
         generatedLink.fullUrl,
         {
-          width: 164,
-          margin: 1,
+          errorCorrectionLevel: 'M',
+          width: 180,
+          margin: 2,
           color: {
             dark: '#0B1F3A',
             light: '#ffffff',
@@ -77,6 +79,17 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
 
   const currentCert = certificatesList.find((c) => c.id === activeCertId) || certificate;
 
+  const handleDownloadShareQr = () => {
+    if (!canvasRef.current || !generatedLink) return;
+    const dataUrl = canvasRef.current.toDataURL('image/png');
+    const link = document.createElement('a');
+    link.href = dataUrl;
+    link.download = `${generatedLink.certId}-share-qr.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const handleGenerateLink = async () => {
     setIsGenerating(true);
     try {
@@ -89,9 +102,12 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           certId: targetCertId,
+          certType: currentCert ? currentCert.type : 'Degree Certificate',
+          createdBy: currentCert?.studentId || undefined,
           recipientLabel: label,
           durationHours: expiryHours,
           maxViews: maxViews ? parseInt(maxViews, 10) : null,
+          includeDetails,
         }),
       });
 
@@ -103,7 +119,7 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
       const fullUrl = data?.shareUrl || `${baseUrl}/s/${token}`;
 
       const newLink: StudentShareLink = {
-        id: data?.shareLink?.id || `LNK-${Math.floor(1000 + Math.random() * 9000)}`,
+        id: data?.shareLink?.id ? String(data.shareLink.id) : `LNK-${Math.floor(1000 + Math.random() * 9000)}`,
         certId: targetCertId,
         certType: currentCert ? currentCert.type : 'Degree Certificate',
         token,
@@ -329,6 +345,14 @@ export const ShareLinkModal: React.FC<ShareLinkModalProps> = ({
                 <ShieldCheck className="w-3.5 h-3.5 text-success" />
                 PUB CertChain QR Verifier
               </span>
+              <button
+                type="button"
+                onClick={handleDownloadShareQr}
+                className="mt-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded text-[11px] font-medium bg-sunken hover:bg-canvas text-ink border border-line transition-colors cursor-pointer"
+              >
+                <Download className="w-3 h-3" />
+                <span>Download QR Image</span>
+              </button>
             </div>
 
             <div className="space-y-2.5">

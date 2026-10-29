@@ -111,7 +111,7 @@ export const IssuerDirectorySection: React.FC<IssuerDirectorySectionProps> = ({
             description="There are currently no authorized registrar or examination issuers matching your filter."
           />
         ) : (
-          <TableContainer className="border-0 rounded-none">
+          <TableContainer className="border-0 rounded-none no-scrollbar">
             <Table>
               <THead>
                 <TR>

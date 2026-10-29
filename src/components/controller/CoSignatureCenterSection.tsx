@@ -113,7 +113,7 @@ export const CoSignatureCenterSection: React.FC<CoSignatureCenterSectionProps> =
               title={`${eligibleRevocations.length} Awaiting Co-Sign`}
               description="Select a credential to inspect and sign."
             />
-            <CardBody className="space-y-2.5 max-h-[520px] overflow-y-auto">
+            <CardBody className="space-y-2.5 max-h-[520px] overflow-y-auto no-scrollbar">
               {eligibleRevocations.map((rev) => {
                 const isSelected = activeItem?.id === rev.id;
                 return (

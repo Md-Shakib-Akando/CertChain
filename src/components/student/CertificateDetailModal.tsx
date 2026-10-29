@@ -10,6 +10,7 @@ import {
   History,
   CheckCircle2,
   AlertTriangle,
+  QrCode,
 } from 'lucide-react';
 import { CertificateDetailModalProps } from '@/types/student';
 import {
@@ -44,9 +45,9 @@ export const CertificateDetailModal: React.FC<CertificateDetailModalProps> = ({
     const verifyUrl = `${origin}/?id=${encodeURIComponent(certificate.id)}#verify`;
 
     QRCode.toDataURL(verifyUrl, {
-      errorCorrectionLevel: 'H',
-      margin: 1,
-      width: 256,
+      errorCorrectionLevel: 'M',
+      margin: 2,
+      width: 280,
       color: {
         dark: '#0B1F3AFF',
         light: '#FFFFFFFF',
@@ -73,7 +74,9 @@ export const CertificateDetailModal: React.FC<CertificateDetailModalProps> = ({
       const res = await fetch(`/api/public/verify/${encodeURIComponent(certificate.id)}`);
       if (res.ok) {
         const data = await res.json();
-        setLiveVerificationResult(data?.revoked ? 'revoked' : 'valid');
+        setLiveVerificationResult(
+          data?.status === 'REVOKED' || data?.revoked ? 'revoked' : 'valid'
+        );
       } else {
         setLiveVerificationResult(certificate.status);
       }
@@ -92,6 +95,16 @@ export const CertificateDetailModal: React.FC<CertificateDetailModalProps> = ({
     }
   };
 
+  const handleDownloadQr = () => {
+    if (!qrDataUrl) return;
+    const link = document.createElement('a');
+    link.href = qrDataUrl;
+    link.download = `${certificate.id}-qr.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <Dialog
       open={isOpen}
@@ -104,6 +117,16 @@ export const CertificateDetailModal: React.FC<CertificateDetailModalProps> = ({
         <div className="flex flex-wrap items-center justify-between gap-3 w-full">
           <StatusBadge status={certificate.status} />
           <div className="flex flex-wrap items-center gap-2">
+            {qrDataUrl && (
+              <Button
+                variant="secondary"
+                size="sm"
+                leftIcon={<QrCode className="w-4 h-4" />}
+                onClick={handleDownloadQr}
+              >
+                Download QR Stamp
+              </Button>
+            )}
             <Button
               variant="secondary"
               size="sm"

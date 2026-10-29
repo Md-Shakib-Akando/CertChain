@@ -151,7 +151,7 @@ export function Dialog({
           )}
         </header>
         {children && (
-          <div data-dialog-body className={cn('flex-1 overflow-y-auto scrollbar-thin px-5 sm:px-6 py-5', bodyClassName)}>
+          <div data-dialog-body className={cn('flex-1 overflow-y-auto no-scrollbar px-5 sm:px-6 py-5', bodyClassName)}>
             {children}
           </div>
         )}

@@ -63,7 +63,10 @@ export const useStudentPortal = (): UseStudentPortalReturn => {
       if (res.ok && data.success && data.profile) {
         setProfile(data.profile);
         setCertificates(data.certificates || []);
-        setShareLinks([]);
+        setShareLinks(data.shareLinks || []);
+        if (Array.isArray(data.auditLogs)) {
+          setAuditLogs(data.auditLogs);
+        }
 
         saveSessionUser({
           id: data.profile.id,
@@ -103,7 +106,10 @@ export const useStudentPortal = (): UseStudentPortalReturn => {
         if (res.ok && data.success && data.profile) {
           setProfile(data.profile);
           setCertificates(data.certificates || []);
-          setShareLinks([]);
+          setShareLinks(data.shareLinks || []);
+          if (Array.isArray(data.auditLogs)) {
+            setAuditLogs(data.auditLogs);
+          }
 
           saveSessionUser({
             id: data.profile.id,
@@ -148,22 +154,26 @@ export const useStudentPortal = (): UseStudentPortalReturn => {
     const linkToSave = { ...newLink };
 
     // If not already persisted by modal, persist to backend
-    if (!newLink.fullUrl || newLink.fullUrl.includes('offline-') || newLink.id.startsWith('LNK-')) {
+    if (!newLink.fullUrl || newLink.fullUrl.includes('offline-') || String(newLink.id).startsWith('LNK-')) {
       try {
         const res = await fetch('/api/student/share-links', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             certId: newLink.certId,
+            certType: newLink.certType,
             createdBy: profile.studentId,
             recipientLabel: newLink.recipientLabel,
             durationHours: newLink.expiryHours,
+            maxViews: newLink.maxViews,
+            includeDetails: newLink.includeDetails,
           }),
         });
         const data = await res.json();
         if (res.ok && data.shareUrl) {
           linkToSave.fullUrl = data.shareUrl;
-          if (data.shareLink?.id) linkToSave.id = data.shareLink.id;
+          if (data.token) linkToSave.token = data.token;
+          if (data.shareLink?.id) linkToSave.id = String(data.shareLink.id);
         }
       } catch (e) {
         console.warn('Failed to persist share link to backend:', e);

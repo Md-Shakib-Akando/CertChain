@@ -2,6 +2,8 @@ import mongoose, { Schema, Document, Model } from 'mongoose';
 
 export interface IShareLink extends Document {
   certId: string;
+  certType?: string;
+  token?: string;
   tokenHash: string; // SHA-256 of the random token
   createdBy: string; // studentId or email
   recipientLabel: string;
@@ -10,6 +12,7 @@ export interface IShareLink extends Document {
   revokedAt?: Date | null;
   viewCount: number;
   maxViews?: number | null;
+  includeDetails?: boolean;
   status: 'active' | 'revoked' | 'expired';
   createdAt: Date;
   updatedAt: Date;
@@ -22,6 +25,16 @@ const ShareLinkSchema = new Schema<IShareLink>(
       required: true,
       index: true,
       trim: true,
+    },
+    certType: {
+      type: String,
+      default: 'Degree Certificate',
+      trim: true,
+    },
+    token: {
+      type: String,
+      default: null,
+      index: true,
     },
     tokenHash: {
       type: String,
@@ -62,6 +75,10 @@ const ShareLinkSchema = new Schema<IShareLink>(
       type: Number,
       default: null,
     },
+    includeDetails: {
+      type: Boolean,
+      default: false,
+    },
     status: {
       type: String,
       enum: ['active', 'revoked', 'expired'],
@@ -73,6 +90,10 @@ const ShareLinkSchema = new Schema<IShareLink>(
     timestamps: true,
   }
 );
+
+if (mongoose.models.ShareLink && !mongoose.models.ShareLink.schema.path('token')) {
+  delete mongoose.models.ShareLink;
+}
 
 export const ShareLink: Model<IShareLink> =
   mongoose.models.ShareLink || mongoose.model<IShareLink>('ShareLink', ShareLinkSchema);

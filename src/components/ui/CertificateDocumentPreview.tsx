@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import QRCode from 'qrcode';
 import { SealMark } from '@/components/brand/Logo';
 import { cn } from '@/lib/cn';
 
@@ -91,13 +92,42 @@ export function CertificateDocumentPreview({
     qrDataUrl: qrDataUrl || qrCodeDataUrl,
   };
 
+  const [autoQrUrl, setAutoQrUrl] = useState<string>('');
+  const explicitQrSrc = qrDataUrl || qrCodeDataUrl || data.qrDataUrl;
+
+  useEffect(() => {
+    let active = true;
+    if (explicitQrSrc || !data.id || data.id === 'DRAFT-PREVIEW') return;
+
+    const origin = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
+    const verifyUrl = `${origin}/?id=${encodeURIComponent(data.id)}#verify`;
+
+    QRCode.toDataURL(verifyUrl, {
+      errorCorrectionLevel: 'M',
+      margin: 2,
+      width: 256,
+      color: {
+        dark: '#0B1F3AFF',
+        light: '#FFFFFFFF',
+      },
+    })
+      .then((url) => {
+        if (active) setAutoQrUrl(url);
+      })
+      .catch(() => {});
+
+    return () => {
+      active = false;
+    };
+  }, [data.id, explicitQrSrc]);
+
   const isRevoked =
     revoked !== undefined
       ? revoked
       : String(data.status || '').toLowerCase() === 'revoked';
   const docType = (data.type || 'Degree Certificate').toUpperCase();
   const programTitle = data.degreeName || data.program || department;
-  const qrSrc = qrDataUrl || qrCodeDataUrl || data.qrDataUrl;
+  const qrSrc = explicitQrSrc || autoQrUrl;
 
   return (
     <div
@@ -235,7 +265,7 @@ export function CertificateDocumentPreview({
                 <img
                   src={qrSrc}
                   alt={`Verification QR for ${data.id}`}
-                  className="size-16 border border-[#E3DFD5] bg-white p-1"
+                  className="size-20 sm:size-24 border border-[#E3DFD5] bg-white p-1.5 [image-rendering:pixelated]"
                 />
                 <span className="mt-0.5 text-[9px] font-semibold uppercase tracking-wider text-[#0B1F3A]">
                   Scan to Verify

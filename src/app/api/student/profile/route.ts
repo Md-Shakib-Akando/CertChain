@@ -3,6 +3,8 @@ import { connectDB } from '@/lib/mongodb';
 import { User } from '@/models/User';
 import { StudentRecord } from '@/models/StudentRecord';
 import { Certificate } from '@/models/Certificate';
+import { ShareLink } from '@/models/ShareLink';
+import { AuditLog } from '@/models/AuditLog';
 
 // Helper to extract session user identity from request
 function getSessionIdentity(request: Request) {
@@ -151,11 +153,146 @@ export async function GET(request: Request) {
       supersededBy: c.supersededBy,
     }));
 
+    const certIds = certificates.map((c) => c.id);
+    const certTypeByCertId = new Map(certificates.map((c) => [c.id, c.type]));
+
+    // Query share links belonging to this student or their certificates
+    const shareOrConditions = [
+      ...(certIds.length > 0 ? [{ certId: { $in: certIds } }] : []),
+      ...(profile.studentId ? [{ createdBy: profile.studentId }] : []),
+      ...(profile.email ? [{ createdBy: profile.email.toLowerCase() }] : []),
+    ];
+
+    const shareLinkDocs =
+      shareOrConditions.length > 0
+        ? await ShareLink.find({ $or: shareOrConditions }).sort({ createdAt: -1 })
+        : [];
+
+    const origin = new URL(request.url).origin || 'http://localhost:3000';
+    const now = new Date();
+
+    const shareLinks = (shareLinkDocs || []).map((doc) => {
+      const isExpiredByTime = now > new Date(doc.expiresAt);
+      const isMaxedOut =
+        typeof doc.maxViews === 'number' && doc.maxViews > 0 && doc.viewCount >= doc.maxViews;
+
+      let uiStatus: 'active' | 'expired' | 'cancelled' = 'active';
+      if (doc.status === 'revoked') {
+        uiStatus = 'cancelled';
+      } else if (doc.status === 'expired' || isExpiredByTime || isMaxedOut) {
+        uiStatus = 'expired';
+      }
+
+      const tokenValue = doc.token || doc.tokenHash;
+
+      return {
+        id: doc._id.toString(),
+        certId: doc.certId,
+        certType: doc.certType || certTypeByCertId.get(doc.certId) || 'Degree Certificate',
+        token: tokenValue,
+        recipientLabel: doc.recipientLabel || 'General Verification',
+        createdAt: new Date(doc.createdAt).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        expiresAt: new Date(doc.expiresAt).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        expiryHours: doc.durationHours || 24,
+        viewCount: doc.viewCount || 0,
+        maxViews: doc.maxViews ?? null,
+        includeDetails: Boolean(doc.includeDetails),
+        status: uiStatus,
+        fullUrl: `${origin}/s/${tokenValue}`,
+      };
+    });
+
+    // Query audit trail events for this student's certificates
+    const auditDocs =
+      certIds.length > 0
+        ? await AuditLog.find({ targetId: { $in: certIds } }).sort({ createdAt: -1 }).limit(50)
+        : [];
+
+    const auditLogs = (auditDocs || []).map((log) => {
+      const actionUpper = (log.action || '').toUpperCase();
+      let eventType:
+        | 'CertificateIssued'
+        | 'CertificateRevoked'
+        | 'ShareLinkCreated'
+        | 'ShareLinkCancelled'
+        | 'LinkOpened'
+        | 'VerifiedByCertificateID'
+        | 'VerifiedByQR' = 'VerifiedByCertificateID';
+      let title = log.action || 'Audit Event';
+      let method: 'QR Scan' | 'Direct ID Search' | 'PDF Upload' | 'Share Link' | undefined;
+
+      if (actionUpper.includes('ISSUED')) {
+        eventType = 'CertificateIssued';
+        title = 'Credential Issued & Anchored On-Chain';
+      } else if (actionUpper.includes('REVOKED') || actionUpper.includes('CO_SIGNED')) {
+        eventType = 'CertificateRevoked';
+        title = 'Credential Revoked On-Chain';
+      } else if (actionUpper.includes('SHARE_LINK_CREATED')) {
+        eventType = 'ShareLinkCreated';
+        title = 'Time-Limited Share Link Created';
+        method = 'Share Link';
+      } else if (actionUpper.includes('SHARE_LINK_CANCELLED') || actionUpper.includes('SHARE_LINK_REVOKED')) {
+        eventType = 'ShareLinkCancelled';
+        title = 'Share Link Cancelled by Student';
+        method = 'Share Link';
+      } else if (actionUpper.includes('TIME_LIMITED_LINK_VERIFIED')) {
+        eventType = 'LinkOpened';
+        title = 'Employer Opened Verification Share Link';
+        method = 'Share Link';
+      } else if (actionUpper.includes('VERIFIED')) {
+        const detailsLower = (log.details || '').toLowerCase();
+        if (detailsLower.includes('qr')) {
+          eventType = 'VerifiedByQR';
+          title = 'Credential Verified via QR / ID Lookup';
+          method = 'QR Scan';
+        } else if (detailsLower.includes('pdf')) {
+          eventType = 'VerifiedByCertificateID';
+          title = 'Credential Verified via PDF Fingerprint';
+          method = 'PDF Upload';
+        } else {
+          eventType = 'VerifiedByCertificateID';
+          title = 'Credential Verified on Public Portal';
+          method = 'Direct ID Search';
+        }
+      }
+
+      return {
+        id: log._id.toString(),
+        timestamp: new Date(log.createdAt).toLocaleString('en-US', {
+          month: 'short',
+          day: 'numeric',
+          year: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit',
+        }),
+        eventType,
+        title,
+        description: log.details || `${log.action} on ${log.targetId}`,
+        certId: log.targetId || certIds[0] || '',
+        method,
+        txHash: log.transactionHash || undefined,
+        actorRole: log.actorRole || undefined,
+      };
+    });
 
     return NextResponse.json({
       success: true,
       profile,
       certificates,
+      shareLinks,
+      auditLogs,
     });
   } catch (error) {
     console.error('Error fetching student profile from database:', error);

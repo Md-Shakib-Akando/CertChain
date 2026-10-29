@@ -76,13 +76,7 @@ export function WorkspaceSidebar<T extends string = string>({
         )}
       </div>
 
-      {/* Role Governance Scope Callout */}
-      <div className="mx-3 my-3 p-3 rounded-xl bg-night-2 border border-night-line text-[11px] text-night-muted leading-relaxed shrink-0">
-        <span className="font-semibold text-seal block mb-0.5 uppercase tracking-wider text-[10px]">
-          {scopeTitle}
-        </span>
-        {scopeDescription}
-      </div>
+
 
       {/* Navigation Links */}
       <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto scrollbar-none">
@@ -121,12 +115,12 @@ export function WorkspaceSidebar<T extends string = string>({
                       item.badgeTone === 'warning'
                         ? 'bg-amber-500/15 text-amber-300 border-amber-500/30'
                         : item.badgeTone === 'danger'
-                        ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
-                        : item.badgeTone === 'success'
-                        ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
-                        : item.badgeTone === 'seal'
-                        ? 'bg-amber-500/15 text-amber-200 border-amber-400/30'
-                        : 'bg-night-2 text-night-text border-night-line'
+                          ? 'bg-rose-500/15 text-rose-300 border-rose-500/30'
+                          : item.badgeTone === 'success'
+                            ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/30'
+                            : item.badgeTone === 'seal'
+                              ? 'bg-amber-500/15 text-amber-200 border-amber-400/30'
+                              : 'bg-night-2 text-night-text border-night-line'
                     )}
                   >
                     {item.badge}
@@ -280,16 +274,7 @@ export const WorkspaceTopHeader: React.FC<WorkspaceTopHeaderProps> = ({
             <span>/</span>
             <span className="text-brand font-semibold capitalize truncate">{breadcrumbSection}</span>
           </div>
-          <div className="flex items-baseline gap-2 min-w-0">
-            <h2 className="text-sm sm:text-base font-serif font-semibold text-ink truncate">
-              {title}
-            </h2>
-            {subtitle && (
-              <span className="text-xs text-muted truncate hidden xl:inline">
-                — {subtitle}
-              </span>
-            )}
-          </div>
+
         </div>
       </div>
 
@@ -297,21 +282,7 @@ export const WorkspaceTopHeader: React.FC<WorkspaceTopHeaderProps> = ({
       <div className="flex items-center gap-2 sm:gap-2.5 shrink-0">
         {quickActions && <div className="hidden md:flex items-center gap-2">{quickActions}</div>}
 
-        <div className="hidden sm:inline-flex">
-          <Badge tone="success" size="sm" dot>
-            Sepolia Ledger
-          </Badge>
-        </div>
 
-        <IconButton
-          label="Refresh workspace data"
-          variant="secondary"
-          size="sm"
-          onClick={onRefresh}
-          disabled={isLoading}
-        >
-          <RefreshCw className={cn('w-4 h-4', isLoading && 'animate-spin text-brand')} />
-        </IconButton>
 
         {onNotificationClick && (
           <div className="relative">

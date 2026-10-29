@@ -125,7 +125,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({
       success: false,
       status: 'NOT_FOUND',
-      message: 'No matching certificate found with this cryptographic fingerprint on the blockchain.',
+      message: 'Invalid PDF document. This cryptographic SHA-256 fingerprint is not registered on the university blockchain ledger.',
       computedHash: cleanHash,
     }, { status: 404 });
   } catch (error) {

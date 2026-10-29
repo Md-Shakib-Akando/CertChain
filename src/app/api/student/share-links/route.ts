@@ -42,10 +42,12 @@ export async function POST(req: NextRequest) {
 
     const {
       certId,
+      certType,
       createdBy = 'STUDENT',
       recipientLabel = 'Prospective Employer',
       durationHours = 24,
       maxViews = null,
+      includeDetails = false,
     } = body;
 
     if (!certId) {
@@ -56,6 +58,12 @@ export async function POST(req: NextRequest) {
     if (!cert) {
       return NextResponse.json({ success: false, message: 'Certificate not found' }, { status: 404 });
     }
+
+    const resolvedCreatedBy =
+      createdBy && createdBy !== 'STUDENT'
+        ? createdBy
+        : cert.studentId || cert.studentEmail || 'STUDENT';
+    const resolvedCertType = certType || cert.type || 'Degree Certificate';
 
     // 1. Generate 32 secure random bytes for token
     const token = crypto.randomBytes(32).toString('hex');
@@ -69,12 +77,15 @@ export async function POST(req: NextRequest) {
     // 4. Save to Database
     const newShareLink = await ShareLink.create({
       certId,
+      certType: resolvedCertType,
+      token,
       tokenHash,
-      createdBy,
+      createdBy: resolvedCreatedBy,
       recipientLabel,
       durationHours,
       expiresAt,
       maxViews,
+      includeDetails: Boolean(includeDetails),
       status: 'active',
       viewCount: 0,
     });
@@ -136,6 +147,20 @@ export async function DELETE(req: NextRequest) {
       { status: 'revoked', revokedAt: new Date() },
       { new: true }
     );
+
+    if (updated) {
+      try {
+        await AuditLog.create({
+          actorRole: 'student',
+          action: 'SHARE_LINK_CANCELLED',
+          targetType: 'certificate',
+          targetId: updated.certId,
+          targetReference: updated.recipientLabel,
+          outcome: 'success',
+          details: `Student revoked public access token for ${updated.recipientLabel} (${updated.certId}). URL rendered inactive.`,
+        });
+      } catch {}
+    }
 
     return NextResponse.json({ success: true, message: 'Share link revoked', link: updated });
   } catch (error) {
